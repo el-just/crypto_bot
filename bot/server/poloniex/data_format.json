@@ -1,0 +1,48 @@
+{
+    "ticker": [
+        "currencyPair",
+        "last",
+        "lowestAsk",
+        "highestBid",
+        "percentChange",
+        "baseVolume",
+        "quoteVolume",
+        "isFrozen",
+        "24hrHigh",
+        "24hrLow"
+    ],
+    "chart": [
+        "date",
+        "high",
+        "low",
+        "open",
+        "close",
+        "volume",
+        "quoteVolume",
+        "weightedAverage"
+    ],
+    "links":[
+        "ticker": [
+            "name",
+            "close_bid",
+            "lowest_ask",
+            "highest_bid",
+            null,
+            "demand_value",
+            "supply_value",
+            null,
+            null
+        ],
+        "chart": [
+            "unix_time",
+            "name",
+            "highest_bid",
+            "lowest_ask",
+            null,
+            "last_bid",
+            "demand_value",
+            "supply_value",
+            null
+        ]
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    "stock_frame": {
+        "names": [
+            "frame_date",
+            "unix_time",
+            "name",
+
+            "lowest_ask",
+            "highest_bid",
+            "last_bid",
+
+            "supply_value",
+            "demand_value"
+        ],
+        "types": [
+            "Date",
+            "DateTime",
+            "Enum8": [],
+            
+            "Float32",
+            "Float32",
+            "Float32",
+
+            "Float32",
+            "Float32"
+        ]
+    }
+}
