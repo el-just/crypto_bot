@@ -1,20 +1,41 @@
-const http = require('http');
-const Router = require('./router.js');
-const WebSocketServer = require('./sockets/web_browser.js');
+// const http = require('http');
+// const Router = require('./router.js');
+// const WebSocketServer = require('./sockets/web_browser.js');
+const PoloniexSocket = require('./poloniex/socket.js');
 
-const hostname = '0.0.0.0';
-const port = 3000;
+// const hostname = '0.0.0.0';
+// const port = 3000;
 
-var
-  router = new Router ();
+// var
+//   router = new Router ();
 
-const server = http.createServer((req, res) => {
-  console.log ('Request accepted');
-  router.resolveAction (req).then ((actionResult) => {
-    router.responseClient(req, res, actionResult);
-  });
-});
+// const server = http.createServer((req, res) => {
+//   console.log ('Request accepted');
+//   router.resolveAction (req).then ((actionResult) => {
+//     router.responseClient(req, res, actionResult);
+//   });
+// });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+// server.listen(port, hostname, () => {
+//   console.log(`Server running at http://${hostname}:${port}/`);
+// });
+
+poloniex_socket = new PoloniexSocket ();
+poloniex_socket.listen((ticker_data) => {
+    var param_sequence = [
+        "currencyPair",
+        "last",
+        "lowestAsk",
+        "highestBid",
+        "percentChange",
+        "baseVolume",
+        "quoteVolume",
+        "isFrozen",
+        "24hrHigh",
+        "24hrLow"
+        ];
+
+    ticker_data.forEach ((ticker_param, index) => {
+        console.log (param_sequence[index] + ' = ' + ticker_param);        
+    });
 });

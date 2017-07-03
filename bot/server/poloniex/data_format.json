@@ -21,7 +21,7 @@
         "quoteVolume",
         "weightedAverage"
     ],
-    "links":[
+    "links":{
         "ticker": [
             "name",
             "close_bid",
@@ -44,5 +44,5 @@
             "supply_value",
             null
         ]
-    ]
+    }
 }
