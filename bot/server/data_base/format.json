@@ -1,28 +1,46 @@
 {
     "stock_frame": {
         "names": [
-            "frame_date",
+            "date",
             "unix_time",
             "name",
 
+            "close_bid",
             "lowest_ask",
             "highest_bid",
-            "last_bid",
 
+            "percent_change",
+
+            "demand_value",
             "supply_value",
-            "demand_value"
+
+            "is_frozen",
+
+            "24hr_low",
+            "24hr_high"
         ],
         "types": [
             "Date",
             "DateTime",
-            "Enum8": [],
+            "Enum8",
             
             "Float32",
             "Float32",
             "Float32",
 
             "Float32",
+
+            "Float32",
+            "Float32",
+
+            "Boolean",
+
+            "Float32",
             "Float32"
         ]
+    },
+
+    "currencies": {
+        
     }
 }

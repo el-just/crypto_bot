@@ -27,11 +27,12 @@
             "close_bid",
             "lowest_ask",
             "highest_bid",
-            null,
+            "percent_change",
             "demand_value",
             "supply_value",
-            null,
-            null
+            "is_frozen",
+            "24hr_low",
+            "24hr_high"
         ],
         "chart": [
             "unix_time",

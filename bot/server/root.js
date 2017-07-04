@@ -1,7 +1,7 @@
 // const http = require('http');
 // const Router = require('./router.js');
 // const WebSocketServer = require('./sockets/web_browser.js');
-const PoloniexSocket = require('./poloniex/socket.js');
+const Poloniex = require('./poloniex/poloniex.js');
 
 // const hostname = '0.0.0.0';
 // const port = 3000;
@@ -20,22 +20,23 @@ const PoloniexSocket = require('./poloniex/socket.js');
 //   console.log(`Server running at http://${hostname}:${port}/`);
 // });
 
-poloniex_socket = new PoloniexSocket ();
-poloniex_socket.listen((ticker_data) => {
-    var param_sequence = [
-        "currencyPair",
-        "last",
-        "lowestAsk",
-        "highestBid",
-        "percentChange",
-        "baseVolume",
-        "quoteVolume",
-        "isFrozen",
-        "24hrHigh",
-        "24hrLow"
-        ];
+// poloniex_socket.listen((ticker_data) => {
+//     var param_sequence = [
+//         "currencyPair",
+//         "last",
+//         "lowestAsk",
+//         "highestBid",
+//         "percentChange",
+//         "baseVolume",
+//         "quoteVolume",
+//         "isFrozen",
+//         "24hrHigh",
+//         "24hrLow"
+//         ];
 
-    ticker_data.forEach ((ticker_param, index) => {
-        console.log (param_sequence[index] + ' = ' + ticker_param);        
-    });
-});
+//     ticker_data.forEach ((ticker_param, index) => {
+//         console.log (param_sequence[index] + ' = ' + ticker_param);        
+//     });
+// });
+
+Poloniex.updateCurrencies();
