@@ -1,7 +1,8 @@
 // const http = require('http');
 // const Router = require('./router.js');
 // const WebSocketServer = require('./sockets/web_browser.js');
-const Poloniex = require('./poloniex/poloniex.js');
+//const Poloniex = require('./poloniex/poloniex.js');
+const DataBase = require('./data_base/data_base.js');
 
 // const hostname = '0.0.0.0';
 // const port = 3000;
@@ -39,4 +40,8 @@ const Poloniex = require('./poloniex/poloniex.js');
 //     });
 // });
 
-Poloniex.updateCurrencies();
+//Poloniex.updateCurrencies();
+
+DataBase.request ('SELECT 1').then ((response) => {
+	console.log (response);
+});
