@@ -49,12 +49,12 @@ var
 fs.readFile('./data_base/create_table_currencies.sql', 'utf8', function (err,data) {
 	if (err) {
 		console.log(err);
-		reject (err);
 	}
-
-	DataBase.request (data).then ((response) => {
-		console.log (response);
-	});	
+	else {
+		DataBase.request (data).then ((response) => {
+			console.log (response);
+		});	
+	}
 });
 
 
