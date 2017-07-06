@@ -3,7 +3,9 @@ function DataBase () {
 
 	this.request = function (request) {
 		return new Promise ((resolve, reject) => {
-			_socket.send (request).then
+			_socket.send (request).then ((response) => {
+				resolve (response);
+			});
 		});
 	}
 }
