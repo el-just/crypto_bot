@@ -26,7 +26,7 @@ function Socket () {
                     });
                 });
 
-            post_req.write ('SELECT 1');
+            post_req.write (request);
             post_req.end ();
         });
     }

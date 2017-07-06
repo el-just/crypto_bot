@@ -42,6 +42,19 @@ const DataBase = require('./data_base/data_base.js');
 
 //Poloniex.updateCurrencies();
 
-DataBase.request ('SELECT 1').then ((response) => {
-	console.log (response);
+
+var
+	fs = require('fs');
+
+fs.readFile('./data_base/create_table_currencies.sql', 'utf8', function (err,data) {
+	if (err) {
+		console.log(err);
+		reject (err);
+	}
+
+	DataBase.request (data).then ((response) => {
+		console.log (response);
+	});	
 });
+
+
