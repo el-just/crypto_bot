@@ -1,3 +1,5 @@
+const Socket = require('./data_base/socket.js');
+
 function DataBase () {
 	var _socket = new Socket ();
 
