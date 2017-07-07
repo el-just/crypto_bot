@@ -20,7 +20,9 @@ function Table (name, format) {
             }, ''),
             query = 'CREATE TABLE IF NOT EXISTS '+this.owner.name+'.'+name+' ('+fields+')';
 
-        this.owner.request (query);
+        this.owner.request (query).then ((result)=>{
+            console.log (result)
+        });
     }
 
     this.insert = function () {

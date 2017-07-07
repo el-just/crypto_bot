@@ -8,6 +8,7 @@ function DataBase () {
 	this.name = 'ej';
 
 	this.request = function (request) {
+		console.log ('About to send request: ' + request);
 		return new Promise ((resolve, reject) => {
 			_socket.send (request).then ((response) => {
 				resolve (response);

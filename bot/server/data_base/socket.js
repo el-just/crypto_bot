@@ -22,6 +22,7 @@ function Socket () {
                     res.on('data', (chunk) => {
                         body_chunks.push(chunk);
                     }).on('end', () => {
+                        console.log ('End.');
                         resolve (Buffer.concat(body_chunks).toString('utf8'));
                     });
                 });
