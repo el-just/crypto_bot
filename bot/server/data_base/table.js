@@ -18,7 +18,7 @@ function Table (name, format) {
                     return previousValue + ' ' + commonPart + ', ';
                 }
             }, ''),
-            query = 'CREATE TABLE IF NOT EXISTS '+this.owner.name+'.'+name+' ('+fields+')';
+            query = 'CREATE TABLE IF NOT EXISTS '+this.owner.name+'.'+name+' ('+fields+')'+' ENGINE = MergeTree ('+this.format.date_field+', ('+this.format.key_fields+'), 8192)';
 
         this.owner.request (query).then ((result)=>{
             console.log (result)

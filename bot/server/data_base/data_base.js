@@ -44,7 +44,9 @@ function DataBase () {
 	        "UInt8",
 	        "UInt8",
 	        "String"
-	    ]
+	    ],
+	    "date_field": "modify_date",
+	    "key_fields": "modify_date, name, imprint"
 	});
 	this.currencies.owner = this;
 }
