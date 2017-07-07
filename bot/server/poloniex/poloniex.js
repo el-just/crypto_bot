@@ -1,4 +1,5 @@
 const PoloniexSocket = require('./socket.js');
+const DataBase = require('../data_base/data_base.js');
 
 function Poloniex () {
     var
@@ -6,8 +7,7 @@ function Poloniex () {
 
     this.updateCurrencies = function () {
         _socket.returnCurrencies().then ((currencies) => {
-            
-            console.log(currencies.length);
+        	DataBase.currencies.insert (currencies)
         });
     }
 }

@@ -41,6 +41,33 @@
     },
 
     "currencies": {
-        
+        "names": [
+            "modify_date",
+            "modify_time",
+            "name",
+            "full_name",
+            "id",
+            "tax_fee",
+            "min_conf",
+            "deposit_address",
+            "is_disabled",
+            "is_delisted",
+            "is_frozen",
+            "imprint"
+        ],
+        "types": [
+            "Date",
+            "DateTime",
+            "String",
+            "String",
+            "UInt32",
+            "Float64",
+            "UInt32",
+            "String",
+            "UInt8",
+            "UInt8",
+            "UInt8",
+            "String"
+        ]
     }
 }

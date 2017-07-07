@@ -41,20 +41,20 @@ const DataBase = require('./data_base/data_base.js');
 // });
 
 //Poloniex.updateCurrencies();
+DataBase.currencies.create();
 
+// var
+// 	fs = require('fs');
 
-var
-	fs = require('fs');
-
-fs.readFile('./data_base/create_table_currencies.sql', 'utf8', function (err,data) {
-	if (err) {
-		console.log(err);
-	}
-	else {
-		DataBase.request (data).then ((response) => {
-			console.log (response);
-		});	
-	}
-});
+// fs.readFile('./data_base/create_table_currencies.sql', 'utf8', function (err,data) {
+// 	if (err) {
+// 		console.log(err);
+// 	}
+// 	else {
+// 		DataBase.request (data).then ((response) => {
+// 			console.log (response);
+// 		});	
+// 	}
+// });
 
 
