@@ -45,10 +45,10 @@ function Table (name, format) {
 
                 currentValue.modify_date = new Date ().setHours (0,0,0,0)/1000;
                 currentValue.modify_time = currentTime;
-                return previousValue + JSON.stringify(currentValue) + '\n';
+                return previousValue + JSON.stringify(currentValue) + ' ';
             }, ''),
 
-            query = 'INSERT INTO '+this.owner.name+'.'+name+' FORMAT JSONEachRow\n'+"'"+formated_data+"'";
+            query = 'INSERT INTO '+this.owner.name+'.'+name+' FORMAT JSONEachRow '+formated_data;
 
         this.owner.request (query).then ((result)=>{
             console.log (result);
