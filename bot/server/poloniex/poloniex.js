@@ -7,7 +7,7 @@ function Poloniex () {
 
     this.updateCurrencies = function () {
         _socket.returnCurrencies().then ((currencies) => {
-        	DataBase.currencies.insert (currencies)
+        	DataBase.currencies.insertList (currencies)
         });
     }
 }
