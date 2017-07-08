@@ -43,8 +43,8 @@ function Table (name, format) {
 
                 currentValue.imprint = crypto.createHmac('sha256', self.name).update(text_row).digest('hex');
 
-                currentValue.modify_date = new Date ().setHours (0,0,0,0)/1000;
-                currentValue.modify_time = currentTime;
+                currentValue.modify_date = (new Date ().setHours (0,0,0,0)/1000)+'';
+                currentValue.modify_time = currentTime+'';
                 return previousValue + JSON.stringify(currentValue) + ' ';
             }, ''),
 
