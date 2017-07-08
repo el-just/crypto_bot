@@ -48,7 +48,7 @@ function Table (name, format) {
                 return previousValue + JSON.stringify(currentValue) + '\n';
             }, ''),
 
-            query = 'INSERT INTO '+this.owner.name+'.'+name+' FORMAT JSONEachRow\n'+'\''+formated_data+'\'';
+            query = 'INSERT INTO '+this.owner.name+'.'+name+' FORMAT JSONEachRow\n'+"'"+formated_data+"'";
 
         this.owner.request (query).then ((result)=>{
             console.log (result);
