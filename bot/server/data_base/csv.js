@@ -12,7 +12,7 @@ function CSV () {
     }
 
     function toString (value) {
-        return '\''+(value?value.replace('\'', '\'\''):'')+'\''
+        return '\''+(value?value.replace('\'', '\'\''):'NULL')+'\''
     }
 
     function toInt (value) {
