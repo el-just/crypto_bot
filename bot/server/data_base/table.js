@@ -71,7 +71,7 @@ function Table (name, format) {
 
         this.owner.request (query).then ((result)=>{
             if (result.length > 0) {
-                console.log (JSON.parse (result).length);
+                console.log (JSON.parse (result));
             }
         });
     }
