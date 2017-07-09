@@ -62,6 +62,7 @@ function Table (name, format) {
 
     this.excludeExisted = function (list) {
         var
+            self = this,
             imprints = list.reduce ((query_text, row, idx)=>{
                 var
                     common_query = query_text + '\'' + getHash (row) + '\'';
@@ -69,17 +70,19 @@ function Table (name, format) {
             }, ''),
             query = 'SELECT groupArray(name) FROM (SELECT DISTINCT name, imprint FROM ej.currencies ORDER BY modify_date ASC) WHERE imprint IN ('+imprints+')'+' FORMAT CSV';
 
-        this.owner.request (query).then ((result)=>{
-            if (result.length > 0) {
-                result = result.replace (/["\[\]\']/g,'').split(',');
-                console.log (list.reduce((excluded_list, row, idx) => {
-                    if (result.findIndex ((name)=>{return name === row.name}) === -1) {
-                        excluded_list.push (row);
-                    }
+        return new Promise ((resolve, reject) => {
+            self.owner.request (query).then ((result)=>{
+                if (result.length > 0) {
+                    result = result.replace (/["\[\]\']/g,'').split(',');
+                    resolve (list.reduce((excluded_list, row, idx) => {
+                        if (result.findIndex ((name)=>{return name === row.name}) === -1) {
+                            excluded_list.push (row);
+                        }
 
-                    return excluded_list;
-                }, []));
-            }
+                        return excluded_list;
+                    }, []));
+                }
+            });
         });
     }
 
