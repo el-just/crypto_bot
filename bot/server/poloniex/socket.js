@@ -79,15 +79,15 @@ function Socket () {
                 var currencies = [];
                 Object.keys(currencies_data).forEach ((currency_name) => {
                     currencies.push ({
-                        name: currency_name+'',
-                        full_name: currencies_data[currency_name]['name']+'',
-                        id: currencies_data[currency_name]['id']+'',
-                        tax_fee: currencies_data[currency_name]['txFee']+'',
-                        min_conf: currencies_data[currency_name]['minConf']+'',
-                        deposit_address: currencies_data[currency_name]['depositAddress']+'',
-                        is_disabled: currencies_data[currency_name]['disabled']+'',
-                        is_delisted: currencies_data[currency_name]['delisted']+'',
-                        is_frozen: currencies_data[currency_name]['frozen']+''
+                        name: currency_name,
+                        full_name: currencies_data[currency_name]['name'],
+                        id: currencies_data[currency_name]['id'],
+                        tax_fee: currencies_data[currency_name]['txFee'],
+                        min_conf: currencies_data[currency_name]['minConf'],
+                        deposit_address: currencies_data[currency_name]['depositAddress'],
+                        is_disabled: currencies_data[currency_name]['disabled'],
+                        is_delisted: currencies_data[currency_name]['delisted'],
+                        is_frozen: currencies_data[currency_name]['frozen']
                     });
                 });
 

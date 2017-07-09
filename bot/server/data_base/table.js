@@ -1,4 +1,6 @@
-const crypto = require('crypto');
+const crypto = require ('crypto');
+const Format = require ('./format.js');
+const CSV = require ('./csv.js');
 
 function Table (name, format) {
     this.name = name;
@@ -34,26 +36,31 @@ function Table (name, format) {
     this.insertList = function (list) {
         var
             self = this,
-            currentTime = parseInt (new Date ().getTime () / 1000, 10);
+            currentDate = new Date ();
 
-            formated_data = list.reduce ((previousValue, currentValue, index, array) => {
-                var text_row = Object.keys(currentValue).reduce ((previous_tr, row_key, rowKeyIndex, rowKeys)=>{
-                    return previous_tr+currentValue[row_key];
-                }, '');
+            list.forEach ((row, index, array) => {
+                var
+                    text_row = Object.keys(row).reduce ((previous_tr, row_key, rowKeyIndex, rowKeys)=>{
+                        return previous_tr+row[row_key];
+                    }, '');
 
-                currentValue.imprint = crypto.createHmac('sha256', self.name).update(text_row).digest('hex');
+                row.imprint = crypto.createHmac('sha256', self.name).update(text_row).digest('hex');
 
-                currentValue.modify_date = (new Date ().setHours (0,0,0,0)/1000)+'';
-                currentValue.modify_time = currentTime+'';
-                return previousValue + JSON.stringify(currentValue) + ' ';
-            }, ''),
+                row.modify_date = currentDate;
+                row.modify_time = currentDate;
+            }),
 
-            query = 'INSERT INTO '+this.owner.name+'.'+name+' FORMAT JSONEachRow '+formated_data;
+            query = 'INSERT INTO '+this.owner.name+'.'+name+' FORMAT CSV\n'+self.toCSV(list);
 
         this.owner.request (query).then ((result)=>{
             console.log (result);
         });
-    }
+    },
+
+    this.toCSV = function (list) {
+        return CSV.stringify (new Format (this.format), list);
+    };
+
 }
 
 module.exports = Table;
