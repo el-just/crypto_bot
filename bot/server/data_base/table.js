@@ -6,6 +6,15 @@ function Table (name, format) {
     this.name = name;
     this.format = format;
 
+    function getHash (row) {
+        var
+            text_row = Object.keys(row).reduce ((previous_tr, row_key, rowKeyIndex, rowKeys)=>{
+                return previous_tr+row[row_key];
+            }, '');
+
+        return crypto.createHmac('sha256', name).update(text_row).digest('hex');
+    }
+
     this.create = function () {
         var
             self = this,
@@ -39,13 +48,7 @@ function Table (name, format) {
             currentDate = new Date ();
 
             list.forEach ((row, index, array) => {
-                var
-                    text_row = Object.keys(row).reduce ((previous_tr, row_key, rowKeyIndex, rowKeys)=>{
-                        return previous_tr+row[row_key];
-                    }, '');
-
-                row.imprint = crypto.createHmac('sha256', self.name).update(text_row).digest('hex');
-
+                row.imprint = getHash (row);
                 row.modify_date = currentDate;
                 row.modify_time = currentDate;
             }),
@@ -56,6 +59,20 @@ function Table (name, format) {
             console.log (result);
         });
     },
+
+    this.excludeExisted = function (list) {
+        var
+            imprints = list.reduce ((query_text, row, idx)=>{
+                var
+                    common_query = query_text + '\'' + getHash (row) + '\'';
+                return idx < list.length - 1 ? common_query + ', ' : common_query; 
+            }, ''),
+            query = 'SELECT groupArray(name) FROM (SELECT DISTINCT name, imprint FROM ej.currencies ORDER BY modify_date ASC) WHERE imprint IN ('+imprints+')'+' FORMAT CSV';
+
+        this.owner.request (query).then ((result)=>{
+            console.log (result);
+        });
+    }
 
     this.toCSV = function (list) {
         return CSV.stringify (new Format (this.format), list);
