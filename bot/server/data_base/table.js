@@ -71,7 +71,14 @@ function Table (name, format) {
 
         this.owner.request (query).then ((result)=>{
             if (result.length > 0) {
-                console.log (result.replace (/["\[\]\']/g,'').split(','));
+                result = result.replace (/["\[\]\']/g,'').split(',');
+                console.log (list.reduce((excluded_list, row, idx) => {
+                    if (result.findIndex ((name)=>{return name === row.name}) === -1) {
+                        excluded_list.push (row);
+                    }
+
+                    return excluded_list;
+                }, []));
             }
         });
     }
