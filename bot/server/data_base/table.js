@@ -70,7 +70,9 @@ function Table (name, format) {
             query = 'SELECT groupArray(name) FROM (SELECT DISTINCT name, imprint FROM ej.currencies ORDER BY modify_date ASC) WHERE imprint IN ('+imprints+')'+' FORMAT CSV';
 
         this.owner.request (query).then ((result)=>{
-            console.log (result);
+            if (result.length > 0) {
+                console.log (JSON.parse (result).length);
+            }
         });
     }
 
