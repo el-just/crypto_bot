@@ -7,6 +7,10 @@ function Format (config) {
         });
         return structure.types[field_idx];
     }
+
+    this.getFields = function () {
+        return structure.names;
+    }
 }
 
 module.exports = Format;

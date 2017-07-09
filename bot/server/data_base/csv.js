@@ -35,7 +35,7 @@ function CSV () {
     this.stringify = function (format, data_set) {
         return data_set.reduce ((formated_data, row, index) => {
             var
-                common_text_row = Object.keys(row).reduce((text_row, field, field_idx) => {
+                common_text_row = format.getFields().reduce((text_row, field, field_idx) => {
                     var
                         common_text_row_part = text_row + transforms[format.getFieldType (field)] (row[field]);
                     
