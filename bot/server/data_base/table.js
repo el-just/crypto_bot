@@ -73,13 +73,10 @@ function Table (name, format) {
         return new Promise ((resolve, reject) => {
             self.owner.request (query).then ((result)=>{
                 if (result.length > 0) {
+                    console.log (result);
                     result = result.replace (/["\[\]\']/g,'').split(',');
                     resolve (list.reduce((excluded_list, row, idx) => {
-                        if (result.findIndex ((name)=>{return name == row.name}) === -1) {
-
-                            result.findIndex ((name)=>{console.log(name + ' = ' + row.name); return name === row.name})
-                            console.log ('===============')
-                            console.log (row.name);
+                        if (result.findIndex ((name)=>{return name === row.name}) === -1) {
                             excluded_list.push (row);
                         }
 
