@@ -39,10 +39,10 @@ function CSV () {
                     var
                         common_text_row_part = text_row + transforms[format.getFieldType (field)] (row[field]);
                     
-                    return field_idx < Object.keys(row).length - 1 ? common_text_row_part + ', ' : common_text_row_part;
+                    return field_idx < Object.keys(row).length ? common_text_row_part + ', ' : common_text_row_part;
                 }, '');
 
-            return index < data_set.length - 1 ? formated_data + common_text_row +  '\n' : formated_data + common_text_row;
+            return index < data_set.length ? formated_data + common_text_row +  '\n' : formated_data + common_text_row;
         }, '');
     }
 }
