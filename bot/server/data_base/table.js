@@ -74,9 +74,9 @@ function Table (name, format) {
             self.owner.request (query).then ((result)=>{
                 if (result.length > 0) {
                     console.log (result);
-                    result = eval(result);
+                    result = result.replace (/["\[\]\']/g,'').split(',');
                     resolve (list.reduce((excluded_list, row, idx) => {
-                        if (result.findIndex ((name)=>{return name === row.name}) === -1) {
+                        if (result.findIndex ((name)=>{return name.trim() === row.name.trim()}) === -1) {
                             excluded_list.push (row);
                         }
 
