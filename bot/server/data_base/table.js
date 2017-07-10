@@ -66,7 +66,7 @@ function Table (name, format) {
             imprints = list.reduce ((query_text, row, idx)=>{
                 var
                     common_query = query_text + '\'' + getHash (row) + '\'';
-                return idx < list.length ? common_query + ', ' : common_query; 
+                return idx < list.length - 1 ? common_query + ', ' : common_query; 
             }, ''),
             query = 'SELECT groupArray(name) FROM (SELECT DISTINCT name, imprint FROM ej.currencies ORDER BY modify_date ASC) WHERE imprint IN ('+imprints+')'+' FORMAT CSV';
 
@@ -76,6 +76,8 @@ function Table (name, format) {
                     result = result.replace (/["\[\]\']/g,'').split(',');
                     resolve (list.reduce((excluded_list, row, idx) => {
                         if (result.findIndex ((name)=>{return name === row.name}) === -1) {
+                            console.log (row.name);
+                            console.log (result);
                             excluded_list.push (row);
                         }
 
