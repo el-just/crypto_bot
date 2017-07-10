@@ -76,8 +76,10 @@ function Table (name, format) {
                     result = result.replace (/["\[\]\']/g,'').split(',');
                     resolve (list.reduce((excluded_list, row, idx) => {
                         if (result.findIndex ((name)=>{return name === row.name}) === -1) {
+
+                            result.findIndex ((name)=>{console.log(name); return name === row.name})
+                            console.log ('===============')
                             console.log (row.name);
-                            console.log (result);
                             excluded_list.push (row);
                         }
 
