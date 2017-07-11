@@ -2,9 +2,10 @@ const crypto = require ('crypto');
 const Format = require ('./format.js');
 const CSV = require ('./csv.js');
 
-function Table (name, format) {
+function Table (name, format, owner) {
     this.name = name;
     this.format = format;
+    this.owner = owner;
 
     function getHash (row) {
         var

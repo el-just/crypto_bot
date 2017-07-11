@@ -47,8 +47,40 @@ function DataBase () {
 	    ],
 	    "date_field": "modify_date",
 	    "key_fields": "modify_date, name, imprint"
-	});
-	this.currencies.owner = this;
+	}, this);
+
+	this.stock_frames = new Table ('stock_frames', {
+		"names": [
+			"modify_date",
+            "modify_time",
+            
+            "base_name",
+            "quote_name",
+
+            "close_bid",
+            "lowest_ask",
+            "highest_bid",
+
+            "base_value",
+            "quote_value",
+
+            "is_frozen"
+		],
+		"types": [
+			"Date",
+			"DateTime",
+			"Enum16",
+			"Enum16",
+			"Float64",
+			"Float64",
+			"Float64",
+
+			"Float64",
+			"Float64",
+
+			"Uint8"
+		]
+	}, this);
 }
 
 module.exports = new DataBase ();

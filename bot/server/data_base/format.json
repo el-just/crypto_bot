@@ -1,8 +1,8 @@
 {
     "stock_frame": {
         "names": [
-            "date",
-            "unix_time",
+            "modify_date",
+            "modify_time",
             "name",
 
             "close_bid",
