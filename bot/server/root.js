@@ -1,8 +1,10 @@
 // const http = require('http');
 // const Router = require('./router.js');
 // const WebSocketServer = require('./sockets/web_browser.js');
-const Poloniex = require('./poloniex/poloniex.js');
-//const DataBase = require('./data_base/data_base.js');
+//const Poloniex = require('./poloniex/poloniex.js');
+const stock_frames = require ('./data_base/tables/stock_frames.js');
+stock_frames.create ();
+
 
 // const hostname = '0.0.0.0';
 // const port = 3000;
@@ -40,8 +42,7 @@ const Poloniex = require('./poloniex/poloniex.js');
 //     });
 // });
 
-Poloniex.updateCurrencies();
-//DataBase.currencies.create();
+
 
 // var
 // 	fs = require('fs');

@@ -14,6 +14,18 @@ function Poloniex () {
         	});
         });
     }
+
+    this.getAvailableCurrencies = function () {
+    	return new Promise ((resolve, reject)=>{
+    		_socket.returnCurrencies().then ((currencies)=>{
+    			resolve (currencies.reduce ((available_currencies, currency) => {
+		    		available_currencies.push(currency.name);
+		    		return available_currencies;
+		    	}, []))
+    		});
+    	});
+    	
+    }
 }
 
 module.exports = new Poloniex ();

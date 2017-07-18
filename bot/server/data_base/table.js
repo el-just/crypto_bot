@@ -22,6 +22,10 @@ function Table (name, format, owner) {
             fields = this.format.names.reduce ((previousValue, currentValue, index, array) => {
                 var commonPart = currentValue + ' ' + self.format.types[index];
 
+                if (self.format.types[index]) {
+                    
+                }
+
                 if (index === 0) {
                     return commonPart + ','
                 }
