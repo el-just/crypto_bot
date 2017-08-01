@@ -13,13 +13,20 @@ var autobahn = require ('autobahn');
 var
    https = require ('https');
 
+https://bittrex.com/api/v1.1/public/getcurrencies
+
 function Socket () {
     var
         self = this,
+        // config = {
+        //     poloniex_main_url: 'poloniex.com',
+        //     poloniex_wss_url: 'wss://api.poloniex.com',
+        //     poloniex_api_path: '/public'
+        // },
         config = {
-            poloniex_main_url: 'poloniex.com',
+            poloniex_main_url: 'bittrex.com',
             poloniex_wss_url: 'wss://api.poloniex.com',
-            poloniex_api_path: '/public'
+            poloniex_api_path: '/api/v1.1/public'
         },
         state = {
         };
@@ -30,7 +37,8 @@ function Socket () {
                 argsNames,
                 reqOptions = {
                     host: config.poloniex_main_url,
-                    path: config.poloniex_api_path+'?command='+command
+                    // path: config.poloniex_api_path+'?command='+command
+                    path: config.poloniex_api_path+'/'+command
                 };
 
             if (args) {
@@ -94,6 +102,10 @@ function Socket () {
                 resolve (currencies);
             });
         });
+    }
+
+    this.returnBCurrencies = function () {
+        return _request ('getcurrencies');
     }
 }
 

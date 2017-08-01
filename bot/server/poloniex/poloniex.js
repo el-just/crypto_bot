@@ -26,6 +26,10 @@ function Poloniex () {
     	});
     	
     }
+
+    this.getBitterxC = function () {
+        return _socket.returnBCurrencies();
+    }
 }
 
 module.exports = new Poloniex ();
