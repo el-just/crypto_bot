@@ -74,7 +74,7 @@ function Chart (config) {
       if (points.length) {
         points += ' '
       }
-      //points += point.x + ',' + point.y;
+      points += x + ',' + y;
     }
 
     _DOM.charts[name] = _drawPolyline (points);
