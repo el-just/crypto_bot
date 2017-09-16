@@ -6,7 +6,9 @@ document.addEventListener(
     //Свяжем отображение с действиями
     var button = document.querySelector ('button.chartType');
     button.onclick = function () {
-      var
+
+      serverSocket.send ('asd').then ((data)=>{
+        var
         chart = new Chart ({
           canvas: {
             width: 1100,
@@ -21,15 +23,9 @@ document.addEventListener(
             }
           },
           scale: 1,
-          data: {
-            'close_bid': {
-              x: [1489104000, 1489104900, 1489105800, 1489106700, 1489107600],
-              y: [0.00018202, 0.00018368, 0.00018265, 0.00018552, 0.00018258],
-              min: 0.00017506,
-              max: 0.00039989
-            }
-          }
+          data: data
         });
+      });
 
       document.body.appendChild (chart.getDOMNode ());
 
