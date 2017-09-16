@@ -23,11 +23,22 @@ document.addEventListener(
             }
           },
           scale: 1,
-          data: data
+          data: {
+            'close': {
+              x: data.reduce ((result, item, idx, items)=>{
+                return result.push (item.date);
+              }, []),
+              y: data.reduce ((result, item, idx, items)=>{
+                return result.push (item.close);
+              }, []),
+              min: 0.00017506,
+              max: 0.00039989
+            }
+          }
         });
-      });
 
-      document.body.appendChild (chart.getDOMNode ());
+        document.body.appendChild (chart.getDOMNode ());
+      });
 
       document.addEventListener(
         "chart.data.recieved",
