@@ -27,10 +27,12 @@ document.addEventListener(
           data: {
             'close': {
               x: data.reduce ((result, item, idx, items)=>{
-                return result.push (item.date);
+                result.push (item.date);
+                return result;
               }, []),
               y: data.reduce ((result, item, idx, items)=>{
-                return result.push (item.close);
+                result.push (item.close);
+                return result;
               }, []),
               min: 0.00017506,
               max: 0.00039989
