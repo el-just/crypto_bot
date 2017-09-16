@@ -8,6 +8,7 @@ document.addEventListener(
     button.onclick = function () {
 
       serverSocket.send ('asd').then ((data)=>{
+        data = JSON.parse (data);
         var
         chart = new Chart ({
           canvas: {
