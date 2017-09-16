@@ -21,19 +21,19 @@ function convert (pure_ticker_data) {
 	for (tick of pure_ticker_data) {
 		ticker_data.push ({
 			'tick_date': new Date (tick.date*1000),
-		   'tick_time': new Date (tick.date*1000),
-		    
-		   'base_name': 'BTC',
-		   'quote_name': 'GAME',
+			'tick_time': new Date (tick.date*1000),
 
-		   'close_bid': tick.close,
-		   'lowest_ask': tick.low,
-		   'highest_bid': tick.high,
+			'base_name': 'BTC',
+			'quote_name': 'GAME',
 
-		   'base_value': tick.volume,
-		   'quote_value': tick.quoteVolume,
+			'close_bid': tick.close,
+			'lowest_ask': tick.low,
+			'highest_bid': tick.high,
 
-		   'is_active': 1
+			'base_value': tick.volume,
+			'quote_value': tick.quoteVolume,
+
+			'is_active': 1
 		})
 	}
 
