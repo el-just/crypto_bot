@@ -20,7 +20,14 @@ class Clickhouse ():
         return response.read()
 
     def db_exists (self, db_name):
-        query = 'show databases FORMAT CSV'
+        query = '''
+            select
+                count(name)
+            from
+                system.databases
+            where name='{db_name}'
+            format CSV
+            '''.format (db_name=db_name)
 
         connect = http.client.HTTPConnection('localhost', self.db_port)
         connect.request ('POST', '/', query)
