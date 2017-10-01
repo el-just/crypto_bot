@@ -12,6 +12,8 @@ html, body, button, div {
 
   font-family: Tahoma;
   font-size: 24px;
+
+  display: block;
 }
 
 button:hover {

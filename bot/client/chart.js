@@ -63,7 +63,8 @@ function Chart (config) {
       //var point = _resolvePoint ();
 
       var
-        x = _CONFIG.axises.x.padding + pointID*_CONFIG.scale,
+        //x = _CONFIG.axises.x.padding + pointID*_CONFIG.scale,
+        x = pointID*_CONFIG.scale,
         yR = new Math.R.Number(data.y[pointID]),
         y = _CONFIG.canvas.height - (
           (((Math.R.residual (yR, min).getValue() / stepWeight) + 1) | 0)*_CONFIG.scale
@@ -74,7 +75,7 @@ function Chart (config) {
       if (points.length) {
         points += ' '
       }
-      //points += point.x + ',' + point.y;
+      points += x + ',' + y;
     }
 
     _DOM.charts[name] = _drawPolyline (points);
