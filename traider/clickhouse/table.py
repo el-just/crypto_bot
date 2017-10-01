@@ -8,4 +8,4 @@ class Table (BaseTable):
         super (Table, self).__init__()
         print ('init clickhouse table')
 
-        self.storage.db_exists ('traider')
+        print(self.storage.db_exists ('traider'))
