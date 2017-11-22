@@ -5,19 +5,14 @@ class Clickhouse ():
     db_port = 8123
     def __init__ (self, db_name):
         self.db_name = db_name
+        print ('init clickhouse socket')
 
     def request (self, request):
-        query = '''
-            use {db_name}
-
-            {request}
-            '''.format (db_name=self.db_name)
-
         connect = http.client.HTTPConnection('localhost', self.db_port)
         connect.request ('POST', '/', query)
         response = connect.getresponse ()
 
-        return response.read()
+        return self.__decode_response ( pure_response=response.read() )
 
     def db_exists (self, db_name):
         query = '''
@@ -27,10 +22,12 @@ class Clickhouse ():
                 system.databases
             where name='{db_name}'
             format CSV
-            '''.format (db_name=db_name)
+            '''.format ( db_name=db_name )
 
-        connect = http.client.HTTPConnection('localhost', self.db_port)
-        connect.request ('POST', '/', query)
-        response = connect.getresponse ()
+        return True if self.request (query) is not None else False
 
-        return response.read()
+    def __decode_response (self, pure_response):
+        decoded_response = pure_response.decode ('utf8')
+        decoded_response = decoded_response if decoded_response is not None and len(decoded_response) > 0 else None
+
+        return decoded_response
