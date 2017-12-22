@@ -1,34 +1,29 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 frame = pd.read_csv ('./data/BTC_USD_20171121.d')
+
+frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
+frame.set_index ('timestamp', inplace=True)
+
+frame['weighted_avg'] = frame["close"].ewm(com=10).mean()
+frame['diff'] = frame['weighted_avg'].diff()
+
+#frame['weighted_avg'].plot(figsize=(12,8))
+frame['diff'].plot(figsize=(12,8))
+plt.show()
+
+'''
 
 N = 3
 frame['close_avg'] = frame[['close']].shift().rolling(N, min_periods=1).mean()
 frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
 
-#frame.set_index ('timestamp', inplace=True)
+frame.set_index ('timestamp', inplace=True)
+frame['MA7'] = frame['close_avg'].rolling(window='2400s', center=False).mean()
 
+frame[['close_avg', 'MA7']].plot(figsize=(12,8))
+print (frame['MA7'])
 
-#---line
-#plt.plot(frame['timestamp'], frame['close_avg'], '-')
-#plt.show()
-
-#---bar
-#plt.bar(frame.index, frame['volume'])
-#plt.gcf().set_size_inches(12,6)
-#plt.show()
-
-#---line + bar
-# top = plt.subplot2grid((4,4), (0, 0), rowspan=3, colspan=4)
-# top.plot(frame.index, frame['close_avg'], label='Close Avarage')
-# plt.title('BTC_USD_20171121')
-# plt.legend(loc=2)
-# bottom = plt.subplot2grid((4,4), (3,0), rowspan=1, colspan=4)
-# bottom.bar(frame.index, frame['volume'])
-# plt.title('Volume')
-# plt.gcf().set_size_inches(12,8)
-# plt.subplots_adjust(hspace=0.75)
-# plt.show()
-
-#print (frame.head())
+'''
