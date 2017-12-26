@@ -1,12 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from sources.bitfinex import listen
+from temp.code_snippets import Test
 
-money = 4000
+balance = 4000
 data = pd.DataFrame()
 buy = pd.DataFrame (columns=['value', 'amount'])
 sell = pd.DataFrame (columns=['value', 'amount'])
-for tick in list(listen()):
+for tick in list(Test().listen()):
     data = data.append (tick)
     if data.shape[0] > 1:
         current_diff = data.iloc[-2:]['close'].diff().iloc[-1]

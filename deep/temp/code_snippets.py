@@ -26,7 +26,7 @@ class Test ():
             f.close ()
 
     def get_plot (self, _type):
-        frame = pd.read_csv ('../data/BTC_USD_20171121.d')
+        frame = pd.read_csv ('./data/BTC_USD_20171121.d')
         frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
         frame.set_index ('timestamp', inplace=True)
 
@@ -62,5 +62,11 @@ class Test ():
 
         plt.show()
 
-test_source = Test()
-test_source.get_plot ('simple')
+    def listen (self):
+        frame = pd.read_csv ('./data/BTC_USD_20171121.d')
+        frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
+        frame.set_index ('timestamp', inplace=True)
+        frame['diff'] = None
+        
+        for index in range(frame.shape[0]):
+            yield frame.iloc [index]
