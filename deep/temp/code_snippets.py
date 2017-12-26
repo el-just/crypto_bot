@@ -26,9 +26,9 @@ class Test ():
             f.close ()
 
     def get_plot (self, _type):
-        frame = pd.read_csv ('./data/BTC_USD_20171121.d')
-        frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
-        frame.set_index ('timestamp', inplace=True)
+        frame = pd.read_csv ('../data/BTC_USD_20171121.d')
+        #frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
+        #frame.set_index ('timestamp', inplace=True)
 
         if _type == 'simple':
             frame['close'].plot(figsize=(12,8))
@@ -70,3 +70,5 @@ class Test ():
         
         for index in range(frame.shape[0]):
             yield frame.iloc [index]
+
+Test().get_plot ('wavg+')
