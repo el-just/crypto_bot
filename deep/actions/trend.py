@@ -3,19 +3,28 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 import math
 
+def weighted_std (tick, frame):
+    if tick.name > 0:
+        frame.loc [tick.name, 'std'] = frame.loc[:tick.name, 'weighted_avg'].std().mean()
+
 TREND_PART = 0.2
 
 frame = pd.read_csv ('../data/BTC_USD_20171121.d')
-frame['diff'] = None
+frame['std'] = None
+frame['weighted_avg'] = frame["close"].ewm(com=10).mean()
+
+frame.apply (weighted_std, args=[frame], axis=1)
+frame['std1'] = frame['weighted_avg'] + frame['std']
+frame['std2'] = frame['weighted_avg'] - frame['std']
 
 def get_trend (frame):
-    trend_frame = frame[-int(frame.shape[0]*TREND_PART):]
+    trend_frame = frame.iloc[-int(frame.shape[0]*TREND_PART):]
+    
     clf = linear_model.LinearRegression()
     clf.fit (trend_frame.loc[:,'timestamp'].values.reshape(-1,1), trend_frame.loc[:,'close'].values)
     trend_frame.loc[:,'line'] = clf.predict (trend_frame.loc[:,'timestamp'].values.reshape(-1,1))
-    trend_frame[['close', 'line']].plot(figsize=(12,8))
-    print (clf.coef_[0])
-    plt.show()
-
+      
+    trend_frame[['close', 'weighted_avg', 'std1', 'std2', 'line']].plot(figsize=(12,8))
+    plt.show()    
 
 get_trend (frame)
