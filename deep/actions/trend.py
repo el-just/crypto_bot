@@ -24,6 +24,7 @@ def get_trend (frame):
     clf = linear_model.LinearRegression()
     clf.fit (trend_frame.loc[:,'timestamp'].values.reshape(-1,1), trend_frame.loc[:,'close'].values)
 
+    trend_frame.is_copy = False
     trend_frame.loc[:, 'trend'] = clf.predict (trend_frame.loc[:,'timestamp'].values.reshape(-1,1))
       
     trend_frame[['close', 'weighted_avg', 'std1', 'std2', 'trend']].plot(figsize=(12,8))
