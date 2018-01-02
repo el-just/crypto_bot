@@ -1,4 +1,3 @@
-import pandas as pd
 import json
 
 import asyncio
@@ -20,11 +19,10 @@ async def connect():
     async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
         await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":"BTCUSD"}))
         while True:
-            f = open ('./stream.s', 'a')
+            f = open ('../data/stream.s', 'a')
             f.write (str(await websocket.recv())+'\n')
             f.close ()
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(connect())
 loop.close()
-
