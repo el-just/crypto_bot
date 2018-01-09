@@ -62,6 +62,7 @@ class Test ():
 
         plt.show()
 
+    #for tick in list(Test().listen()):
     def listen (self):
         frame = pd.read_csv ('./data/BTC_USD_20171121.d')
         frame['timestamp'] = pd.to_datetime (frame['timestamp'], unit='s')
