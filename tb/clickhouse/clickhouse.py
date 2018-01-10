@@ -1,7 +1,5 @@
 from clickhouse_driver import Client
 
-clickhouse = Client('localhost')
-
 def insert_tick (tick):
     query = '''INSERT INTO tb.ticker VALUES (toDate({timestamp}), toDateTime({timestamp}), {base}, {quot}, {close}, {volume})'''.format(
         timestamp = int(tick.at['timestamp']),
@@ -11,4 +9,5 @@ def insert_tick (tick):
         volume = tick.at['volume'],
         )
 
+    clickhouse = Client('localhost')
     clickhouse.execute (query)
