@@ -35,7 +35,6 @@ class Bitfinex ():
             tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
             
             clickhouse.insert_tick (tb_tick)
-            raise Warning ('asd')
 
     def log_error (self, error):
         f = open ('./logs/errors.log', 'a')
