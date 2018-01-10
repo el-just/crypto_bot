@@ -19,16 +19,16 @@ class Bitfinex ():
             return pure_data
 
     def register_channel (self, message):
-        channel = pd.Series (data=[message['pair'][0:3], message['pair'][3:6]], index=['base', 'quot'])
+        channel = pd.Series (data=[message['pair'][0:3].lower(), message['pair'][3:6].lower()], index=['base', 'quot'])
         channel.name = int(message['chanId'])
         self._channels = self._channels.append (channel)
 
     def process_tick (self, tick):
         if len(tick) > 2:
             tb_data = [
-                time.mktime(datetime.datetime.now().timetuple()),
-                self._channels.loc[int(tick[0])].at['base'],
-                self._channels.loc[int(tick[0])].at['quot'],
+                time.mktime(datetime.datetime.now().timetuple())*1000,
+                "'"+self._channels.loc[int(tick[0])].at['base']+"'",
+                "'"+self._channels.loc[int(tick[0])].at['quot']+"'",
                 float(tick[7]),
                 float(tick[8])
                 ]
