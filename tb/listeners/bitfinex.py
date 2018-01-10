@@ -5,11 +5,13 @@ import time
 import json
 import traceback
 import clickhouse.clickhouse as clickhouse
+from traiders.bitfinex import Traider
 
 from settings.consts import SYMBOLS
 
 class Bitfinex ():
-    _channels = pd.DataFrame (data=[], columns=['base', 'quot'])
+    _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
+    _traiders = []
 
     def parse_message (self, pure_data):
         if pure_data[0] == '{':
@@ -24,6 +26,11 @@ class Bitfinex ():
         channel.name = int(message['chanId'])
         self._channels = self._channels.append (channel)
 
+        return channel
+
+    def register_traider (self, channel):
+        self._traiders.append(Traider (channel).open())
+
     def process_tick (self, tick):
         if len(tick) > 2:
             tb_data = [
@@ -34,7 +41,7 @@ class Bitfinex ():
                 float(tick[8])
                 ]
             tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
-            
+
             clickhouse.insert_tick (tb_tick)
 
     def log_error (self, error):
@@ -45,7 +52,8 @@ class Bitfinex ():
     def route (self, message):
         if type(message) == dict:
             if message['event'] == 'subscribed':
-                self.register_channel (message)
+                channel = self.register_channel (message)
+                self.register_traider (channel)
             elif message['event'] != 'info':
                 self.log_error (str(message))
         elif type(message) == list:
