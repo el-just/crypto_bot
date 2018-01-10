@@ -1,6 +1,7 @@
 from clickhouse_driver import Client
 import datetime
 from settings.consts import SYMBOLS
+import actions.sql as sql
 
 clickhouse = Client('localhost')
 def insert_tick (tick):
@@ -28,56 +29,7 @@ def insert_tick_frame (tick_frame):
     clickhouse.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
 def get_missing_periods (base=None, quot=None, start=None, end=None):
-    available_data = clickhouse.execute ('''
-        WITH frame AS (
-            SELECT
-                tick_time,
-                base,
-                quot
-            FROM tb.ticker
-            WHERE base='{base}' AND quot='{quot}' AND tick_time >= {start} AND tick_time <= {end}
-        )
-
-
-        SELECT
-            tick_time,
-            base,
-            quot,
-            runningDifference(tick_time) AS delta
-        FROM
-        (
-            SELECT
-                *
-            FROM
-                frame
-            ORDER BY tick_time ASC
-        )
-        WHERE delta > 600
-        
-        UNION ALL
-        
-        SELECT
-            tick_time,
-            base,
-            quot,
-            runningDifference(tick_time) AS delta
-        FROM 
-            frame
-        ORDER BY tick_time ASC
-        LIMIT 1
-
-        UNION ALL
-        
-        SELECT
-            tick_time,
-            base,
-            quot,
-            runningDifference(tick_time) AS delta
-        FROM 
-            frame
-        ORDER BY tick_time DESC
-        LIMIT 1
-        '''.format (base=base, quot=quot, start=start, end=end))
+    available_data = clickhouse.execute (sql.missing_data_periods.format (base=base, quot=quot, start=start, end=end))
 
     periods = []
     if len (available_data) > 0:
