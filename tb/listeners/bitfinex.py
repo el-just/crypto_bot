@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import time
 import json
+import traceback
 import clickhouse.clickhouse as clickhouse
 
 from settings.consts import SYMBOLS
@@ -37,8 +38,8 @@ class Bitfinex ():
             clickhouse.insert_tick (tb_tick)
 
     def log_error (self, error):
-        f = open ('./logs/errors.log', 'a')
-        f.write ('{0}: {1}'.format(datetime.datetime.now().isoformat(), str(error)))
+        f = open ('./logs/errors.log', 'a+')
+        f.write ('{0}: {1}\n'.format(datetime.datetime.now().isoformat(), str(error)))
         f.close ()
 
     def route (self, message):

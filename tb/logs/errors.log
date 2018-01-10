@@ -1,0 +1,8 @@
+2018-01-10T14:02:30.888000: asd
+2018-01-10T14:03:59.837894: ('asd', 'asd')
+2018-01-10T14:06:43.913300: None
+2018-01-10T14:07:57.983706: Traceback (most recent call last):
+  File "D:\_Folder\private\dev\tb\init.py", line 7, in <module>
+    raise Warning ('asd', 'asd')
+Warning: ('asd', 'asd')
+
