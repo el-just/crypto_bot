@@ -3,6 +3,42 @@ import time
 import urllib.parse
 import asyncio
 import aiohttp
+import pandas as pd
+
+PYTHONASYNCIODEBUG=1
+
+class RestRequest ():
+    _url = 'https://api.bitfinex.com//v2/candles/trade:1m:tBTCUSD/hist?'
+    _timeline = pd.DataFrame (data=[], columns=['request'])
+    _queue = []
+    _limit = 10
+
+    def __init__ (self):
+        pass
+
+    async def make_request (self, request):
+        request.name = datetime.datetime.now()
+        self._timeline = self._timeline.append (request)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(request.at["request"]) as resp:
+                text = await resp.text()
+                f = open ('../logs/errors.log', 'a+')
+                f.write ('{}\n'.format(str(text)))
+                f.close ()
+
+    async def send_request (self, params):
+        now = datetime.datetime.now()
+
+        request = pd.Series (data=[self._url + urllib.parse.urlencode(params)], index=['request'])
+        self._timeline = self._timeline.loc [now - datetime.timedelta(minutes=1): now]
+
+        if self._timeline.loc[:, "request"].count() < self._limit:
+            await self.make_request (request)
+        else:
+            self._queue.append (request)
+            print(len(self._queue))
+            await asyncio.sleep (len(self._queue)*60)
+            await self.make_request (self._queue.pop (0))
 
 start = 1507833535
 end = 1515609535
@@ -48,7 +84,12 @@ for period in periods:
 
         step_date = end_date + default_tick_period
 
+req_processor = RestRequest()
+async def get_all_data (period):
+    for period in request_periods:
+        params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
+        await req_processor.send_request (params)
 
-for period in request_periods:
-    params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
-    print ('https://api.bitfinex.com//v2/candles/trade:1m:tBTCUSD/hist?'+urllib.parse.urlencode(params))
+ioloop = asyncio.get_event_loop()
+ioloop.run_until_complete(get_all_data(request_periods))
+ioloop.close()
