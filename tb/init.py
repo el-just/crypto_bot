@@ -1,11 +1,12 @@
 import asyncio
 import datetime
 import traceback
-from listeners.bitfinex import Bitfinex
+
+from stocks.bitfinex import Bitfinex
 
 try:
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(Bitfinex().listen())
+    loop.run_until_complete(Bitfinex().run())
     loop.close()
 except Exception as e:
     f = open ('./logs/errors.log', 'a+')
