@@ -1,5 +1,4 @@
 missing_data_periods = '''
-
     SELECT
         tick_time,
         base,
@@ -12,22 +11,10 @@ missing_data_periods = '''
             base,
             quot
         FROM tb.ticker
-        WHERE base='btc' AND quot='usd' AND tick_time >= toDateTime(1507833535) AND tick_time <= toDateTime(1515609535)
+        WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
         ORDER BY tick_time ASC
     )
-    WHERE delta > 600
-    
-    UNION ALL
-    
-    SELECT
-        tick_time,
-        base,
-        quot,
-        runningDifference(tick_time) AS delta
-    FROM 
-        frame
-    ORDER BY tick_time ASC
-    LIMIT 1
+    WHERE delta > {default_miss_time}
 
     UNION ALL
     
@@ -36,8 +23,20 @@ missing_data_periods = '''
         base,
         quot,
         runningDifference(tick_time) AS delta
-    FROM 
-        frame
+    FROM tb.ticker
+    WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
     ORDER BY tick_time DESC
+    LIMIT 1
+    
+    UNION ALL
+    
+    SELECT
+        tick_time,
+        base,
+        quot,
+        runningDifference(tick_time) AS delta
+    FROM tb.ticker
+    WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
+    ORDER BY tick_time ASC
     LIMIT 1
     '''

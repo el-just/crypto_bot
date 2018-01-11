@@ -29,7 +29,7 @@ def insert_tick_frame (tick_frame):
     clickhouse.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
 def get_missing_periods (base=None, quot=None, start=None, end=None):
-    available_data = clickhouse.execute (sql.missing_data_periods.format (base=base, quot=quot, start=start, end=end))
+    available_data = clickhouse.execute (sql.missing_data_periods.format (base=base, quot=quot, start=start, end=end, default_miss_time=600))
 
     periods = []
     if len (available_data) > 0:
