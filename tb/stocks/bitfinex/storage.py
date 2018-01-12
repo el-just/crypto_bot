@@ -9,6 +9,32 @@ class Storage ():
 
         return sql
 
+    #TODO: две нахер не нужны
+    async def insert_tick (self, tick):
+        await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', [{
+            'tick_date': datetime.datetime.fromtimestamp(tick.at['timestamp']),
+            'tick_time': datetime.datetime.fromtimestamp(tick.at['timestamp']),
+            'base': tick.at['base'],
+            'quot': tick.at['quot'],
+            'close': tick.at['close'],
+            'volume': tick.at['volume']
+            }])
+
+    async def insert_tick_frame (self, tick_frame):
+        rows = []
+        for idx, tick in tick_frame.iterrows():
+            tick.append ({
+                'tick_date': datetime.datetime.fromtimestamp(tick.at['timestamp']),
+                'tick_time': datetime.datetime.fromtimestamp(tick.at['timestamp']),
+                'base': tick.at['base'],
+                'quot': tick.at['quot'],
+                'close': tick.at['close'],
+                'volume': tick.at['volume']
+                })
+
+        await self_socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
+
+
     # TODO: разобраться с этим дерьмом
     async def get_missing_periods (self, start=None, end=None):
         missing_periods_sql = self.get_sql ('missing_periods')

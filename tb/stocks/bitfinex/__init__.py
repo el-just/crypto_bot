@@ -13,10 +13,10 @@ class Bitfinex ():
 
     async def verify_period (self):
         now = datetime.datetime.now()
-        start = time.mktime((now - datetime.timedelta (days=self._required_period)).timetuple())
-        end = time.mktime(now.timetuple())
-
-        missing_periods = await self._storage.get_missing_periods (base='btc', quot='usd', start=start, end=end)
+        missing_periods = await self._storage.get_missing_periods ({
+            'start':time.mktime((now - datetime.timedelta (days=self._required_period)).timetuple()),
+            'end': time.mktime(now.timetuple())
+            })
 
         for period in periods:
             tick_frame = await self._rest_socket.get_tick_period (period)

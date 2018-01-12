@@ -1,3 +1,8 @@
+TICK_PERIOD = 60
+
+SYMBOLS = ['usd', 'btc', 'eth', 'ltc', 'etc', 'rrt', 'zec', 'xmr', 'dsh', 'xrp', 'iot', 'eos', 'san', 'omg', 'bch', 'neo', 'etp', 'qtm', 'avt', 'edo', 'btg', 'dat', 'qsh', 'yyw', 'gnt', 'snt', 'bat', 'mna', 'fun', 'zrx', 'tnb', 'spk']
+
+'''
 #The minimum order size is 0.01 for BTC and ZEC and 0.1 for all other cryptocurrencies
 class MINIMUM_ORDER_SIZE ():
     def __init__ (self):
@@ -61,3 +66,4 @@ class WITHDRAWAL_FEES ():
 
     def __init__ (self):
         pass
+'''
