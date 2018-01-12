@@ -38,7 +38,7 @@ class Storage (Logging):
                 'volume': tick.at['volume']
                 })
 
-        self.log_info ('Insert to clickhouse request:\n\t{0}',  str(tick_frame.shape))
+        self.log_info ('Insert to clickhouse request:\n\t{0}'.format(str(tick_frame.shape)))
         await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
     # TODO: разобраться с этим дерьмом

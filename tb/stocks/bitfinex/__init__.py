@@ -26,7 +26,7 @@ class Bitfinex (Logging):
             'end': time.mktime(now.timetuple())
             })
 
-        self.log_info ('Missing periods:\n\t{0}',  str(missing_periods))
+        self.log_info ('Missing periods:\n\t{0}'.format(str(missing_periods)))
         for period in missing_periods:
             await self._rest_socket.get_tick_period (period)
 

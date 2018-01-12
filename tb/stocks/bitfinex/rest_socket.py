@@ -21,7 +21,7 @@ class RESTSocket (Logging):
         request.name = datetime.datetime.now()
         self._timeline = self._timeline.append (request)
         async with aiohttp.ClientSession() as session:
-            self.log_info ('Bitfinex request:\n\t{0}',  str(request.at["request"]))
+            self.log_info ('Bitfinex request:\n\t{0}'.format(str(request.at["request"])))
             async with session.get(request.at["request"]) as resp:
                 text = await resp.text()
                 return text
