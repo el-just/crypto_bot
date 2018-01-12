@@ -2,12 +2,12 @@ import time
 import datetime
 from aioch import Client
 
-import stocks.bitfinex.defines as DEFINES
+from stocks.bitfinex.defines import DEFINES
 
 class Storage ():
     _socket = Client ('localhost')
 
-    def get_sql (name):
+    def get_sql (self, name):
         with open('./stocks/bitfinex/sql/'+name+'.sql') as f:
             sql = f.read()
 
@@ -27,7 +27,7 @@ class Storage ():
     async def insert_tick_frame (self, tick_frame):
         rows = []
         for idx, tick in tick_frame.iterrows():
-            tick.append ({
+            rows.append ({
                 'tick_date': datetime.datetime.fromtimestamp(tick.at['timestamp']),
                 'tick_time': datetime.datetime.fromtimestamp(tick.at['timestamp']),
                 'base': tick.at['base'],
@@ -38,35 +38,34 @@ class Storage ():
 
         await self_socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
-
     # TODO: разобраться с этим дерьмом
-    async def get_missing_periods (self, start=None, end=None):
+    async def get_missing_periods (self, period):
         missing_periods_sql = self.get_sql ('missing_periods')
-        available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=start, end=end))
-        default_tick_period = 60
-        default_miss_period = 600
+        #available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', period=period))
+        available_data = [(datetime.datetime(2018, 1, 10, 11, 36, 30), 'btc', 'usd', 0), (datetime.datetime(2018, 1, 10, 15, 39, 22), 'btc', 'usd', 0), (datetime.datetime(2018, 1, 10, 14, 15, 35), 'btc', 'usd', 1223)]
         periods = []
         if len (available_data) > 0:
             #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
-            if time.mktime(available_data[0][0].timetuple()) - start > default_miss_period:
+            if time.mktime(available_data[0][0].timetuple()) - period['start'] > DEFINES.MISS_PERIOD:
                 periods.append ({
-                    'start': start,
-                    'end': time.mktime(available_data[0][0].timetuple()) - default_tick_period
+                    'start': period['start'],
+                    'end': time.mktime(available_data[0][0].timetuple()) - DEFINES.TICK_PERIOD
                     })
 
             #посмотрим есть ли пропуски
             for idx in range(2,len(available_data)):
+
                 periods.append ({
                     'start':time.mktime(available_data[idx][0].timetuple()) - int(available_data[idx][3]),
-                    'end':time.mktime(available_data[idx][0].timetuple()) - default_tick_period
+                    'end':time.mktime(available_data[idx][0].timetuple()) - DEFINES.TICK_PERIOD
                     })
             
-            if end - time.mktime(available_data[1][0].timetuple()) > default_miss_period:
+            if period['start'] - time.mktime(available_data[1][0].timetuple()) > DEFINES.MISS_PERIOD:
                 periods.append ({
-                    'start': time.mktime(available_data[1][0].timetuple())+default_tick_period,
-                    'end': end
+                    'start': time.mktime(available_data[1][0].timetuple())+DEFINES.TICK_PERIOD,
+                    'end': period['start']
                     })
         else:
-            periods.append ({'start': start, 'end': end})
+            periods.append ({'start': period['start'], 'end': period['start']})
 
         return periods

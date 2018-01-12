@@ -2,7 +2,8 @@ import json
 import time
 import datetime
 import pandas as pd
-import stocks.bitfinex.defines as DEFINES
+
+from stocks.bitfinex.defines import DEFINES
 
 class WEBSocket ():
     _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])

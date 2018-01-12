@@ -1,4 +1,7 @@
-import stocks.bitfinex.defines as DEFINES
+import time
+import datetime
+
+from stocks.bitfinex.defines import DEFINES
 
 from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
@@ -16,10 +19,10 @@ class Bitfinex ():
             'end': time.mktime(now.timetuple())
             })
 
-        for period in periods:
+        for period in missing_periods:
             tick_frame = await self._rest_socket.get_tick_period (period)
             await self._storage.insert_tick_frame (tick_frame)
 
     async def run (self):
         await self.verify_period ()
-        await self._web_socket.listen()
+        #await self._web_socket.listen()
