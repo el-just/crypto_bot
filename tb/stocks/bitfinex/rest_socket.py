@@ -62,7 +62,7 @@ class RESTSocket (Logging):
             
             period_frame = self._parse_data (period_pure_data)
             tick_period_frame = tick_period_frame.append(period_frame, ignore_index=True)
-            await self._storage.insert_tick_frame (tick_period_frame)
+            await self._storage.insert_tick_frame (period_frame)
 
         return tick_period_frame
 
