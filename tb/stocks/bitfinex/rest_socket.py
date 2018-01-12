@@ -42,9 +42,7 @@ class RESTSocket (Logging):
         return response
 
     async def get_tick_period (self, period):
-
         request_periods = []
-
         step_date = period['start']
         while step_date < period['end']:
             end_date = step_date + DEFINES.AVAILABLE_GAP if period['end'] - (step_date + DEFINES.AVAILABLE_GAP) > 0 else period['end']
