@@ -1,8 +1,8 @@
-from stocks.bitfinex.rest_socket import RESTSocket
 import stocks.bitfinex.defines as DEFINES
 
-from stocks.bitfinex.web_socket import WEBSocket
 from stocks.bitfinex.storage import Storage
+from stocks.bitfinex.rest_socket import RESTSocket
+from stocks.bitfinex.web_socket import WEBSocket
 
 class Bitfinex ():
     _storage = Storage ()

@@ -1,4 +1,8 @@
+import time
+import datetime
 from aioch import Client
+
+import stocks.bitfinex.defines as DEFINES
 
 class Storage ():
     _socket = Client ('localhost')
