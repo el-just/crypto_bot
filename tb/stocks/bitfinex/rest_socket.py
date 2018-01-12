@@ -16,7 +16,6 @@ class RESTSocket ():
         request.name = datetime.datetime.now()
         self._timeline = self._timeline.append (request)
         async with aiohttp.ClientSession() as session:
-            print (request.at["request"])
             async with session.get(request.at["request"]) as resp:
                 text = await resp.text()
                 return text
@@ -55,7 +54,7 @@ class RESTSocket ():
             period_pure_data = await self._request (self._url + self._tick_period_url, params)
             
             period_frame = self._parse_data (period_pure_data)
-            tick_period_data = tick_period_data.append(period_frame, ignore_index=True)
+            tick_period_frame = tick_period_frame.append(period_frame, ignore_index=True)
 
         return tick_period_frame
 
