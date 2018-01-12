@@ -70,6 +70,6 @@ class Storage (Logging):
                     'end': period['start']
                     })
         else:
-            periods.append ({'start': period['start'], 'end': period['start']})
+            periods.append ({'start': period['start'], 'end': period['end']})
 
         return periods
