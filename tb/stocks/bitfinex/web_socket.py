@@ -2,7 +2,7 @@ import json
 import time
 import datetime
 import pandas as pd
-import stocks.bitfinex.defines as defines
+import stocks.bitfinex.defines as DEFINES
 
 class WEBSocket ():
     _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
@@ -60,7 +60,7 @@ class WEBSocket ():
     async def listen(self):
         async with ws.connect('wss://api.bitfinex.com/ws') as websocket:
             for quot in ['usd', 'btc']:
-                for base in defines.SYMBOLS:
+                for base in DEFINES.SYMBOLS:
                     if base != 'usd' and quot != base:
                         await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
             while True:

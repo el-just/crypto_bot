@@ -1,20 +1,18 @@
 from stocks.bitfinex.rest_socket import RESTSocket
+import stocks.bitfinex.defines as DEFINES
+
 from stocks.bitfinex.web_socket import WEBSocket
 from stocks.bitfinex.storage import Storage
 
 class Bitfinex ():
     _storage = Storage ()
     _rest_socket = RESTSocket ()
-    _rest_socket = WEBSocket ()
-    _required_period = 90
-
-    def __init__ (self):
-        pass
+    _web_socket = WEBSocket ()
 
     async def verify_period (self):
         now = datetime.datetime.now()
         missing_periods = await self._storage.get_missing_periods ({
-            'start':time.mktime((now - datetime.timedelta (days=self._required_period)).timetuple()),
+            'start':time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
             'end': time.mktime(now.timetuple())
             })
 
@@ -25,5 +23,3 @@ class Bitfinex ():
     async def run (self):
         await self.verify_period ()
         await self._web_socket.listen()
-
-        
