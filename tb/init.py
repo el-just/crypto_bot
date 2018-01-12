@@ -8,4 +8,4 @@ try:
     loop.run_until_complete(Bitfinex().run())
     loop.close()
 except Exception as e:
-	Logging ().log_error (e)
+	Logging.log_error (e)

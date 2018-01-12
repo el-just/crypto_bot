@@ -4,7 +4,7 @@ import datetime
 import asyncio
 import urllib.parse
 
-from abstract.logging import Logging
+from abstract.logging import Logging, async_error_log
 from stocks.bitfinex.defines import DEFINES
 
 class RESTSocket (Logging):
@@ -17,6 +17,7 @@ class RESTSocket (Logging):
     def __init__ (self, storage):
         self._storage = storage
 
+    @async_error_log
     async def _process_request (self, request):
         request.name = datetime.datetime.now()
         self._timeline = self._timeline.append (request)
@@ -26,6 +27,7 @@ class RESTSocket (Logging):
                 text = await resp.text()
                 return text
 
+    @async_error_log
     async def _request (self, url, params):
         now = datetime.datetime.now()
 
@@ -41,6 +43,7 @@ class RESTSocket (Logging):
 
         return response
 
+    @async_error_log
     async def get_tick_period (self, period):
         request_periods = []
         step_date = period['start']

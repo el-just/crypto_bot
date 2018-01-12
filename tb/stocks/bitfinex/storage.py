@@ -3,7 +3,7 @@ import datetime
 
 from aioch import Client
 
-from abstract.logging import Logging
+from abstract.logging import Logging, async_error_log
 from stocks.bitfinex.defines import DEFINES
 
 class Storage (Logging):
@@ -16,6 +16,7 @@ class Storage (Logging):
         return sql
 
     #TODO: две нахер не нужны
+    @async_error_log
     async def insert_tick (self, tick):
         await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', [{
             'tick_date': datetime.datetime.fromtimestamp(tick.at['timestamp']),
@@ -26,6 +27,7 @@ class Storage (Logging):
             'volume': tick.at['volume']
             }])
 
+    @async_error_log
     async def insert_tick_frame (self, tick_frame):
         rows = []
         for idx, tick in tick_frame.iterrows():
@@ -42,6 +44,7 @@ class Storage (Logging):
         await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
     # TODO: разобраться с этим дерьмом
+    @async_error_log
     async def get_missing_periods (self, period):
         missing_periods_sql = self.get_sql ('missing_periods')
         available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
