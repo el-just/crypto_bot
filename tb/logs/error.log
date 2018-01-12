@@ -261,3 +261,18 @@ TypeError: Can only append a Series if ignore_index=True or if the Series has a 
     raise Warning ('asd')
 Warning: asd
 
+2018-01-12T16:55:08.950381: Traceback (most recent call last):
+  File "D:\_Folder\private\dev\tb\init.py", line 9, in <module>
+    loop.run_until_complete(Bitfinex().run())
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\asyncio\base_events.py", line 467, in run_until_complete
+    return future.result()
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\__init__.py", line 31, in run
+    await self.verify_period ()
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\__init__.py", line 28, in verify_period
+    await self._rest_socket.get_tick_period (period)
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\rest_socket.py", line 63, in get_tick_period
+    await self._storage.insert_tick_frame (tick_period_frame)
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\storage.py", line 39, in insert_tick_frame
+    await self_socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
+NameError: name 'self_socket' is not defined
+

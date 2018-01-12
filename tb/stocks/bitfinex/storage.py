@@ -36,7 +36,7 @@ class Storage ():
                 'volume': tick.at['volume']
                 })
 
-        await self_socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
+        await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
     # TODO: разобраться с этим дерьмом
     async def get_missing_periods (self, period):

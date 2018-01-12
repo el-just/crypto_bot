@@ -8,9 +8,14 @@ from stocks.bitfinex.rest_socket import RESTSocket
 from stocks.bitfinex.web_socket import WEBSocket
 
 class Bitfinex ():
-    _storage = Storage ()
-    _rest_socket = RESTSocket ()
-    _web_socket = WEBSocket ()
+    _storage = None
+    _rest_socket = None
+    _web_socket = None
+
+    def __init__ (self):
+        self._storage = Storage ()
+        self._rest_socket = RESTSocket (self._storage)
+        self._web_socket = WEBSocket ()
 
     async def verify_period (self):
         now = datetime.datetime.now()
@@ -20,8 +25,7 @@ class Bitfinex ():
             })
 
         for period in missing_periods:
-            tick_frame = await self._rest_socket.get_tick_period (period)
-            await self._storage.insert_tick_frame (tick_frame)
+            await self._rest_socket.get_tick_period (period)
 
     async def run (self):
         await self.verify_period ()

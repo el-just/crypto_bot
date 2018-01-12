@@ -11,6 +11,10 @@ class RESTSocket ():
     _tick_period_url = 'candles/trade:1m:tBTCUSD/hist?'
     _timeline = pd.DataFrame (data=[], columns=['request'])
     _queue = []
+    _storage = None
+
+    def __init__ (self, storage):
+        self._storage = storage
 
     async def _process_request (self, request):
         request.name = datetime.datetime.now()
@@ -36,6 +40,7 @@ class RESTSocket ():
         return response
 
     async def get_tick_period (self, period):
+
         request_periods = []
 
         step_date = period['start']
@@ -55,6 +60,7 @@ class RESTSocket ():
             
             period_frame = self._parse_data (period_pure_data)
             tick_period_frame = tick_period_frame.append(period_frame, ignore_index=True)
+            await self._storage.insert_tick_frame (tick_period_frame)
 
         return tick_period_frame
 
