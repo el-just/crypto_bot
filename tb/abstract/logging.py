@@ -10,5 +10,5 @@ class Logging ():
 
     def log_info (self, message):
         f = open ('./logs/info.log', 'a+')
-        f.write ('{0}:\n{1}'.format(datetime.datetime.now().isoformat(), message))
+        f.write ('{0}:\n\t{1}\n'.format(datetime.datetime.now().isoformat(), message))
         f.close ()

@@ -68,9 +68,7 @@ class RESTSocket (Logging):
 
     def _parse_data (self, pure_data):
         if pure_data[0] != '[':
-            f = open ('./logs/error.log', 'a+')
-            f.write ('{0}: {1}\n'.format(datetime.datetime.now().isoformat(), str(pure_data)))
-            f.close ()
+            self.log_error (str(pure_data))
         frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
         for tick_data in [text_array.split(',') for text_array in pure_data[2:-2].split('],[')]:
             tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'])
