@@ -276,3 +276,50 @@ Warning: asd
     await self_socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 NameError: name 'self_socket' is not defined
 
+2018-01-12T18:25:32.208075: 'default_miss_time'
+Traceback (most recent call last):
+  File "D:\_Folder\private\dev\tb\init.py", line 8, in <module>
+    loop.run_until_complete(Bitfinex().run())
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\asyncio\base_events.py", line 467, in run_until_complete
+    return future.result()
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\__init__.py", line 34, in run
+    await self.verify_period ()
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\__init__.py", line 26, in verify_period
+    'end': time.mktime(now.timetuple())
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\storage.py", line 47, in get_missing_periods
+    available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end']))
+KeyError: 'default_miss_time'
+2018-01-12T18:28:06.019075: Code: 210. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение (localhost:9000)
+Traceback (most recent call last):
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\clickhouse_driver\connection.py", line 177, in connect
+    self.socket = self._create_socket()
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\clickhouse_driver\connection.py", line 164, in _create_socket
+    raise err
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\clickhouse_driver\connection.py", line 155, in _create_socket
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\_Folder\private\dev\tb\init.py", line 8, in <module>
+    loop.run_until_complete(Bitfinex().run())
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\asyncio\base_events.py", line 467, in run_until_complete
+    return future.result()
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\__init__.py", line 34, in run
+    await self.verify_period ()
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\__init__.py", line 26, in verify_period
+    'end': time.mktime(now.timetuple())
+  File "D:\_Folder\private\dev\tb\stocks\bitfinex\storage.py", line 47, in get_missing_periods
+    available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\aioch\client.py", line 92, in execute
+    **kwargs)
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\concurrent\futures\thread.py", line 56, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\clickhouse_driver\client.py", line 159, in execute
+    self.connection.force_connect()
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\clickhouse_driver\connection.py", line 122, in force_connect
+    self.connect()
+  File "C:\Users\au.pohila\AppData\Local\Programs\Python\Python36-32\lib\site-packages\clickhouse_driver\connection.py", line 202, in connect
+    '{} ({})'.format(e.strerror, self.get_description())
+clickhouse_driver.errors.NetworkError: Code: 210. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение (localhost:9000)

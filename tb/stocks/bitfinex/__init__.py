@@ -1,13 +1,15 @@
 import time
 import datetime
 
+from abstract.logging import Logging
+
 from stocks.bitfinex.defines import DEFINES
 
 from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
 from stocks.bitfinex.web_socket import WEBSocket
 
-class Bitfinex ():
+class Bitfinex (Logging):
     _storage = None
     _rest_socket = None
     _web_socket = None
@@ -24,6 +26,7 @@ class Bitfinex ():
             'end': time.mktime(now.timetuple())
             })
 
+        self.log_info ('Missing periods:\n\t{0}',  str(missing_periods))
         for period in missing_periods:
             await self._rest_socket.get_tick_period (period)
 

@@ -1,10 +1,12 @@
 import time
 import datetime
+
 from aioch import Client
 
+from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
-class Storage ():
+class Storage (Logging):
     _socket = Client ('localhost')
 
     def get_sql (self, name):
@@ -36,13 +38,13 @@ class Storage ():
                 'volume': tick.at['volume']
                 })
 
+        self.log_info ('Insert to clickhouse request:\n\t{0}',  str(tick_frame.shape))
         await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
     # TODO: разобраться с этим дерьмом
     async def get_missing_periods (self, period):
         missing_periods_sql = self.get_sql ('missing_periods')
-        #available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', period=period))
-        available_data = [(datetime.datetime(2018, 1, 10, 11, 36, 30), 'btc', 'usd', 0), (datetime.datetime(2018, 1, 10, 15, 39, 22), 'btc', 'usd', 0), (datetime.datetime(2018, 1, 10, 14, 15, 35), 'btc', 'usd', 1223)]
+        available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
         periods = []
         if len (available_data) > 0:
             #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
@@ -54,7 +56,6 @@ class Storage ():
 
             #посмотрим есть ли пропуски
             for idx in range(2,len(available_data)):
-
                 periods.append ({
                     'start':time.mktime(available_data[idx][0].timetuple()) - int(available_data[idx][3]),
                     'end':time.mktime(available_data[idx][0].timetuple()) - DEFINES.TICK_PERIOD

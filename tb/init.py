@@ -1,6 +1,5 @@
 import asyncio
-import datetime
-import traceback
+from abstract.logging import Logging
 
 from stocks.bitfinex import Bitfinex
 
@@ -9,6 +8,4 @@ try:
     loop.run_until_complete(Bitfinex().run())
     loop.close()
 except Exception as e:
-    f = open ('./logs/error.log', 'a+')
-    f.write ('{0}: {1}\n'.format(datetime.datetime.now().isoformat(), str(traceback.format_exc())))
-    f.close ()
+	Logging ().log_error (e)
