@@ -30,7 +30,7 @@ class RESTSocket ():
             response = await self._process_request (request)
         else:
             self._queue.append (request)
-            await asyncio.sleep (len(self._queue)*self._default_tick_period)
+            await asyncio.sleep (len(self._queue)*DEFINES.TICK_PERIOD)
             response = await self._process_request (self._queue.pop (0))
 
         return response
