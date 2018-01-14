@@ -18,11 +18,8 @@ class Storage (Logging):
 
     async def insert_ticks (self, ticks):
         try:
-            rows = []
-            tick_frame = ticks
-            if type(ticks) == pd.Series:
-                tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
-                tick_frame.append (ticks, ignore_index=True)
+            tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
+            tick_frame = tick_frame.append (ticks, ignore_index=True)
             
             for idx, tick in tick_frame.iterrows():
                 rows.append ({
