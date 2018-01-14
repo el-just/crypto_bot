@@ -2,7 +2,7 @@ import time
 import datetime
 import asyncio
 
-from abstract.logging import Logging, async_error_log
+from abstract.logging import Logging
 
 from stocks.bitfinex.defines import DEFINES
 

@@ -4,7 +4,7 @@ import datetime
 import asyncio
 import urllib.parse
 
-from abstract.logging import Logging, async_error_log
+from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
 class RESTSocket (Logging):

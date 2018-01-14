@@ -3,7 +3,7 @@ import datetime
 
 from aioch import Client
 
-from abstract.logging import Logging, async_error_log
+from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
 class Storage (Logging):
