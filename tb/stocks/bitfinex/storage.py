@@ -18,6 +18,7 @@ class Storage (Logging):
 
     async def insert_ticks (self, ticks):
         try:
+            rows = []
             tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
             tick_frame = tick_frame.append (ticks, ignore_index=True)
             

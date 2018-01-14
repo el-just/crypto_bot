@@ -39,6 +39,7 @@ class WEBSocket (Logging):
                 float(tick[8])
                 ]
             tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
+            self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
             self._storage.insert_ticks (tb_tick)
 
     def route (self, message):

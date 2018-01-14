@@ -36,6 +36,6 @@ class Bitfinex (Logging):
     
     def run (self):
         return asyncio.gather(
-            self.verify_period (),
+            #self.verify_period (),
             self._web_socket.listen()
             )
