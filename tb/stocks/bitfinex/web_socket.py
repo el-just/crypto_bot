@@ -32,7 +32,7 @@ class WEBSocket (Logging):
     def process_tick (self, tick):
         if len(tick) > 2:
             tb_data = [
-                time.mktime(datetime.datetime.now().timetuple()),
+                int(time.mktime(datetime.datetime.now().timetuple())),
                 self._channels.loc[int(tick[0])].at['base'],
                 self._channels.loc[int(tick[0])].at['quot'],
                 float(tick[7]),
