@@ -1,5 +1,6 @@
 import time
 import datetime
+import asyncio
 
 from abstract.logging import Logging, async_error_log
 
@@ -31,7 +32,9 @@ class Bitfinex (Logging):
         for period in missing_periods:
             await self._rest_socket.get_tick_period (period)
 
-    @async_error_log
-    async def run (self):
-        await self.verify_period ()
-        #await self._web_socket.listen()
+    
+    def run (self):
+        return asyncio.gather([
+            self._web_socket.listen()
+            ])
+        #await self.verify_period ()

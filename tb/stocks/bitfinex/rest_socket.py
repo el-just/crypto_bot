@@ -57,6 +57,10 @@ class RESTSocket (Logging):
 
         return request_periods
 
+    def request_text (self, period):
+        params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
+        return (self._url+self._tick_period_url+urllib.parse.urlencode(params))
+
     @async_error_log
     async def get_tick_period (self, period):
         request_periods = self.fract_period(period)
