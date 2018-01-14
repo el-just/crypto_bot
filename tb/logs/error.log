@@ -124,3 +124,31 @@ Traceback (most recent call last):
   File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/connection.py", line 202, in connect
     '{} ({})'.format(e.strerror, self.get_description())
 clickhouse_driver.errors.NetworkError: Code: 210. Connection refused (localhost:9000)
+2018-01-14T18:04:46.578601: Code: 210. Connection refused (localhost:9000)
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/connection.py", line 177, in connect
+    self.socket = self._create_socket()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/connection.py", line 164, in _create_socket
+    raise err
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/connection.py", line 155, in _create_socket
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/El/Documents/dev/tb/abstract/logging.py", line 21, in func_wrapper
+    return await func (*args, **kwargs)
+  File "/Users/El/Documents/dev/tb/stocks/bitfinex/storage.py", line 49, in get_missing_periods
+    available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/aioch/client.py", line 92, in execute
+    **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/concurrent/futures/thread.py", line 56, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/client.py", line 159, in execute
+    self.connection.force_connect()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/connection.py", line 122, in force_connect
+    self.connect()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/clickhouse_driver/connection.py", line 202, in connect
+    '{} ({})'.format(e.strerror, self.get_description())
+clickhouse_driver.errors.NetworkError: Code: 210. Connection refused (localhost:9000)

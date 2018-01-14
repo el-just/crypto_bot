@@ -23,7 +23,7 @@ async def get_missing_periods ():
             for fracted in rest_socket.fract_period (period):
                 requests.append (fracted)
 
-            print ('About to send {} requests'. format (len(requests)))
+            print ('About to send {0} requests. Which equals {1} minutes of time'. format (len(requests), len(requests) / 10 - 1))
 
     else:
         print ('periods are up to date')
