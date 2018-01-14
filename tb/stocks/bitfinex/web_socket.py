@@ -29,30 +29,36 @@ class WEBSocket (Logging):
 
         return channel
 
-    def process_tick (self, tick):
-        if len(tick) > 2:
-            tb_data = [
-                int(time.mktime(datetime.datetime.now().timetuple())),
-                self._channels.loc[int(tick[0])].at['base'],
-                self._channels.loc[int(tick[0])].at['quot'],
-                float(tick[7]),
-                float(tick[8])
-                ]
-            tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
-            self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
-            self._storage.insert_ticks (tb_tick)
+    async def process_tick (self, tick):
+        try:
+            if len(tick) > 2:
+                tb_data = [
+                    int(time.mktime(datetime.datetime.now().timetuple())),
+                    self._channels.loc[int(tick[0])].at['base'],
+                    self._channels.loc[int(tick[0])].at['quot'],
+                    float(tick[7]),
+                    float(tick[8])
+                    ]
+                tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
+                self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
+                await self._storage.insert_ticks (tb_tick)
+        except Exception as e:
+            self.log_error (e)
 
-    def route (self, message):
-        self.log_info ('Web Socket message:\n\t{}'.format (message))
-        if type(message) == dict:
-            if message['event'] == 'subscribed':
-                channel = self.register_channel (message)
-            elif message['event'] != 'info':
+    async def route (self, message):
+        try:
+            self.log_info ('Web Socket message:\n\t{}'.format (message))
+            if type(message) == dict:
+                if message['event'] == 'subscribed':
+                    channel = self.register_channel (message)
+                elif message['event'] != 'info':
+                    self.log_error (str(message))
+            elif type(message) == list:
+                await self.process_tick (message)
+            else:
                 self.log_error (str(message))
-        elif type(message) == list:
-            self.process_tick (message)
-        else:
-            self.log_error (str(message))
+        except Exception as e:
+            self.log_error (e)
 
     async def listen(self):
         try:
@@ -63,6 +69,6 @@ class WEBSocket (Logging):
                             await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
                 while True:
                     message = self.parse_message(await websocket.recv())
-                    self.route (message)
+                    await self.route (message)
         except Exception as e:
             self.log_error (e)
