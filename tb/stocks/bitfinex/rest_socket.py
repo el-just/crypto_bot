@@ -17,31 +17,35 @@ class RESTSocket (Logging):
     def __init__ (self, storage):
         self._storage = storage
 
-    @async_error_log
     async def _process_request (self, request):
-        request.name = datetime.datetime.now()
-        self._timeline = self._timeline.append (request)
-        async with aiohttp.ClientSession() as session:
-            self.log_info ('Bitfinex request:\n\t{0}'.format(str(request.at["request"])))
-            async with session.get(request.at["request"]) as resp:
-                text = await resp.text()
-                return text
+        try:
+            request.name = datetime.datetime.now()
+            self._timeline = self._timeline.append (request)
+            async with aiohttp.ClientSession() as session:
+                self.log_info ('Bitfinex request:\n\t{0}'.format(str(request.at["request"])))
+                async with session.get(request.at["request"]) as resp:
+                    text = await resp.text()
+                    return text
+        except Exception as e:
+            self.log_error (e)
 
-    @async_error_log
     async def _request (self, url, params):
-        now = datetime.datetime.now()
+        try:
+            now = datetime.datetime.now()
 
-        request = pd.Series (data=[url+urllib.parse.urlencode(params)], index=['request'])
-        self._timeline = self._timeline.loc [now - datetime.timedelta(minutes=1): now]
+            request = pd.Series (data=[url+urllib.parse.urlencode(params)], index=['request'])
+            self._timeline = self._timeline.loc [now - datetime.timedelta(minutes=1): now]
 
-        if self._timeline.loc[:, "request"].count() < DEFINES.REST_REQUEST_LIMIT:
-            response = await self._process_request (request)
-        else:
-            self._queue.append (request)
-            await asyncio.sleep (len(self._queue)*DEFINES.TICK_PERIOD)
-            response = await self._process_request (self._queue.pop (0))
+            if self._timeline.loc[:, "request"].count() < DEFINES.REST_REQUEST_LIMIT:
+                response = await self._process_request (request)
+            else:
+                self._queue.append (request)
+                await asyncio.sleep (len(self._queue)*DEFINES.TICK_PERIOD)
+                response = await self._process_request (self._queue.pop (0))
 
-        return response
+            return response
+        except Exception as e:
+            self.log_error (e)
 
     def fract_period (sekf, period):
         request_periods = []
@@ -61,24 +65,28 @@ class RESTSocket (Logging):
         params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
         return (self._url+self._tick_period_url+urllib.parse.urlencode(params))
 
-    @async_error_log
     async def get_tick_period (self, period):
-        request_periods = self.fract_period(period)
+        try:
+            request_periods = self.fract_period(period)
 
-        tick_period_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
-        for period in request_periods:
-            params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
-            period_pure_data = await self._request (self._url + self._tick_period_url, params)
-            
-            period_frame = self._parse_data (period_pure_data)
-            tick_period_frame = tick_period_frame.append(period_frame, ignore_index=True)
-            await self._storage.insert_tick_frame (period_frame)
+            for period in request_periods:
+                params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
+                period_pure_data = await self._request (self._url + self._tick_period_url, params)
+                
+                period_frame = self._parse_data (period_pure_data)
 
-        return tick_period_frame
+                if period_frame is not None:
+                    await self._storage.insert_ticks (period_frame)
+        except Exception as e:
+            self.log_error (e)
 
     def _parse_data (self, pure_data):
         if pure_data[0] != '[':
             self.log_error (str(pure_data))
+
+        if pure_data == '[]':
+            return None
+
         frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
         for tick_data in [text_array.split(',') for text_array in pure_data[2:-2].split('],[')]:
             tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'])

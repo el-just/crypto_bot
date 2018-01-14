@@ -18,23 +18,24 @@ class Bitfinex (Logging):
     def __init__ (self):
         self._storage = Storage ()
         self._rest_socket = RESTSocket (self._storage)
-        self._web_socket = WEBSocket ()
+        self._web_socket = WEBSocket (self._storage)
 
-    @async_error_log
     async def verify_period (self):
-        now = datetime.datetime.now()
-        missing_periods = await self._storage.get_missing_periods ({
-            'start':time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
-            'end': time.mktime(now.timetuple())
-            })
+        try:
+            now = datetime.datetime.now()
+            missing_periods = await self._storage.get_missing_periods ({
+                'start':time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
+                'end': time.mktime(now.timetuple())
+                })
 
-        self.log_info ('Missing periods:\n\t{0}'.format(str(missing_periods)))
-        for period in missing_periods:
-            await self._rest_socket.get_tick_period (period)
-
+            self.log_info ('Missing periods:\n\t{0}'.format(str(missing_periods)))
+            for period in missing_periods:
+                await self._rest_socket.get_tick_period (period)
+        except Exception as e:
+            self.log_error (e)
     
     def run (self):
-        return asyncio.gather([
+        return asyncio.gather(
+            self.verify_period ()
             self._web_socket.listen()
-            ])
-        #await self.verify_period ()
+            )

@@ -1,13 +1,18 @@
 import json
 import time
 import datetime
+import websockets
 import pandas as pd
 
+from abstract.logging import Logging, async_error_log
 from stocks.bitfinex.defines import DEFINES
 
-class WEBSocket ():
+class WEBSocket (Logging):
     _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
-    _traiders = []
+    _storage = None
+
+    def __init__ (self, storage):
+        self._storage = storage
 
     def parse_message (self, pure_data):
         if pure_data[0] == '{':
@@ -24,9 +29,6 @@ class WEBSocket ():
 
         return channel
 
-    def register_traider (self, channel):
-        self._traiders.append(Traider (channel).open())
-
     def process_tick (self, tick):
         if len(tick) > 2:
             tb_data = [
@@ -37,20 +39,12 @@ class WEBSocket ():
                 float(tick[8])
                 ]
             tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
-
-            #TODO: что делать?
-            #clickhouse.insert_tick (tb_tick)
-
-    def log_error (self, error):
-        f = open ('./logs/errors.log', 'a+')
-        f.write ('{0}: {1}\n'.format(datetime.datetime.now().isoformat(), str(error)))
-        f.close ()
+            self._storage.insert_ticks (tb_tick)
 
     def route (self, message):
         if type(message) == dict:
             if message['event'] == 'subscribed':
                 channel = self.register_channel (message)
-                self.register_traider (channel)
             elif message['event'] != 'info':
                 self.log_error (str(message))
         elif type(message) == list:
@@ -59,11 +53,14 @@ class WEBSocket ():
             self.log_error (str(message))
 
     async def listen(self):
-        async with ws.connect('wss://api.bitfinex.com/ws') as websocket:
-            for quot in ['usd', 'btc']:
-                for base in DEFINES.SYMBOLS:
-                    if base != 'usd' and quot != base:
-                        await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
-            while True:
-                message = self.parse_message(await websocket.recv())
-                self.route (message)
+        try:
+            async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
+                for quot in ['usd', 'btc']:
+                    for base in DEFINES.LISTEN_SYMBOLS:
+                        if base != 'usd' and quot != base:
+                            await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
+                while True:
+                    message = self.parse_message(await websocket.recv())
+                    self.route (message)
+        except Exception as e:
+            self.log_error (e)
