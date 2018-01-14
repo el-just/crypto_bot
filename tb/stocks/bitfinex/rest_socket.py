@@ -43,8 +43,7 @@ class RESTSocket (Logging):
 
         return response
 
-    @async_error_log
-    async def get_tick_period (self, period):
+    def fract_period (period):
         request_periods = []
         step_date = period['start']
         while step_date < period['end']:
@@ -55,6 +54,12 @@ class RESTSocket (Logging):
                 })
 
             step_date = end_date + DEFINES.TICK_PERIOD
+
+        return request_periods
+
+    @async_error_log
+    async def get_tick_period (self, period):
+        request_periods = self.fract_period(period)
 
         tick_period_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
         for period in request_periods:

@@ -43,7 +43,6 @@ class Storage (Logging):
         self.log_info ('Insert to clickhouse request:\n\t{0}'.format(str(tick_frame.shape)))
         await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
 
-    # TODO: разобраться с этим дерьмом
     @async_error_log
     async def get_missing_periods (self, period):
         missing_periods_sql = self.get_sql ('missing_periods')
@@ -60,14 +59,14 @@ class Storage (Logging):
             #посмотрим есть ли пропуски
             for idx in range(2,len(available_data)):
                 periods.append ({
-                    'start':time.mktime(available_data[idx][0].timetuple()) - int(available_data[idx][3]),
+                    'start': time.mktime(available_data[idx][0].timetuple()) - int(available_data[idx][3]) + DEFINES.TICK_PERIOD,
                     'end':time.mktime(available_data[idx][0].timetuple()) - DEFINES.TICK_PERIOD
                     })
             
-            if period['start'] - time.mktime(available_data[1][0].timetuple()) > DEFINES.MISS_PERIOD:
+            if period['end'] - time.mktime(available_data[1][0].timetuple()) > DEFINES.MISS_PERIOD:
                 periods.append ({
                     'start': time.mktime(available_data[1][0].timetuple())+DEFINES.TICK_PERIOD,
-                    'end': period['start']
+                    'end': period['end']
                     })
         else:
             periods.append ({'start': period['start'], 'end': period['end']})
