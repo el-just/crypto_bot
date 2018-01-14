@@ -21,16 +21,6 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
 [10,244.96,1682.60984158,245.55,869.76850418,-11.33,-0.0442,244.96,319916.10135213,259.26,230.18]
 {"event":"subscribed","channel":"ticker","chanId":19,"pair":"ETCUSD"}
 
-============
-!/usr/bin/env python
-# -*- coding: utf-8 -*-
-try:
-    file = open('input.txt')
-except IOError as e:
-    print(u'не удалось открыть файл')
-else:
-    with file:
-        print(u'делаем что-то с файлом')
 '''
 
 import datetime

@@ -42,6 +42,7 @@ class WEBSocket (Logging):
             self._storage.insert_ticks (tb_tick)
 
     def route (self, message):
+        self.log_info ('Web Socket message:\n\t{}'.format (message))
         if type(message) == dict:
             if message['event'] == 'subscribed':
                 channel = self.register_channel (message)
