@@ -43,7 +43,7 @@ class RESTSocket (Logging):
 
         return response
 
-    def fract_period (period):
+    def fract_period (sekf, period):
         request_periods = []
         step_date = period['start']
         while step_date < period['end']:
