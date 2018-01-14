@@ -15,6 +15,8 @@ class Logging ():
         f.write ('{0}: {1}\n{2}'.format(datetime.datetime.now().isoformat(), str(error), str(traceback.format_exc())))
         f.close ()
 
+        self.log_info ('ERROR::{}\n'.format(str(error)))
+
     @staticmethod
     def log_info (message):
         try:
