@@ -14,8 +14,11 @@ async def get_missing_periods ():
         'end': time.mktime(now.timetuple())
         })
 
-    for period in missing_periods:
-        print ('{0} - {1}'.format (datetime.datetime.fromtimestamp(period['start'])), datetime.datetime.fromtimestamp(period['end'])))
+    if missing_periods is not None:
+        for period in missing_periods:
+            print ('{0} - {1}'.format (datetime.datetime.fromtimestamp(period['start'])), datetime.datetime.fromtimestamp(period['end']))
+    else:
+        print ('periods are up to date')
 
 if sys.argv[1] == 'missing_periods':
     task = get_missing_periods
