@@ -79,9 +79,9 @@ class Storage (Logging):
                         'end':available_data[idx][0] - DEFINES.TICK_PERIOD
                         })
                 
-                if period['end'] - available_data[1][0].timetuple() > DEFINES.MISS_PERIOD:
+                if period['end'] - available_data[1][0] > DEFINES.MISS_PERIOD:
                     periods.append ({
-                        'start': available_data[1][0].timetuple()+DEFINES.TICK_PERIOD,
+                        'start': available_data[1][0]+DEFINES.TICK_PERIOD,
                         'end': period['end']
                         })
             else:
