@@ -55,7 +55,7 @@ class Storage (Logging):
             missing_periods_sql = self.get_sql ('missing_periods')
             available_data = await self.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
             periods = []
-            if len (available_data) > 0:
+            if available_data is not None:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
                 if time.mktime(available_data[0][0].timetuple()) - period['start'] > DEFINES.MISS_PERIOD:
                     periods.append ({
