@@ -32,8 +32,6 @@ import pandas as pd
 
 PYTHONASYNCIODEBUG=1
 
-
-
 async def execute (query):
     async with aiohttp.ClientSession() as session:
         async with session.post('http://localhost:8123/', data=query) as resp:
