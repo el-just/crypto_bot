@@ -30,15 +30,25 @@ import asyncio
 import aiohttp
 import pandas as pd
 
-PYTHONASYNCIODEBUG=1
+# PYTHONASYNCIODEBUG=1
 
-async def execute (query):
-    async with aiohttp.ClientSession() as session:
-        async with session.post('http://localhost:8123/', data=query) as resp:
-            text = await resp.text()
-            print (text)
-            return text
+# async def execute (query):
+#     async with aiohttp.ClientSession() as session:
+#         async with session.post('http://localhost:8123/', data=query) as resp:
+#             text = await resp.text()
+#             print (text)
+#             return text
 
-ioloop = asyncio.get_event_loop()
-ioloop.run_until_complete(execute ('SELECT 1'))
-ioloop.close()
+# ioloop = asyncio.get_event_loop()
+# ioloop.run_until_complete(execute ('SELECT 1'))
+# ioloop.close()
+
+response = [['"2017-10-17 09:02:00"', '"btc"', '"usd"', '0'], ['"2018-01-15 09:01:24"', '"btc"', '"usd"', '0'], ['"2017-10-31 17:17:00"', '"btc"', '"usd"', '1380'], ['"2017-10-31 17:29:00"', '"btc"', '"usd"', '720'], ['"2017-11-09 17:30:00"', '"btc"', '"usd"', '660'], ['"2017-11-19 03:48:00"', '"btc"', '"usd"', '720'], ['"2017-12-31 15:06:00"', '"btc"', '"usd"', '1620']]
+for row in response:
+    for idx in range (0, len(row)):
+        row[idx] = row[idx].replace ('"', '')
+
+    row[0] = int(time.mktime(datetime.datetime.strptime (row[0], '%Y-%m-%d %H:%M:%S').timetuple()))
+
+print (response)
+
