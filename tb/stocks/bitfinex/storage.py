@@ -16,9 +16,9 @@ class Storage (Logging):
 
     def parse_response (self, response):
         response = None if response == '' else response
+        self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
         if response is not None:
             response = [row.split(',') for row in response.split ('\n')]
-            raise Warning ('asd')
 
         return response
 
@@ -35,7 +35,7 @@ class Storage (Logging):
             tick_frame = tick_frame.append (ticks, ignore_index=True)
             
             for idx, tick in tick_frame.iterrows():
-                rows.append ('''(toDate({tick_date}), toDateTime{tick_time}, '{base}', '{quot}', {close}, {volume})'''.format (
+                rows.append ('''(toDate({tick_date}), toDateTime({tick_time}), '{base}', '{quot}', {close}, {volume})'''.format (
                     tick_date = int(tick.at['timestamp']),
                     tick_time = int(tick.at['timestamp']),
                     base = str(tick.at['base']),
