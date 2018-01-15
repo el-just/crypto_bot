@@ -46,7 +46,7 @@ class Storage (Logging):
 
             query = '''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES {values}'''.format (values=', '.join (rows))
             self.log_info ('Insert to clickhouse request:\n\t{0}\n'.format(str(tick_frame.shape)))
-            await self.execute ('''''', query)
+            await self.execute (query)
         except Exception as e:
             self.log_error (e)
 
