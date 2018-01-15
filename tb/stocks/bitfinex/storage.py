@@ -2,19 +2,23 @@ import time
 import datetime
 import pandas as pd
 
-from aioch import Client
+import aiohttp
 
 from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
 class Storage (Logging):
-    _socket = Client ('localhost')
-
     def get_sql (self, name):
         with open('./stocks/bitfinex/sql/'+name+'.sql') as f:
             sql = f.read()
 
         return sql
+
+    async def execute (self, query):
+        async with aiohttp.ClientSession() as session:
+            async with session.post('http://localhost:8123/', data=query) as resp:
+                text = await resp.text()
+                return text
 
     async def insert_ticks (self, ticks):
         try:
@@ -33,14 +37,14 @@ class Storage (Logging):
                     })
 
             self.log_info ('Insert to clickhouse request:\n\t{0}'.format(str(tick_frame.shape)))
-            await self._socket.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
+            await self.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
         except Exception as e:
             self.log_error (e)
 
     async def get_missing_periods (self, period):
         try:
             missing_periods_sql = self.get_sql ('missing_periods')
-            available_data = await self._socket.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
+            available_data = await self.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
             periods = []
             if len (available_data) > 0:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
