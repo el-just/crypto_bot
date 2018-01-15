@@ -15,8 +15,11 @@ class Storage (Logging):
         return sql
 
     def parse_response (self, response):
-        print (response)
-        raise Warning ('asd')
+        response = None if response == '' else response
+        if response is not None:
+            response = [row.split(',') for row in response.split ('\n')]
+            raise Warning ('asd')
+
         return response
 
     async def execute (self, query):
