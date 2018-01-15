@@ -14,11 +14,16 @@ class Storage (Logging):
 
         return sql
 
+    def parse_response (self, response):
+        print (response)
+        raise Warning ('asd')
+        return response
+
     async def execute (self, query):
         async with aiohttp.ClientSession() as session:
             async with session.post('http://localhost:8123/', data=query) as resp:
                 text = await resp.text()
-                return text
+                return self.parse_response(text)
 
     async def insert_ticks (self, ticks):
         try:
@@ -27,17 +32,18 @@ class Storage (Logging):
             tick_frame = tick_frame.append (ticks, ignore_index=True)
             
             for idx, tick in tick_frame.iterrows():
-                rows.append ({
-                    'tick_date': datetime.datetime.fromtimestamp(tick.at['timestamp']),
-                    'tick_time': datetime.datetime.fromtimestamp(tick.at['timestamp']),
-                    'base': tick.at['base'],
-                    'quot': tick.at['quot'],
-                    'close': tick.at['close'],
-                    'volume': tick.at['volume']
-                    })
+                rows.append ('''(toDate({tick_date}), toDateTime{tick_time}, '{base}', '{quot}', {close}, {volume})'''.format (
+                    tick_date = int(tick.at['timestamp']),
+                    tick_time = int(tick.at['timestamp']),
+                    base = str(tick.at['base']),
+                    quot = str(tick.at['quot']),
+                    close = float(tick.at['close']),
+                    volume = float (tick.at['volume'])
+                    ))
 
-            self.log_info ('Insert to clickhouse request:\n\t{0}'.format(str(tick_frame.shape)))
-            await self.execute ('''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES''', rows)
+            query = '''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES {values}'''.format (values=', '.join (rows))
+            self.log_info ('Insert to clickhouse request:\n\t{0}\n'.format(str(tick_frame.shape)))
+            await self.execute ('''''', query)
         except Exception as e:
             self.log_error (e)
 
