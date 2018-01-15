@@ -34,7 +34,7 @@ PYTHONASYNCIODEBUG=1
 
 
 
-async def execute (self, query):
+async def execute (query):
     async with aiohttp.ClientSession() as session:
         async with session.post('http://localhost:8123/', data=query) as resp:
             text = await resp.text()
