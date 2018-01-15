@@ -11,8 +11,6 @@ storage = Storage()
 rest_socket = RESTSocket(storage)
 async def get_missing_periods ():
     now = datetime.datetime.now()
-    missing_periods_sql = f.read()
-
     missing_periods = await storage.get_missing_periods ({
         'start':time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
         'end': time.mktime(now.timetuple())
