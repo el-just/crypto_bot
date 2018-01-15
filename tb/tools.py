@@ -14,7 +14,7 @@ async def get_missing_periods ():
     with open('./stocks/bitfinex/sql/missing_periods.sql') as f:
         missing_periods_sql = f.read()
 
-        available_data = await self.execute (missing_periods_sql.format(base='btc', quot='usd', start=time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()), end=time.mktime(now.timetuple()), default_miss_time=DEFINES.MISS_PERIOD))
+        available_data = await storage.execute (missing_periods_sql.format(base='btc', quot='usd', start=time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()), end=time.mktime(now.timetuple()), default_miss_time=DEFINES.MISS_PERIOD))
         # missing_periods = await storage.get_missing_periods ({
         #     'start':time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
         #     'end': time.mktime(now.timetuple())
