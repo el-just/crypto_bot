@@ -45,14 +45,37 @@ class WEBSocket (Logging):
         except Exception as e:
             self.log_error (e)
 
+    async def process_event (self, message):
+        if message['event'] == 'subscribed':
+            self.register_channel (message)
+        elif message['event'] == 'info':
+            if 'code' in message:
+                code = int(str(event['code']).replace ('"',''))
+
+                # Stop/Restart Websocket Server (please reconnect)
+                if code == 20051:
+                    pass
+                # Entering in Maintenance mode. Please pause any activity and resume after receiving the info message 20061 (it should take 120 seconds at most)
+                elif code == 20060:
+                    pass
+                # Maintenance ended. You can resume normal activity. It is advised to unsubscribe/subscribe again all channels
+                elif code == 20061:
+                    pass
+                else:
+                    self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
+            # right after connecting you receive an info message that contains the actual version of the websocket stream
+            elif 'version' in message:
+                pass
+            else:
+                self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
+        else:
+            self.log_error (str(message))
+
     async def route (self, message):
         try:
             self.log_info ('Web Socket message:\n\t{}'.format (message))
             if type(message) == dict:
-                if message['event'] == 'subscribed':
-                    channel = self.register_channel (message)
-                elif message['event'] != 'info':
-                    self.log_error (str(message))
+                await self.process_event (message)
             elif type(message) == list:
                 await self.process_tick (message)
             else:

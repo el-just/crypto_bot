@@ -21,6 +21,16 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
 [10,244.96,1682.60984158,245.55,869.76850418,-11.33,-0.0442,244.96,319916.10135213,259.26,230.18]
 {"event":"subscribed","channel":"ticker","chanId":19,"pair":"ETCUSD"}
 
+{
+   "event": "info",
+   "version":  VERSION
+}
+
+{
+   "event":"info",
+   "code": CODE,
+   "msg": MSG
+}
 '''
 
 import datetime
@@ -28,6 +38,8 @@ import time
 import urllib.parse
 import asyncio
 import aiohttp
+import http.client
+import urllib.parse
 import pandas as pd
 
 # PYTHONASYNCIODEBUG=1
@@ -43,12 +55,11 @@ import pandas as pd
 # ioloop.run_until_complete(execute ('SELECT 1'))
 # ioloop.close()
 
-response = [['"2017-10-17 09:02:00"', '"btc"', '"usd"', '0'], ['"2018-01-15 09:01:24"', '"btc"', '"usd"', '0'], ['"2017-10-31 17:17:00"', '"btc"', '"usd"', '1380'], ['"2017-10-31 17:29:00"', '"btc"', '"usd"', '720'], ['"2017-11-09 17:30:00"', '"btc"', '"usd"', '660'], ['"2017-11-19 03:48:00"', '"btc"', '"usd"', '720'], ['"2017-12-31 15:06:00"', '"btc"', '"usd"', '1620']]
-for row in response:
-    for idx in range (0, len(row)):
-        row[idx] = row[idx].replace ('"', '')
+# response = [['"2017-10-17 09:02:00"', '"btc"', '"usd"', '0'], ['"2018-01-15 09:01:24"', '"btc"', '"usd"', '0'], ['"2017-10-31 17:17:00"', '"btc"', '"usd"', '1380'], ['"2017-10-31 17:29:00"', '"btc"', '"usd"', '720'], ['"2017-11-09 17:30:00"', '"btc"', '"usd"', '660'], ['"2017-11-19 03:48:00"', '"btc"', '"usd"', '720'], ['"2017-12-31 15:06:00"', '"btc"', '"usd"', '1620']]
+# for row in response:
+#     for idx in range (0, len(row)):
+#         row[idx] = row[idx].replace ('"', '')
 
-    row[0] = int(time.mktime(datetime.datetime.strptime (row[0], '%Y-%m-%d %H:%M:%S').timetuple()))
+#     row[0] = int(time.mktime(datetime.datetime.strptime (row[0], '%Y-%m-%d %H:%M:%S').timetuple()))
 
-print (response)
-
+# print (response)
