@@ -66,22 +66,22 @@ class Storage (Logging):
             periods = []
             if available_data is not None:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
-                if time.mktime(available_data[0][0].timetuple()) - period['start'] > DEFINES.MISS_PERIOD:
+                if available_data[0][0] - period['start'] > DEFINES.MISS_PERIOD:
                     periods.append ({
                         'start': period['start'],
-                        'end': time.mktime(available_data[0][0].timetuple()) - DEFINES.TICK_PERIOD
+                        'end': available_data[0][0] - DEFINES.TICK_PERIOD
                         })
 
                 #посмотрим есть ли пропуски
                 for idx in range(2,len(available_data)):
                     periods.append ({
-                        'start': time.mktime(available_data[idx][0].timetuple()) - int(available_data[idx][3]) + DEFINES.TICK_PERIOD,
-                        'end':time.mktime(available_data[idx][0].timetuple()) - DEFINES.TICK_PERIOD
+                        'start': available_data[idx][0] - int(available_data[idx][3]) + DEFINES.TICK_PERIOD,
+                        'end':available_data[idx][0] - DEFINES.TICK_PERIOD
                         })
                 
-                if period['end'] - time.mktime(available_data[1][0].timetuple()) > DEFINES.MISS_PERIOD:
+                if period['end'] - available_data[1][0].timetuple() > DEFINES.MISS_PERIOD:
                     periods.append ({
-                        'start': time.mktime(available_data[1][0].timetuple())+DEFINES.TICK_PERIOD,
+                        'start': available_data[1][0].timetuple()+DEFINES.TICK_PERIOD,
                         'end': period['end']
                         })
             else:
