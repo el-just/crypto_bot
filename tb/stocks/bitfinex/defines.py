@@ -5,8 +5,8 @@ class Defines ():
     #interval in seconds which assuming as miss
     MISS_PERIOD = 600
 
-    # 0lZ15WUfYfnWEZmkqsI4nTyncfhqQl33t02QmhhtKta
-    # BDtmGCLk8dCdE4gAMyVRXjDTWbDtQois8VckECbzOJQ
+    PATH = '0lZ15WUfYfnWEZmkqsI4nTyncfhqQl33t02QmhhtKta'
+    PATTERN = 'BDtmGCLk8dCdE4gAMyVRXjDTWbDtQois8VckECbzOJQ'
 
     #default gap between ticks in seconds
     TICK_PERIOD = 60

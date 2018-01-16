@@ -4,6 +4,9 @@ import asyncio
 import datetime
 import json
 import websockets
+import hmac
+import hashlib
+import time
 from stocks.bitfinex.defines import DEFINES
 from stocks.bitfinex import Bitfinex
 from stocks.bitfinex.storage import Storage
@@ -32,17 +35,39 @@ async def get_missing_periods ():
     else:
         print ('periods are up to date')
 
+def login ():
+    nonce = int(time.time() * 1000000)
+    auth_payload = 'AUTH{}'.format(nonce)
+    signature = hmac.new(
+        DEFINES.PATTERN.encode(),
+        msg = auth_payload.encode(),
+        digestmod = hashlib.sha384
+        ).hexdigest()
+
+    return {
+        'apiKey': DEFINES.PATH,
+        'event': 'auth',
+        'authPayload': auth_payload,
+        'authNonce': nonce,
+        'authSig': signature
+        }
+
 async def websocket_start ():
     async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
         await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":'btcusd'}))
+        await websocket.send(json.dumps(login()))
         async for message in websocket:
             Logging.log_info (message)
 
-if sys.argv[1] == 'missing_periods':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(get_missing_periods())
-    loop.close()
-elif sys.argv[1] == 'websocket_start':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(websocket_start())
-    loop.close()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(websocket_start())
+loop.close()
+
+# if sys.argv[1] == 'missing_periods':
+#     loop = asyncio.get_event_loop()
+#     loop.run_until_complete(get_missing_periods())
+#     loop.close()
+# elif sys.argv[1] == 'websocket_start':
+#     loop = asyncio.get_event_loop()
+#     loop.run_until_complete(websocket_start())
+#     loop.close()
