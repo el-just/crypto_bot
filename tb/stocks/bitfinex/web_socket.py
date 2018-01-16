@@ -38,20 +38,20 @@ class WEBSocket (Logging):
 
     async def process_tick (self, tick):
         try:
-            if len(tick) > 2 and self._channels.loc[int(tick[0])]:
-                tb_data = [
-                    int(time.mktime(datetime.datetime.now().timetuple())),
-                    self._channels.loc[int(tick[0])].at['base'],
-                    self._channels.loc[int(tick[0])].at['quot'],
-                    float(tick[7]),
-                    float(tick[8])
-                    ]
-                tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
-                self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
-                await self._storage.insert_ticks (tb_tick)
-            else:
-                raise Warning (str(tick), 'Data for unknown channel')
-
+            if len(tick) > 2:
+                if self._channels.loc[int(tick[0])]:
+                    tb_data = [
+                        int(time.mktime(datetime.datetime.now().timetuple())),
+                        self._channels.loc[int(tick[0])].at['base'],
+                        self._channels.loc[int(tick[0])].at['quot'],
+                        float(tick[7]),
+                        float(tick[8])
+                        ]
+                    tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
+                    self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
+                    await self._storage.insert_ticks (tb_tick)
+                else:
+                    raise Warning (str(tick), 'Data for unknown channel')
         except Exception as e:
             self.log_error (e)
 
