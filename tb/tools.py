@@ -59,15 +59,15 @@ async def websocket_start ():
         async for message in websocket:
             Logging.log_info (message)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(websocket_start())
-loop.close()
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(websocket_start())
+# loop.close()
 
-# if sys.argv[1] == 'missing_periods':
-#     loop = asyncio.get_event_loop()
-#     loop.run_until_complete(get_missing_periods())
-#     loop.close()
-# elif sys.argv[1] == 'websocket_start':
-#     loop = asyncio.get_event_loop()
-#     loop.run_until_complete(websocket_start())
-#     loop.close()
+if sys.argv[1] == 'missing_periods':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(get_missing_periods())
+    loop.close()
+elif sys.argv[1] == 'websocket_start':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(websocket_start())
+    loop.close()
