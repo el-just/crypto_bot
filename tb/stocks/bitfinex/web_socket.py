@@ -112,7 +112,7 @@ class WEBSocket (Logging):
                         self._socket = websocket
                         self.log_telegram ('Connection established')
                         await self.subscribe_channels ()
-                        for message in websocket:
+                        async for message in websocket:
                             await self.route (self.parse_message(message))
                 except Exception as e:
                     self.log_error (e)
