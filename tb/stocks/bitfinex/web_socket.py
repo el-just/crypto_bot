@@ -10,15 +10,19 @@ from stocks.bitfinex.defines import DEFINES
 class WEBSocket (Logging):
     _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
     _storage = None
+    _socket = None
 
     def __init__ (self, storage=None):
         self._storage = storage
 
     def parse_message (self, pure_data):
-        if pure_data[0] == '{':
-            return json.loads (pure_data)
-        elif pure_data[0] == '[':
-            return pure_data [1:-1].split (',')
+        if type(pure_data) == str:
+            if pure_data[0] == '{':
+                return json.loads (pure_data)
+            elif pure_data[0] == '[':
+                return pure_data [1:-1].split (',')
+            else:
+                return pure_data
         else:
             return pure_data
 
@@ -29,9 +33,12 @@ class WEBSocket (Logging):
 
         return channel
 
+    def clear_channels (self):
+        self._channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
+
     async def process_tick (self, tick):
         try:
-            if len(tick) > 2:
+            if len(tick) > 2 and self._channels.loc[int(tick[0])]:
                 tb_data = [
                     int(time.mktime(datetime.datetime.now().timetuple())),
                     self._channels.loc[int(tick[0])].at['base'],
@@ -42,6 +49,9 @@ class WEBSocket (Logging):
                 tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
                 self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
                 await self._storage.insert_ticks (tb_tick)
+            else:
+                raise Warning (str(tick), 'Data for unknown channel')
+
         except Exception as e:
             self.log_error (e)
 
@@ -54,18 +64,22 @@ class WEBSocket (Logging):
 
                 # Stop/Restart Websocket Server (please reconnect)
                 if code == 20051:
-                    pass
+                    self.log_telegram ('Stock requested for restarting webcosket connection. Closing connection...')
+                    self.clear_channels()
+                    await self._socket.close(code=1000, reason='Request of the stock')
                 # Entering in Maintenance mode. Please pause any activity and resume after receiving the info message 20061 (it should take 120 seconds at most)
                 elif code == 20060:
-                    pass
+                    self.log_telegram ('Entering in Maintenance mode')
                 # Maintenance ended. You can resume normal activity. It is advised to unsubscribe/subscribe again all channels
                 elif code == 20061:
-                    pass
+                    self.log_telegram ('Maintenance ended. Restarting webcosket connection')
+                    self.clear_channels()
+                    await self._socket.close(code=1000, reason='Restart because of maintenance ended')
                 else:
                     self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
             # right after connecting you receive an info message that contains the actual version of the websocket stream
             elif 'version' in message:
-                pass
+                if message['version']
             else:
                 self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
         else:
@@ -83,15 +97,24 @@ class WEBSocket (Logging):
         except Exception as e:
             self.log_error (e)
 
+    async def subscribe_channels (self, websocket):
+        for quot in ['usd', 'btc']:
+            for base in DEFINES.LISTEN_SYMBOLS:
+                if base != 'usd' and quot != base:
+                    await self._socket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
+
     async def listen(self):
         try:
-            async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
-                for quot in ['usd', 'btc']:
-                    for base in DEFINES.LISTEN_SYMBOLS:
-                        if base != 'usd' and quot != base:
-                            await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
-                while True:
-                    message = self.parse_message(await websocket.recv())
-                    await self.route (message)
+            while True:
+                try:
+                    self.log_telegram ('Connecting to bitfinex websocket...')
+                    async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
+                        self._socket = websocket
+                        self.log_telegram ('Connection established')
+                        await self.subscribe_channels ()
+                        for message in websocket:
+                            await self.route (self.parse_message(message))
+                except Exception as e:
+                    self.log_error (e)
         except Exception as e:
             self.log_error (e)
