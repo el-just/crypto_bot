@@ -2,6 +2,7 @@ import sys
 import time
 import asyncio
 import datetime
+import json
 import websockets
 from stocks.bitfinex.defines import DEFINES
 from stocks.bitfinex import Bitfinex
