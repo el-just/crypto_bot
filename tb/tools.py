@@ -7,7 +7,7 @@ from stocks.bitfinex.defines import DEFINES
 from stocks.bitfinex import Bitfinex
 from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
-from abstract.Logging import Logging
+from abstract.logging import Logging
 
 storage = Storage()
 rest_socket = RESTSocket(storage)
