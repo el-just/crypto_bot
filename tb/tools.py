@@ -2,10 +2,12 @@ import sys
 import time
 import asyncio
 import datetime
+import websockets
 from stocks.bitfinex.defines import DEFINES
 from stocks.bitfinex import Bitfinex
 from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
+from abstract.Logging import Logging
 
 storage = Storage()
 rest_socket = RESTSocket(storage)
@@ -29,7 +31,17 @@ async def get_missing_periods ():
     else:
         print ('periods are up to date')
 
+async def websocket_start ():
+    async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
+        await websocket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":'btcusd'}))
+        async for message in websocket:
+            Logging.log_info (message)
+
 if sys.argv[1] == 'missing_periods':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(get_missing_periods())
+    loop.close()
+elif sys.argv[1] == 'websocket_start':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(websocket_start())
     loop.close()

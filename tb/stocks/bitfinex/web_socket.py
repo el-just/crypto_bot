@@ -11,7 +11,7 @@ class WEBSocket (Logging):
     _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
     _storage = None
 
-    def __init__ (self, storage):
+    def __init__ (self, storage=None):
         self._storage = storage
 
     def parse_message (self, pure_data):
