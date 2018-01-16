@@ -8,7 +8,7 @@ from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
 class WEBSocket (Logging):
-    _channels = pd.DataFrame (data=[], columns=['base', 'quot', 'traid_status'])
+    _channels = None
     _storage = None
     _socket = None
 
@@ -60,7 +60,7 @@ class WEBSocket (Logging):
             self.register_channel (message)
         elif message['event'] == 'info':
             if 'code' in message:
-                code = int(str(event['code']).replace ('"',''))
+                code = int(str(message['code']).replace ('"',''))
 
                 # Stop/Restart Websocket Server (please reconnect)
                 if code == 20051:
@@ -107,6 +107,7 @@ class WEBSocket (Logging):
         try:
             while True:
                 try:
+                    self.clear_channels()
                     self.log_telegram ('Connecting to bitfinex websocket...')
                     async with websockets.connect('wss://api.bitfinex.com/ws') as websocket:
                         self._socket = websocket
