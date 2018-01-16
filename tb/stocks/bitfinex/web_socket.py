@@ -97,7 +97,7 @@ class WEBSocket (Logging):
         except Exception as e:
             self.log_error (e)
 
-    async def subscribe_channels (self, websocket):
+    async def subscribe_channels (self):
         for quot in ['usd', 'btc']:
             for base in DEFINES.LISTEN_SYMBOLS:
                 if base != 'usd' and quot != base:

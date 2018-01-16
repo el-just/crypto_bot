@@ -20,14 +20,14 @@ class Storage (Logging):
         if response is not None:
             response = [row.split(',') for row in response.split ('\n') if row != '']
 
-        for row in response:
-            for idx in range (0, len(row)):
-                row[idx] = row[idx].replace ('"', '')
+            for row in response:
+                for idx in range (0, len(row)):
+                    row[idx] = row[idx].replace ('"', '')
 
-                try:
-                    row[idx] = int(time.mktime(datetime.datetime.strptime (row[idx], '%Y-%m-%d %H:%M:%S').timetuple()))
-                except Exception as e:
-                    pass
+                    try:
+                        row[idx] = int(time.mktime(datetime.datetime.strptime (row[idx], '%Y-%m-%d %H:%M:%S').timetuple()))
+                    except Exception as e:
+                        pass
 
         return response
 
