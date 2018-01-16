@@ -39,7 +39,7 @@ class WEBSocket (Logging):
     async def process_tick (self, tick):
         try:
             if len(tick) > 2:
-                if self._channels.loc[int(tick[0])]:
+                if not self._channels.loc[int(tick[0])].empty:
                     tb_data = [
                         int(time.mktime(datetime.datetime.now().timetuple())),
                         self._channels.loc[int(tick[0])].at['base'],
