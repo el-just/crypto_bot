@@ -18,7 +18,6 @@ class Storage (Logging):
     def parse_response (self, response):
         response = None if response == '' else pd.read_csv (StringIO(response))
         self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
-        raise Warning ('asd')
         return response
 
     async def execute (self, query):
@@ -56,22 +55,22 @@ class Storage (Logging):
             periods = []
             if available_data is not None:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
-                if available_data[0][0] - period['start'] > DEFINES.MISS_PERIOD:
+                if available_data.loc[0].at['tick_time'] - period['start'] > DEFINES.MISS_PERIOD:
                     periods.append ({
                         'start': period['start'],
-                        'end': available_data[0][0] - DEFINES.TICK_PERIOD
+                        'end': available_data.loc[0].at['tick_time'] - DEFINES.TICK_PERIOD
                         })
 
                 #посмотрим есть ли пропуски
-                for idx in range(2,len(available_data)):
+                for idx in range(2,available_data.shape[0]):
                     periods.append ({
-                        'start': available_data[idx][0] - int(available_data[idx][3]) + DEFINES.TICK_PERIOD,
-                        'end':available_data[idx][0] - DEFINES.TICK_PERIOD
+                        'start': available_data.loc[idx].at['tick_time'] - int(available_data.loc[idx].at['delta']) + DEFINES.TICK_PERIOD,
+                        'end':available_data.loc[idx].at['tick_time'] - DEFINES.TICK_PERIOD
                         })
                 
-                if period['end'] - available_data[1][0] > DEFINES.MISS_PERIOD:
+                if period['end'] - available_data.loc[1].at['tick_time'] > DEFINES.MISS_PERIOD:
                     periods.append ({
-                        'start': available_data[1][0]+DEFINES.TICK_PERIOD,
+                        'start': available_data.loc[1].at['tick_time']+DEFINES.TICK_PERIOD,
                         'end': period['end']
                         })
             else:
