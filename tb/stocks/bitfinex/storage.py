@@ -52,8 +52,8 @@ class Storage (Logging):
         try:
             missing_periods_sql = self.get_sql ('missing_periods')
             available_data = await self.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
-            available_data = available_data.to_timestamp[available_data[:, 'tick_time']]
-            print ('available_data')
+            available_data.loc[:, 'tick_time'] = pd.to_timestamp[available_data.loc[:, 'tick_time']]
+            print (available_data)
             raise Warning ('asd')
             periods = []
             if available_data is not None:
