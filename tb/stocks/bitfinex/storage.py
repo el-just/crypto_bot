@@ -19,7 +19,7 @@ class Storage (Logging):
         response = None if response == '' else response
         self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
         if response is not None:
-            data_frame = pd.read_csv = (StringIO(response), sep=',', header=None)
+            data_frame = pd.read_csv (StringIO(response), sep=',', header=None)
             print (data_frame)
             response = [row.split(',') for row in response.split ('\n') if row != '']
 
