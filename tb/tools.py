@@ -60,9 +60,16 @@ async def websocket_start ():
             Logging.log_info (message)
 
 async def straregy_testing ():
-    await storage.execute ('''
-        
-        ''')
+    now = datetime.datetime.now()
+    
+    start = time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
+    end = time.mktime(now.timetuple())
+
+    data_frame = await storage.execute ('''
+        select * from tb.ticker WHERE tick_time >= toDateTime({0}) and tick_time <= toDateTime ({1})
+        '''.format (start, end))
+
+    print (data_frame.head())
 
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(websocket_start())
