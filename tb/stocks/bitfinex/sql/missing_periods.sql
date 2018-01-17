@@ -43,4 +43,4 @@ SELECT * FROM (
 
 ORDER BY delta ASC, tick_time ASC
 
-FORMAT CSV
+FORMAT CSVWithNames

@@ -16,22 +16,9 @@ class Storage (Logging):
         return sql
 
     def parse_response (self, response):
-        response = None if response == '' else response
+        response = None if response == '' else pd.read_csv (StringIO(response))
         self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
-        if response is not None:
-            data_frame = pd.read_csv (StringIO(response), sep=',', header=None)
-            print (data_frame)
-            response = [row.split(',') for row in response.split ('\n') if row != '']
-
-            for row in response:
-                for idx in range (0, len(row)):
-                    row[idx] = row[idx].replace ('"', '')
-
-                    try:
-                        row[idx] = int(time.mktime(datetime.datetime.strptime (row[idx], '%Y-%m-%d %H:%M:%S').timetuple()))
-                    except Exception as e:
-                        pass
-
+        raise Warning ('asd')
         return response
 
     async def execute (self, query):
