@@ -7,6 +7,7 @@ import websockets
 import hmac
 import hashlib
 import time
+import pandas as pd
 from stocks.bitfinex.defines import DEFINES
 from stocks.bitfinex import Bitfinex
 from stocks.bitfinex.storage import Storage
@@ -74,6 +75,7 @@ async def straregy_testing ():
     data_frame.loc[:, 'tick_time'] = pd.to_datetime(data_frame.loc[:, 'tick_time']).astype(int) / 1000000000
     data_frame.set_index (pd.to_datetime(data_frame.loc[:, 'tick_time']))
 
+    print (data_frame.shape)
     print (data_frame.head())
 
 # loop = asyncio.get_event_loop()
