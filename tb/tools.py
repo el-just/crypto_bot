@@ -73,7 +73,7 @@ async def straregy_testing ():
         '''.format (start=start, end=end)
     data_frame = await storage.execute (query)
     data_frame.loc[:, 'tick_time'] = pd.to_datetime(data_frame.loc[:, 'tick_time']).astype(int) / 1000000000
-    data_frame = data_frame.set_index (pd.to_datetime(data_frame.loc[:, 'tick_time']))
+    data_frame = data_frame.set_index (pd.to_datetime(data_frame.loc[:, 'tick_time']).values)
 
     print (data_frame.shape)
     print (data_frame.head())
