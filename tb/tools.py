@@ -66,7 +66,7 @@ async def straregy_testing ():
     end = time.mktime(now.timetuple())
 
     data_frame = await storage.execute ('''
-        select * from tb.ticker WHERE tick_time >= toDateTime({0}) and tick_time <= toDateTime ({1})
+        select * from tb.ticker WHERE tick_time >= toDateTime({0}) and tick_time <= toDateTime ({1}) ORDER BY tick_time DESC FORMAT CSVWithNames
         '''.format (start, end))
 
     print (data_frame.head())
