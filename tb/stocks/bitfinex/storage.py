@@ -52,9 +52,8 @@ class Storage (Logging):
         try:
             missing_periods_sql = self.get_sql ('missing_periods')
             available_data = await self.execute (missing_periods_sql.format(base='btc', quot='usd', start=period['start'], end=period['end'], default_miss_time=DEFINES.MISS_PERIOD))
-            available_data.loc[:, 'tick_time'] = pd.to_datetime(available_data.loc[:, 'tick_time'])
-            print (available_data)
-            raise Warning ('asd')
+            available_data.loc[:, 'tick_time'] = pd.to_datetime(available_data.loc[:, 'tick_time']).astype(int) / 1000
+            
             periods = []
             if available_data is not None:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
