@@ -62,8 +62,8 @@ async def websocket_start ():
 async def straregy_testing ():
     now = datetime.datetime.now()
     
-    start = time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
-    end = time.mktime(now.timetuple())
+    start = int(time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple())),
+    end = int(time.mktime(now.timetuple()))
 
     data_frame = await storage.execute ('''SELECT * FROM tb.ticker WHERE tick_time >= toDateTime({0}) AND tick_time <= toDateTime ({1}) ORDER BY tick_time DESC FORMAT CSVWithNames'''.format (start, end))
 
