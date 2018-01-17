@@ -71,6 +71,8 @@ async def straregy_testing ():
         ORDER BY tick_time DESC FORMAT CSVWithNames
         '''.format (start=start, end=end)
     data_frame = await storage.execute (query)
+    data_frame.loc[:, 'tick_time'] = pd.to_datetime(data_frame.loc[:, 'tick_time']).astype(int) / 1000000000
+    data_frame.set_index (pd.to_datetime(data_frame.loc[:, 'tick_time']))
 
     print (data_frame.head())
 
