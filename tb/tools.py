@@ -59,6 +59,11 @@ async def websocket_start ():
         async for message in websocket:
             Logging.log_info (message)
 
+async def straregy_testing ():
+    await storage.execute ('''
+        
+        ''')
+
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(websocket_start())
 # loop.close()
@@ -70,4 +75,8 @@ if sys.argv[1] == 'missing_periods':
 elif sys.argv[1] == 'websocket_start':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(websocket_start())
+    loop.close()
+elif sys.argv[1] == 'strategy':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(straregy_testing())
     loop.close()
