@@ -8,10 +8,12 @@ import hmac
 import hashlib
 import time
 import pandas as pd
+import scipy
 from stocks.bitfinex.defines import DEFINES
 from stocks.bitfinex import Bitfinex
 from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
+from stocks.bitfinex.traider import Traider
 from abstract.logging import Logging
 
 storage = Storage()
@@ -92,5 +94,5 @@ elif sys.argv[1] == 'websocket_start':
     loop.close()
 elif sys.argv[1] == 'strategy':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(straregy_testing())
+    loop.run_until_complete(Traider().run())
     loop.close()

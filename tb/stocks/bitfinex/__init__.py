@@ -3,39 +3,32 @@ import datetime
 import asyncio
 
 from abstract.logging import Logging
-
 from stocks.bitfinex.defines import DEFINES
 
 from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
 from stocks.bitfinex.web_socket import WEBSocket
+from stocks.bitfinex.traider import Traider
 
 class Bitfinex (Logging):
     _storage = None
     _rest_socket = None
     _web_socket = None
+    _traider = None
 
     def __init__ (self):
         self._storage = Storage ()
-        self._rest_socket = RESTSocket (self._storage)
-        self._web_socket = WEBSocket (self._storage)
+        self._rest_socket = RESTSocket (self)
+        self._web_socket = WEBSocket (self)
+        self._traider = Traider (self)
 
-    async def verify_period (self):
-        try:
-            now = datetime.datetime.now()
-            missing_periods = await self._storage.get_missing_periods ({
-                'start':time.mktime((now - datetime.timedelta (days=DEFINES.REQUIRED_PERIOD)).timetuple()),
-                'end': time.mktime(now.timetuple())
-                })
+    async def process_tick (self, tick):
+        self.log_info ('About to throw to clickhouse:\n\t{}'.format (tick))
+        await self._storage.insert_ticks (tick)
+        await self._traider.resolve (tick)
 
-            self.log_info ('Missing periods:\n\t{0}'.format(str(missing_periods)))
-            for period in missing_periods:
-                await self._rest_socket.get_tick_period (period)
-        except Exception as e:
-            self.log_error (e)
-    
     def run (self):
         return asyncio.gather(
-            self.verify_period (),
+            self._traider.run (),
             self._web_socket.listen()
             )

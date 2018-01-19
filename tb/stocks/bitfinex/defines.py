@@ -4,6 +4,7 @@ class Defines ():
 
     #interval in seconds which assuming as miss
     MISS_PERIOD = 600
+    FRAME_PERIOD = 24*60*60
 
     PATH = '0lZ15WUfYfnWEZmkqsI4nTyncfhqQl33t02QmhhtKta'
     PATTERN = 'BDtmGCLk8dCdE4gAMyVRXjDTWbDtQois8VckECbzOJQ'

@@ -9,11 +9,11 @@ from stocks.bitfinex.defines import DEFINES
 
 class WEBSocket (Logging):
     _channels = None
-    _storage = None
+    _stock = None
     _socket = None
 
-    def __init__ (self, storage=None):
-        self._storage = storage
+    def __init__ (self, stock=None):
+        self._stock = stock
 
     def parse_message (self, pure_data):
         if type(pure_data) == str:
@@ -48,8 +48,8 @@ class WEBSocket (Logging):
                         float(tick[8])
                         ]
                     tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
-                    self.log_info ('About to throw to clickhouse:\n\t{}'.format (tb_tick))
-                    await self._storage.insert_ticks (tb_tick)
+                    tb_tick.name = datetime.datetime.fromtimestamp(tb_tick.at['timestamp'])
+                    await self._stock.process_tick (tb_tick)
                 else:
                     raise Warning (str(tick), 'Data for unknown channel')
         except Exception as e:

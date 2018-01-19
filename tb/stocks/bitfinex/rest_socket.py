@@ -12,10 +12,10 @@ class RESTSocket (Logging):
     _tick_period_url = 'candles/trade:1m:tBTCUSD/hist?'
     _timeline = pd.DataFrame (data=[], columns=['request'])
     _queue = []
-    _storage = None
+    _stock = None
 
-    def __init__ (self, storage):
-        self._storage = storage
+    def __init__ (self, stock):
+        self._stock = stock
 
     async def _process_request (self, request):
         try:
@@ -68,15 +68,19 @@ class RESTSocket (Logging):
     async def get_tick_period (self, period):
         try:
             request_periods = self.fract_period(period)
+            tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
 
             for period in request_periods:
                 params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
                 period_pure_data = await self._request (self._url + self._tick_period_url, params)
                 
                 period_frame = self._parse_data (period_pure_data)
+                tick_frame = tick_frame.append (period_frame)
 
                 if period_frame is not None:
-                    await self._storage.insert_ticks (period_frame)
+                    await self._stock._storage.insert_ticks (period_frame)
+            
+            return tick_frame
         except Exception as e:
             self.log_error (e)
 
@@ -90,6 +94,7 @@ class RESTSocket (Logging):
         frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
         for tick_data in [text_array.split(',') for text_array in pure_data[2:-2].split('],[')]:
             tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'])
-            frame = frame.append (tick, ignore_index=True)
+            tick.name = datetime.datetime.fromtimestamp(tick.at['timestamp'])
+            frame = frame.append (tick)
 
         return frame

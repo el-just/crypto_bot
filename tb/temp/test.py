@@ -31,6 +31,13 @@ For a description of the Bot API, see this page: https://core.telegram.org/bots/
    "code": CODE,
    "msg": MSG
 }
+
+import numpy as np
+import pandas as pd
+
+s = pd.Series([1,2,1,-4,-7,-2,-5,4,3,1,2,-1,-2,-3])
+
+extremums = s.groupby((np.sign(s).diff().fillna(0).ne(0)).cumsum()).apply(lambda x: x.abs().max() * np.sign(x[x.abs().idxmax()]))
 '''
 
 import datetime
