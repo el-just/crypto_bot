@@ -29,9 +29,8 @@ class WEBSocket (BWS):
     async def listen (self):
         try:
             await self.get_data ()
-            Logging.log_info (str(self._iter_frame))
+            Logging.log_info (self._iter_frame.shape)
             for idx, tick in self._iter_frame.iterrows():
-                Logging.log_info (str(tick))
                 await self._stock.process_tick (tick)
         except Exception as e:
             Logging.log_error (e)

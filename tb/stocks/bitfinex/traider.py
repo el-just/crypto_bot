@@ -6,7 +6,7 @@ from abstract.logging import Logging
 from testing.logging import Logging as TLog
 from stocks.bitfinex.defines import DEFINES
 
-class Traider (Logging):
+class Traider (TLog):
     _ready = False
     _positions = pd.DataFrame(data=[], columns=['amount', 'type'])
     _frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
@@ -16,24 +16,30 @@ class Traider (Logging):
         self._stock = stock
 
     def magic (self):
-        TLog.log_info (str(self._frame.tail(1)))
+        self.log_info (str(self._frame.tail(1)))
         return True
 
     async def position_in (self):
-        if self._stock._balance.at['usd'] > 0:
-            position = pd.Series (data=[self._stock._balance.at['usd'], -1], index=['amount', 'type'])
-            position.name = datetime.datetime.now()
-            self._positions.append (position)
-            self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / self._frame.tail(1).at['close']
-            self._stock._balance.at['usd'] = 0
+        try:
+            if self._stock._balance.at['usd'] > 0:
+                position = pd.Series (data=[self._stock._balance.at['usd'], -1], index=['amount', 'type'])
+                position.name = datetime.datetime.now()
+                self._positions.append (position)
+                self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / self._frame.tail(1).at['close']
+                self._stock._balance.at['usd'] = 0
+        except Exception as e:
+            self.log_error (e)
 
     async def position_out (self):
-        if self._stock._balance.at['btc'] > 0:
-            position = pd.Series (data=[volume, self._frame.tail(1).at['close'], 1], index=['amount', 'type'])
-            position.name = datetime.datetime.now()
-            self._positions.append (position)
-            self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * self._frame.tail(1).at['close']
-            self._stock._balance.at['btc'] = 0
+        try:
+            if self._stock._balance.at['btc'] > 0:
+                position = pd.Series (data=[volume, self._frame.tail(1).at['close'], 1], index=['amount', 'type'])
+                position.name = datetime.datetime.now()
+                self._positions.append (position)
+                self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * self._frame.tail(1).at['close']
+                self._stock._balance.at['btc'] = 0
+        except Exception as e:
+            self.log_error (e)
 
     async def run (self):
         try:
@@ -52,11 +58,14 @@ class Traider (Logging):
             self.log_error (e)
 
     async def resolve (self, tick):
-        self._frame = self._frame.append (tick)
-        self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=DEFINES.FRAME_PERIOD):tick.name]
-        if self._ready:
-            if self.magic () == True:
-                await self.position_in ()
-            elif self.magic () == False:
-                await self.position_out ()
+        try:
+            self._frame = self._frame.append (tick)
+            self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=DEFINES.FRAME_PERIOD):tick.name]
+            if self._ready:
+                if self.magic () == True:
+                    await self.position_in ()
+                elif self.magic () == False:
+                    await self.position_out ()
+        except Exception as e:
+            self.log_error (e)
             
