@@ -63,7 +63,7 @@ class Traider (TLog):
     async def resolve (self, tick):
         try:
             self._frame = self._frame.append (tick)
-            self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=60*30):tick.name]
+            #self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=60*30):tick.name]
             if self._ready:
                 if self.magic () == True:
                     await self.position_in ()
