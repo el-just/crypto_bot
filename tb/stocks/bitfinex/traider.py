@@ -24,11 +24,7 @@ class Traider (TLog):
                 position = pd.Series (data=[self._stock._balance.at['usd'], -1], index=['amount', 'type'])
                 position.name = datetime.datetime.now()
                 self._positions.append (position)
-                self._stock._balance.at['btc']
-                self._stock._balance.at['usd']
-                self._frame.tail(1)
-                self._frame.tail(1).at['close']
-                self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / self._frame.tail(1).at['close']
+                self._stock._balance.at['btc'] = self._stock._balance.at['usd'] /self._frame.iloc[self._frame.shape(0)-1].at['close']
                 self._stock._balance.at['usd'] = 0
         except Exception as e:
             self.log_error (e)
@@ -36,10 +32,10 @@ class Traider (TLog):
     async def position_out (self):
         try:
             if self._stock._balance.at['btc'] > 0:
-                position = pd.Series (data=[volume, self._frame.tail(1).at['close'], 1], index=['amount', 'type'])
+                position = pd.Series (data=[self._stock._balance.at['btc'] * self._frame.iloc[self._frame.shape(0)-1].at['close'], 1], index=['amount', 'type'])
                 position.name = datetime.datetime.now()
                 self._positions.append (position)
-                self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * self._frame.tail(1).at['close']
+                self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * self._frame.iloc[self._frame.shape(0)-1].at['close']
                 self._stock._balance.at['btc'] = 0
         except Exception as e:
             self.log_error (e)
