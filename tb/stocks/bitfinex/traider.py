@@ -16,7 +16,6 @@ class Traider (TLog):
         self._stock = stock
 
     def magic (self):
-        self.log_info (str(self._frame.tail(1)))
         return True
 
     async def position_in (self):
@@ -25,6 +24,10 @@ class Traider (TLog):
                 position = pd.Series (data=[self._stock._balance.at['usd'], -1], index=['amount', 'type'])
                 position.name = datetime.datetime.now()
                 self._positions.append (position)
+                self._stock._balance.at['btc']
+                self._stock._balance.at['usd']
+                self._frame.tail(1)
+                self._frame.tail(1).at['close']
                 self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / self._frame.tail(1).at['close']
                 self._stock._balance.at['usd'] = 0
         except Exception as e:
@@ -60,7 +63,7 @@ class Traider (TLog):
     async def resolve (self, tick):
         try:
             self._frame = self._frame.append (tick)
-            #self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=DEFINES.FRAME_PERIOD):tick.name]
+            self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=60*30):tick.name]
             if self._ready:
                 if self.magic () == True:
                     await self.position_in ()
