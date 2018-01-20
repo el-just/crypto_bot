@@ -6,7 +6,6 @@ class Traider (BFT):
     async def run (self):
         try:
             while self._frame.shape[0] < 30:
-                Logging.log_info (self._frame.shape[0])
                 await asyncio.sleep (1)
             self._ready = True
         except Exception as e:
