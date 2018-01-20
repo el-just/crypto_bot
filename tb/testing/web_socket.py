@@ -11,7 +11,7 @@ class WEBSocket (BWS):
         try:
             now = datetime.datetime.now()
         
-            start = int(time.mktime((now - datetime.timedelta (days=10)).timetuple()))
+            start = int(time.mktime((now - datetime.timedelta (days=1)).timetuple()))
             end = int(time.mktime(now.timetuple()))
 
             query = '''
