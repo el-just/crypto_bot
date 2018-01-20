@@ -1,5 +1,6 @@
 import time
 import datetime
+import pandas as pd
 from stocks.bitfinex.web_socket import WEBSocket as BWS
 from testing.logging import Logging
 
