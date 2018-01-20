@@ -3,6 +3,7 @@ import datetime
 import time
 
 from abstract.logging import Logging
+from testing.logging import Logging as TLog
 from stocks.bitfinex.defines import DEFINES
 
 class Traider (Logging):
@@ -15,7 +16,7 @@ class Traider (Logging):
         self._stock = stock
 
     def magic (self):
-        self.log_info (self._frame.tail(1))
+        TLog.log_info (str(self._frame.tail(1)))
         return True
 
     async def position_in (self):

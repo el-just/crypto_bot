@@ -3,7 +3,7 @@ from testing.web_socket import WEBSocket
 from testing.traider import Traider
 from testing.logging import Logging
 
-class Stock (Bitfinex, Logging):
+class Stock (Bitfinex):
     def __init__ (self):
         super().__init__()
         self._web_socket = WEBSocket(self)
@@ -13,4 +13,4 @@ class Stock (Bitfinex, Logging):
         try:
             await self._traider.resolve (tick)
         except Exception as e:
-            self.log_error (e)
+            Logging.log_error (e)

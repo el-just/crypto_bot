@@ -4,7 +4,7 @@ import pandas as pd
 from stocks.bitfinex.web_socket import WEBSocket as BWS
 from testing.logging import Logging
 
-class WEBSocket (BWS, Logging):
+class WEBSocket (BWS):
     _iter_frame = None
 
     async def get_data (self):
@@ -24,14 +24,14 @@ class WEBSocket (BWS, Logging):
             self._iter_frame['timestamp'] = self._iter_frame.loc[:, 'tick_time']
             self._iter_frame = self._iter_frame.set_index (pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).values)
         except Exception as e:
-            self.log_error (e)
+            Logging.log_error (e)
 
     async def listen (self):
         try:
             await self.get_data ()
-            self.log_info (str(self._iter_frame))
+            Logging.log_info (str(self._iter_frame))
             for idx, tick in self._iter_frame.iterrows():
-                self.log_info (str(tick))
+                Logging.log_info (str(tick))
                 await self._stock.process_tick (tick)
         except Exception as e:
-            self.log_error (e)
+            Logging.log_error (e)
