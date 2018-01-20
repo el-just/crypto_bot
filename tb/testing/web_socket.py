@@ -32,5 +32,6 @@ class WEBSocket (BWS):
             Logging.log_info (self._iter_frame.shape)
             for idx, tick in self._iter_frame.iterrows():
                 await self._stock.process_tick (tick)
+                await asyncio.sleep (0)
         except Exception as e:
             Logging.log_error (e)
