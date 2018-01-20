@@ -10,4 +10,7 @@ class Stock (Bitfinex, Logging):
         self._traider = Traider(self)
 
     async def process_tick (self, tick):
-        await self._traider.resolve (tick)
+        try:
+            await self._traider.resolve (tick)
+        except Exception as e:
+            self.log_error (e)
