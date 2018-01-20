@@ -24,5 +24,7 @@ class WEBSocket (BWS, Logging):
         self._iter_frame = self._iter_frame.set_index (pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).values)
     async def listen (self):
         await self.get_data ()
+        self.log_info (str(self._iter_frame))
         for idx, tick in self._iter_frame.iterrows():
+            self.log_info (str(tick))
             await self._stock.process_tick (tick)
