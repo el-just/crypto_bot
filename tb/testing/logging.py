@@ -11,7 +11,7 @@ class Logging ():
         try:
             f = open ('./testing/logs/error.log', 'a+')
         except IOError as e:
-            os.makedirs('/testing/logs')
+            os.makedirs('testing/logs')
             f = open ('./testing/logs/error.log', 'w+')
         
         f.write ('{0}: {1}\n{2}'.format(datetime.datetime.now().isoformat(), str(error), str(traceback.format_exc())))
@@ -24,7 +24,7 @@ class Logging ():
         try:
             f = open ('./testing/logs/info.log', 'a+')
         except IOError as e:
-            os.makedirs('/testing/logs')
+            os.makedirs('testing/logs')
             f = open ('./testing/logs/info.log', 'w+')
         
         f.write ('{0}:\n\t{1}\n'.format(datetime.datetime.now().isoformat(), message))
