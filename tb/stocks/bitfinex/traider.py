@@ -16,13 +16,7 @@ class Traider (TLog):
         self._stock = stock
 
     def magic (self):
-        # if trend > 0:
-        #     pass
-        self.log_info ('nice')
-        print (self._frame)
-
-        #self._frame = self._frame.loc[tick.name-datetime.timedelta(seconds=60*30):tick.name]
-
+        print (self._frame.shape)
         return True
 
     async def position_in (self):
