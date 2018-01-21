@@ -16,8 +16,8 @@ class Traider (TLog):
         self._stock = stock
 
     def magic (self):
-        if trend > 0:
-            
+        # if trend > 0:
+        #     pass
         return True
 
     async def position_in (self):
