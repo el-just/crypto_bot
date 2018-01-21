@@ -24,6 +24,8 @@ class WEBSocket (BWS):
             self._iter_frame.loc[:, 'tick_time'] = pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).astype(int) / 1000000000
             self._iter_frame['timestamp'] = self._iter_frame.loc[:, 'tick_time']
             self._iter_frame = self._iter_frame.set_index (pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).values)
+
+            self._iter_frame.to_csv ('day.csv', index=True)
         except Exception as e:
             Logging.log_error (e)
 
