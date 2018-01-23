@@ -1,14 +1,23 @@
 import asyncio
+import numpy as np
 from testing.stock import Stock
 import traceback
 import pandas as pd
 import datetime
+import time
 import matplotlib.pyplot as plt
 from sklearn import linear_model
 
-def weighted_std (tick, frame):
-
-    return tick.at['close'] * frame.index.get_loc(tick.name) / frame.shape[0] if frame.index.get_loc(tick.name) != 0 else tick.at['close']
+def holt_winters_second_order_ewma( x, span, beta ):
+    N = x.size
+    alpha = 2.0 / ( 1 + span )
+    s = np.zeros(( N, ))
+    b = np.zeros(( N, ))
+    s[0] = x[0]
+    for i in range( 1, N ):
+        s[i] = alpha * x[i] + ( 1 - alpha )*( s[i-1] + b[i-1] )
+        b[i] = beta * ( s[i] - s[i-1] ) + ( 1 - beta ) * b[i-1]
+    return s
 
 # try:
 #     loop = asyncio.get_event_loop()
@@ -19,20 +28,21 @@ def weighted_std (tick, frame):
 #     print (str(traceback.format_exc()))
 
 frame = pd.read_csv ('testing/day.csv')
-frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time']).astype(int)
-frame['timestamp'] = (frame.loc[:, 'tick_time'] / 1000000000).astype(int)
+frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time'])
+frame['timestamp'] = frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
+frame.loc[:, 'close'] = frame.loc[:, 'close'].astype(float)
 frame = frame.set_index (pd.to_datetime(frame.loc[:, 'tick_time']).values)
 frame = frame.iloc[::-1]
-frame = frame.loc[frame.iloc[0].name : frame.iloc[0].name + datetime.timedelta(minutes=30)]
+frame = frame.loc[frame.iloc[0].name : frame.iloc[0].name + datetime.timedelta(minutes=240)]
 
 frame.loc[:, 'close'] = frame.loc[:, 'close'] - frame.loc[:,'close'].min()
-frame['avg'] = frame.apply (weighted_std, args=[frame], axis=1)
-print (frame['avg'])
+frame['avg'] = holt_winters_second_order_ewma(frame.loc[:, 'close'].values , 10, 0.3 )
+frame.loc[:,'avg'] = frame.loc[:,'avg'].shift(-2)
 clf = linear_model.LinearRegression()
 clf.fit ((frame.loc[:,'timestamp']-frame.loc[:,'timestamp'].min()).values.reshape(-1,1), frame['close'].values)
 frame['trend'] = clf.predict ((frame.loc[:,'timestamp']-frame.loc[:,'timestamp'].min()).values.reshape(-1,1))
+frame['close_diff'] = frame.loc[:,'close'].diff()
+frame['avg_diff'] = frame.loc[:,'avg'].diff()
 frame[['close', 'trend', 'avg']].plot(figsize=(12,8))
-
-clf.coef_
 
 plt.show()

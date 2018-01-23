@@ -26,9 +26,11 @@ class WEBSocket (BWS):
 
             self._iter_frame = pd.read_csv ('testing/day.csv')
 
-            self._iter_frame.loc[:, 'tick_time'] = pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).astype(int)
-            self._iter_frame['timestamp'] = self._iter_frame.loc[:, 'tick_time']
+            self._iter_frame.loc[:, 'tick_time'] = pd.to_datetime(self._iter_frame.loc[:, 'tick_time'])
+            self._iter_frame['timestamp'] = self._iter_frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
+            self._iter_frame.loc[:, 'close'] = self._iter_frame.loc[:, 'close'].astype(float)
             self._iter_frame = self._iter_frame.set_index (pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).values)
+            self._iter_frame = self._iter_frame.iloc[::-1]
         except Exception as e:
             Logging.log_error (e)
 
