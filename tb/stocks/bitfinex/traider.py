@@ -42,13 +42,14 @@ class Traider (TLog):
                     extremums.std()
 
                     if self._current_tick.at['diff'] > 0:
+                        pass
 
     def get_extremums (self, frame=None):
         avg_series = self._frame.loc[:,'avg']
         extremums = avg_series.groupby((np.sign(avg_series).diff().fillna(0).ne(0)).cumsum()).apply(lambda x: x.abs().max() * np.sign(x[x.abs().idxmax()]))
 
     def get_cross (self):
-
+        pass
 
     def update_trend (self):
         clf = linear_model.LinearRegression()
