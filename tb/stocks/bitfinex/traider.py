@@ -23,21 +23,32 @@ class Traider (TLog):
     def magic (self):
         self.update_trend ()
         self.update_diffs ()
-        self.update_cross ()
+        
+        
 
         if self._current_tick.at['close'] < self._current_tick.at['trend']:
             if self._current_tick.at['avg_diff'] > 0:
+                pass
+        # else:
+
+        if self._positions.iloc[self._positions.shape[0]-1].at['type'] == -1:
+            position = self._positions.iloc[self._positions.shape[0]-1]
+
 
         else:
+            if self._trend_model.coef_ > 0:
+                if self._current_tick.at['close'] < self._current_tick.at['trend']:
+                    extremums = self.get_extremums()
+                    extremums.std()
 
+                    if self._current_tick.at['diff'] > 0:
 
+    def get_extremums (self, frame=None):
+        avg_series = self._frame.loc[:,'avg']
+        extremums = avg_series.groupby((np.sign(avg_series).diff().fillna(0).ne(0)).cumsum()).apply(lambda x: x.abs().max() * np.sign(x[x.abs().idxmax()]))
 
-        return self.check_out () if self._positions.iloc[self._positions.shape[0]-1].at['type'] == -1 else self.check_in ()
+    def get_cross (self):
 
-    def check_in ():
-        pass
-    def check_out ():
-        pass
 
     def update_trend (self):
         clf = linear_model.LinearRegression()
