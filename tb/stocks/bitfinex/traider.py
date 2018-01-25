@@ -44,12 +44,15 @@ class Traider (TLog):
                     if self._current_tick.at['diff'] > 0:
                         pass
 
-    def get_extremums (self, frame=None):
-        avg_series = self._frame.loc[:,'avg']
-        extremums = avg_series.groupby((np.sign(avg_series).diff().fillna(0).ne(0)).cumsum()).apply(lambda x: x.abs().max() * np.sign(x[x.abs().idxmax()]))
+    def expected_break (self):
+        self._frame
+        frame.loc[:, 'close'] = frame.loc[:, 'close'] - frame.loc[:,'close'].min()
+        frame['avg'] = holt_winters_second_order_ewma(frame.loc[:, 'close'].values , 10, 0.3 )
+        frame.loc[:,'avg'] = frame.loc[:,'avg'].shift(-2)
 
-    def get_cross (self):
-        pass
+        #inverted_avg = 
+        frame['mirror_avg'] = frame.apply(invert_avg, axis=1)
+    
 
     def update_trend (self):
         clf = linear_model.LinearRegression()
