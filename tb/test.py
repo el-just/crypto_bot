@@ -48,22 +48,28 @@ frame['avg'] = holt_winters_second_order_ewma(frame.loc[:, 'close'].values , 10,
 frame.loc[:,'avg'] = frame.loc[:,'avg'].shift(-2)
 
 clf = linear_model.LinearRegression()
-clf.fit ((frame.loc[:,'timestamp']-frame.loc[:,'timestamp'].min()).values.reshape(-1,1), frame['close'].values)
-frame['trend'] = clf.predict ((frame.loc[:,'timestamp']-frame.loc[:,'timestamp'].min()).values.reshape(-1,1))
-frame['close_diff'] = frame.loc[:,'close'].diff()
-frame['avg_diff'] = frame.loc[:,'avg'].diff()
+clf.fit (frame.loc[:,'timestamp'].values.reshape(-1,1), frame['close'].values)
+frame['trend'] = clf.predict (frame.loc[:,'timestamp'].values.reshape(-1,1))
+
+
+
 frame['mirror_avg'] = frame.apply(mirror_avg, axis=1)
+frame['diff'] = frame.loc[:,'avg'].diff()
+
+temp = frame.iloc[frame.shape[0]-1]
+temp.at['diff'] = frame.iloc[frame.shape[0]-3].at['diff']
+frame.iloc[frame.shape[0]-1] = temp
+
+print (temp.at['diff'])
+print (frame.iloc[frame.shape[0]-3].at['diff'])
+print (frame.iloc[frame.shape[0]-1].at['diff'])
+
 
 frame[['close', 'trend', 'mirror_avg']].plot(figsize=(12,8))
 
-extremums = argrelextrema(frame.loc[:,'mirror_avg'].values, np.greater)[0][1:-1]
-extremums_avg = holt_winters_second_order_ewma(extremums , 10, 0.3 )
+#plt.show()
 
-print (extremums)
-print (extremums_avg)
-print (extremums_avg.std())
 
-expect_break_point = extremums_avg[extremums_avg.size-1]
-
-plt.show()
-
+def predict_stop (frame):
+    extremums = argrelextrema(frame.loc[:,'mirror_avg'].values, np.greater)[0][1:-1]
+    extremums_avg = holt_winters_second_order_ewma(extremums , 10, 0.3 )

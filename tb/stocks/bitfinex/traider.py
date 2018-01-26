@@ -6,6 +6,7 @@ from abstract.logging import Logging
 from testing.logging import Logging as TLog
 from stocks.bitfinex.defines import DEFINES
 from sklearn import linear_model
+from scipy.signal import argrelextrema
 
 class Traider (TLog):
     _ready = False
@@ -16,20 +17,16 @@ class Traider (TLog):
     _trend_model = None
     _cross = None
     _current_tick = None
+    _stop_range = None
 
     def __init__ (self, stock=None):
         self._stock = stock
 
     def magic (self):
         self.update_trend ()
-        self.update_diffs ()
-        
-        
-
-        if self._current_tick.at['close'] < self._current_tick.at['trend']:
-            if self._current_tick.at['avg_diff'] > 0:
-                pass
-        # else:
+        self.update_avg ()
+        self.update_avg_diff ()
+        self.update_stop_range ()
 
         if self._positions.iloc[self._positions.shape[0]-1].at['type'] == -1:
             position = self._positions.iloc[self._positions.shape[0]-1]
@@ -38,30 +35,56 @@ class Traider (TLog):
         else:
             if self._trend_model.coef_ > 0:
                 if self._current_tick.at['close'] < self._current_tick.at['trend']:
-                    extremums = self.get_extremums()
-                    extremums.std()
-
                     if self._current_tick.at['diff'] > 0:
-                        pass
+                        (self._current_tick.at['close'] + self._stop_range*2) - (self._current_tick.at['close'] + self._stop_range*2)*0.02 - self._current_tick.at['close']*0.02 > 0:
+                            self.position_in ()
 
-    def expected_break (self):
-        self._frame
-        frame.loc[:, 'close'] = frame.loc[:, 'close'] - frame.loc[:,'close'].min()
-        frame['avg'] = holt_winters_second_order_ewma(frame.loc[:, 'close'].values , 10, 0.3 )
-        frame.loc[:,'avg'] = frame.loc[:,'avg'].shift(-2)
+    @staticmethod
+    def holt_winters_second_order_ewma (x):
+        span = 10
+        beta = 0.3
 
-        #inverted_avg = 
-        frame['mirror_avg'] = frame.apply(invert_avg, axis=1)
-    
+        N = x.size
+        alpha = 2.0 / ( 1 + span )
+        s = np.zeros(( N, ))
+        b = np.zeros(( N, ))
+        s[0] = x[0]
+        for i in range( 1, N ):
+            s[i] = alpha * x[i] + ( 1 - alpha )*( s[i-1] + b[i-1] )
+            b[i] = beta * ( s[i] - s[i-1] ) + ( 1 - beta ) * b[i-1]
+
+        return s
+
+    @staticmethod
+    def invert_local_mins (tick, avg_min):
+        avg = tick.at['avg'] - avg_min
+        trend = tick.at['trend'] - avg_min
+
+        return trend - avg if avg < trend else avg - trend
+
+    def update_stop_range (self):
+        inverted_avg = self._frame.apply (invert_local_mins, axis=1, params=[self._frame.loc[:,'avg'].min()])
+        self._stop_range = self.holt_winters_second_order_ewma(argrelextrema(inverted_avg.values, np.greater)[0][1:-1]).pop()
+        
+        #diff = extremums_avg.diff()
+        #extremums_avg = extremums_avg.pop()
+        #self._stop_range = [extremums_avg-diff, extremums_avg+diff]
 
     def update_trend (self):
         clf = linear_model.LinearRegression()
         self._trend_model = clf.fit (self._frame.loc[:,'timestamp'].values.reshape(-1,1), self._frame.loc[:,'close'].values)
         self._frame['trend'] = clf.predict (self._frame.loc[:,'timestamp'].values.reshape(-1,1))
 
-    def update_diffs (self):
-        self._frame['close_diff'] = self._frame.loc[:,'close'].diff()
-        self._frame['avg_diff'] = self._frame.loc[:,'avg'].diff()
+    def update_avg (self):
+        self._frame['avg'] = self.holt_winters_second_order_ewma(self._frame.loc[:, 'close'].values)
+
+    def update_avg_diff (self):
+        self._frame['avg_diff'] = self._frame.loc[:, 'avg'].diff()
+
+        last_series = self._frame.iloc[self._frame.shape[0]-1]
+        last_series.at['avg_diff'] = self._frame.iloc[self._frame.shape[0]-3].at['avg_diff']
+
+        self._frame.iloc[self._frame.shape[0]-1] = last_series
 
     def update_cross (self):
         if self._current_tick.at['trend'] == self._current_tick.at['avg']:
