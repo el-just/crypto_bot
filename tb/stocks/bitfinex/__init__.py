@@ -2,6 +2,7 @@ import time
 import datetime
 import asyncio
 import pandas as pd
+import numpy as np
 
 from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
@@ -13,7 +14,7 @@ from stocks.bitfinex.traider import Traider
 
 class Bitfinex (Logging):
     _storage = None
-    _balance = pd.Series (data=[2000, 0], index=['usd', 'btc'])
+    _balance = pd.Series (data=[2000., 0.], index=['usd', 'btc'])
     _rest_socket = None
     _web_socket = None
     _traider = None

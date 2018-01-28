@@ -1,6 +1,7 @@
 import time
 import datetime
 import pandas as pd
+import numpy as np
 import asyncio
 from stocks.bitfinex.web_socket import WEBSocket as BWS
 from testing.logging import Logging
@@ -24,20 +25,24 @@ class WEBSocket (BWS):
 
             # self._iter_frame.to_csv ('day.csv', index=True)
 
-            self._iter_frame = pd.read_csv ('testing/day.csv')
+            self._iter_frame = pd.read_csv ('testing/day.csv', dtype={'close':np.float64})
 
             self._iter_frame.loc[:, 'tick_time'] = pd.to_datetime(self._iter_frame.loc[:, 'tick_time'])
             self._iter_frame['timestamp'] = self._iter_frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
-            self._iter_frame.loc[:, 'close'] = self._iter_frame.loc[:, 'close'].astype(float)
             self._iter_frame = self._iter_frame.set_index (pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).values)
             self._iter_frame = self._iter_frame.iloc[::-1]
+
+            Logging.log_info (self._iter_frame.iloc[0].name)
+            Logging.log_info (self._iter_frame.iloc[self._iter_frame.shape[0]-1].name)
+
+            # pre_frame = self._iter_frame.loc[:self._iter_frame.iloc[0].name + datetime.timedelta(minutes=30)]
+            # self._iter_frame = self._iter_frame.iloc[:pre_frame.shape[0]]
         except Exception as e:
             Logging.log_error (e)
 
     async def listen (self):
         try:
             await self.get_data ()
-            Logging.log_info (self._iter_frame.shape)
             for idx, tick in self._iter_frame.iterrows():
                 await self._stock.process_tick (tick)
                 await asyncio.sleep (0)

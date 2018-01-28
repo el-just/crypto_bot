@@ -8,6 +8,7 @@ class Defines ():
 
     PATH = '0lZ15WUfYfnWEZmkqsI4nTyncfhqQl33t02QmhhtKta'
     PATTERN = 'BDtmGCLk8dCdE4gAMyVRXjDTWbDtQois8VckECbzOJQ'
+    TELEGRAM = '509542441:AAF3UMLVxRKLD1jT9W9IRc6fcFMnT7pBFTk'
 
     #default gap between ticks in seconds
     TICK_PERIOD = 60

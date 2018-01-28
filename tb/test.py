@@ -9,8 +9,16 @@ import time
 import matplotlib.pyplot as plt
 from sklearn import linear_model
 
-window = {'minutes':120}
+window = {'minutes':60}
 
+try:
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(Stock().run())
+    loop.close()
+except Exception as e:
+    print (e)
+    print (str(traceback.format_exc()))
+'''
 def holt_winters_second_order_ewma( x, span, beta ):
     N = x.size
     alpha = 2.0 / ( 1 + span )
@@ -27,13 +35,6 @@ def mirror_avg (tick):
         return float(tick.at['trend'])-float(tick.at['avg']) #+float(tick.at['trend'])
     else:
         return float(tick.at['avg']) - float(tick.at['trend'])
-# try:
-#     loop = asyncio.get_event_loop()
-#     loop.run_until_complete(Stock().run())
-#     loop.close()
-# except Exception as e:
-#     print (e)
-#     print (str(traceback.format_exc()))
 
 frame = pd.read_csv ('testing/day.csv')
 frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time'])
@@ -60,16 +61,12 @@ temp = frame.iloc[frame.shape[0]-1]
 temp.at['diff'] = frame.iloc[frame.shape[0]-3].at['diff']
 frame.iloc[frame.shape[0]-1] = temp
 
-print (temp.at['diff'])
-print (frame.iloc[frame.shape[0]-3].at['diff'])
-print (frame.iloc[frame.shape[0]-1].at['diff'])
+frame[['close', 'trend', 'avg']].plot(figsize=(12,8))
 
-
-frame[['close', 'trend', 'mirror_avg']].plot(figsize=(12,8))
-
-#plt.show()
+plt.show()
 
 
 def predict_stop (frame):
     extremums = argrelextrema(frame.loc[:,'mirror_avg'].values, np.greater)[0][1:-1]
     extremums_avg = holt_winters_second_order_ewma(extremums , 10, 0.3 )
+'''
