@@ -24,30 +24,30 @@ class Traider (TLog):
         self._stock = stock
 
     async def magic (self):
-        self.update_trend ()
-        self.update_avg ()
-        self.update_avg_diff ()
-        self.update_stop_range ()
+        try:
+            self.update_avg ()
+            self.update_avg_diff ()
 
-        current_tick = self._frame.iloc[self._frame.shape[0]-1]
-        if self._positions.shape[0] != 0 and self._positions.iloc[self._positions.shape[0]-1].at['type'] == -1:
-            position = self._positions.iloc[self._positions.shape[0]-1]
+            if self._positions.shape[0] != 0 and self._positions.iloc[self._positions.shape[0]-1].at['type'] == -1:
+                position = self._positions.iloc[self._positions.shape[0]-1]
 
-            # if position.at['price'] / current_tick.at['close'] <= 0.99:
-            #     await self.position_out ()
-            # else:
-            if current_tick.at['avg_diff'] < 0:
-                if position.at['price'] / current_tick.at['close'] <= 1.01:
-                    await self.position_out ()
-                else:
-                    if current_tick.at['close'] >= position.at['price'] + position.at['stop_range']*1.618:
-                        await self.position_out ()
-        else:
-            if self._trend_model.coef_ > 0:
-                if current_tick.at['close'] < current_tick.at['trend']:
-                    if current_tick.at['avg_diff'] > 0:
-                        if (current_tick.at['close'] + self._stop_range*1.618) - (current_tick.at['close'] + self._stop_range*1.618)*0.02 - current_tick.at['close']*0.02 > 0:
-                            await self.position_in ()
+                if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0 and self._frame.iloc[self._frame.shape[0]-1].at['avg'] >= position.at['price'] + position.at['stop_range']*1.618:
+                    await self.position_out (self._frame.iloc[self._frame.shape[0]-1])
+                elif self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0 and self._frame.iloc[self._frame.shape[0]-1].at['avg'] / position.at['price'] <= 1.01:
+                    await self.position_out (self._frame.iloc[self._frame.shape[0]-1])
+                elif self._frame.iloc[self._frame.shape[0]-1].at['avg'] / position.at['price'] <= 0.99:
+                    await self.position_out (self._frame.iloc[self._frame.shape[0]-1])                
+            else:
+                self.update_trend ()
+                self.update_stop_range ()
+                if self._trend_model.coef_ > 0:
+                    if self._frame.iloc[self._frame.shape[0]-1].at['close'] < self._frame.iloc[self._frame.shape[0]-1].at['trend']:
+                        if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] > 0:
+                            if (self._frame.iloc[self._frame.shape[0]-1].at['close'] + self._stop_range*1.618) - (self._frame.iloc[self._frame.shape[0]-1].at['close'] + self._stop_range*1.618)*0.02 - self._frame.iloc[self._frame.shape[0]-1].at['close']*0.02 > 0:
+                                self.log_info (self._frame.iloc[self._frame.shape[0]-1].at['close'])
+                                await self.position_in (self._frame.iloc[self._frame.shape[0]-1])
+        except Exception as e:
+            self.log_error (e)
 
     @staticmethod
     def holt_winters_second_order_ewma (x):
@@ -91,11 +91,6 @@ class Traider (TLog):
     def update_avg_diff (self):
         self._frame['avg_diff'] = self._frame.loc[:, 'avg'].diff()
 
-        last_series = self._frame.iloc[self._frame.shape[0]-1]
-        last_series.at['avg_diff'] = self._frame.iloc[self._frame.shape[0]-3].at['avg_diff']
-
-        self._frame.iloc[self._frame.shape[0]-1] = last_series
-
     # def update_cross (self):
     #     if self._current_tick.at['trend'] == self._current_tick.at['avg']:
     #         self._cross = self._current_tick
@@ -108,33 +103,34 @@ class Traider (TLog):
     #         if prev_tick.at['avg'] < prev_tick.at['trend']:
     #             self._cross = self._current_tick    
         
-    async def position_in (self):
+    #TODO: stoprange передать
+    async def position_in (self, current_tick):
         try:
+            self.log_info ('try in')
             if self._stock._balance.at['usd'] > 0:
-                position = pd.Series (data=[self._stock._balance.at['usd'], -1, self._stop_range], index=['price', 'type', 'stop_range'])
+                position = pd.Series (data=[current_tick.at['close'], -1, self._stop_range], index=['price', 'type', 'stop_range'])
                 position.name = datetime.datetime.now()
                 self._positions = self._positions.append (position)
-                self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / self._frame.iloc[self._frame.shape[0]-1].at['close']
+                self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / current_tick.at['close']
                 self._stock._balance.at['usd'] = 0
 
                 self.log_info (self._stock._balance)
-                self.log_info (self._frame.iloc[self._frame.shape[0]-1].name)
+                self.log_info (current_tick.name)
         except Exception as e:
             self.log_error (e)
 
-    async def position_out (self):
+    async def position_out (self, current_tick):
         try:
+            self.log_info ('try out')
             if self._stock._balance.at['btc'] > 0:
-                position = pd.Series (data=[self._frame.iloc[self._frame.shape[0]-1].at['close'], 1, self._stop_range], index=['amount', 'type', 'stop_range'])
+                position = pd.Series (data=[current_tick.at['close'], 1, self._stop_range], index=['price', 'type', 'stop_range'])
                 position.name = datetime.datetime.now()
                 self._positions = self._positions.append (position)
-                self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * self._frame.iloc[self._frame.shape[0]-1].at['close']
+                self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * current_tick.at['close']
                 self._stock._balance.at['btc'] = 0
 
                 self.log_info (self._stock._balance)
                 self.log_info (self._frame.iloc[self._frame.shape[0]-1].name)
-
-                self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(minutes=60):]
         except Exception as e:
             self.log_error (e)
 
@@ -157,8 +153,8 @@ class Traider (TLog):
     async def resolve (self, tick):
         try:
             self._frame = self._frame.append (tick)
-            if self._positions.shape[0] > 0 and self._positions.iloc[self._positions.shape[0]-1].at['type'] != -1:
-                self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(minutes=60):]
+            if self._positions.shape[0] > 0:
+                self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(minutes=90):]
             if self._ready:
                 await self.magic ()
         except Exception as e:

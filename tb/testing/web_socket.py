@@ -43,8 +43,12 @@ class WEBSocket (BWS):
     async def listen (self):
         try:
             await self.get_data ()
+            current_idx = 0
             for idx, tick in self._iter_frame.iterrows():
+                if current_idx % int(self._iter_frame.shape[0] / 100) == 0:
+                    Logging.log_info (current_idx // int(self._iter_frame.shape[0] / 100))
                 await self._stock.process_tick (tick)
                 await asyncio.sleep (0)
+                current_idx += 1
         except Exception as e:
             Logging.log_error (e)
