@@ -1,6 +1,7 @@
 import time
 import datetime
 import pandas as pd
+import numpy as np
 from io import StringIO
 
 import aiohttp
@@ -16,7 +17,7 @@ class Storage (Logging):
         return sql
 
     def parse_response (self, response):
-        response = None if response == '' else pd.read_csv (StringIO(response))
+        response = None if response == '' else pd.read_csv (StringIO(response), dtype={'close':np.float64})
         self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
         return response
 
@@ -25,6 +26,9 @@ class Storage (Logging):
             async with session.post('http://localhost:8123/', data=query) as resp:
                 text = await resp.text()
                 return self.parse_response(text)
+
+    async def get_tick_frame (period):
+        return await self.execute (self.get_sql ('period_frame').format(base='btc', quot='usd', start=period['start'], end=period['end']))
 
     async def insert_ticks (self, ticks):
         try:

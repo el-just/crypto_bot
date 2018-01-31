@@ -26,6 +26,23 @@ class WEBSocket (Logging):
         else:
             return pure_data
 
+    def auth (self):
+        nonce = int(time.time() * 1000000)
+        auth_payload = 'AUTH{}'.format(nonce)
+        signature = hmac.new(
+            DEFINES.PATTERN.encode(),
+            msg = auth_payload.encode(),
+            digestmod = hashlib.sha384
+            ).hexdigest()
+
+        return {
+            'apiKey': DEFINES.PATH,
+            'event': 'auth',
+            'authPayload': auth_payload,
+            'authNonce': nonce,
+            'authSig': signature
+            }
+
     def register_channel (self, message):
         channel = pd.Series (data=[message['pair'][0:3].lower(), message['pair'][3:6].lower()], index=['base', 'quot'])
         channel.name = int(message['chanId'])
@@ -99,6 +116,7 @@ class WEBSocket (Logging):
 
     async def subscribe_channels (self):
         for quot in ['usd', 'btc']:
+            await self._socket.send(json.dumps(self.auth()))
             for base in DEFINES.LISTEN_SYMBOLS:
                 if base != 'usd' and quot != base:
                     await self._socket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
