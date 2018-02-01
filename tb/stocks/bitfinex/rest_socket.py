@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import aiohttp
 import datetime
 import asyncio
@@ -68,7 +69,7 @@ class RESTSocket (Logging):
     async def get_tick_period (self, period):
         try:
             request_periods = self.fract_period(period)
-            tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
+            tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
 
             for period in request_periods:
                 params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
@@ -91,9 +92,9 @@ class RESTSocket (Logging):
         if pure_data == '[]':
             return None
 
-        frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
+        frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
         for tick_data in [text_array.split(',') for text_array in pure_data[2:-2].split('],[')]:
-            tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'])
+            tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
             tick.name = datetime.datetime.fromtimestamp(tick.at['timestamp'])
             frame = frame.append (tick)
 

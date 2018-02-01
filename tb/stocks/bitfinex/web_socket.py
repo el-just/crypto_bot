@@ -3,17 +3,18 @@ import time
 import datetime
 import websockets
 import pandas as pd
+import numpy as np
 
 from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
 class WEBSocket (Logging):
     _channels = None
-    _stock = None
     _socket = None
+    _tick_actions = []
 
-    def __init__ (self, stock=None):
-        self._stock = stock
+    def add_tick_action (self, tick_action):
+        self._tick_actions.append(tick_action)
 
     def parse_message (self, pure_data):
         if type(pure_data) == str:
@@ -64,9 +65,12 @@ class WEBSocket (Logging):
                         float(tick[7]),
                         float(tick[8])
                         ]
-                    tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
+                    tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
                     tb_tick.name = datetime.datetime.fromtimestamp(tb_tick.at['timestamp'])
-                    await self._stock.process_tick (tb_tick)
+                    
+                    if len (self._tick_actions) > 0:
+                        for tick_action in self._tick_actions:
+                            await tick_action (tb_tick)
                 else:
                     raise Warning (str(tick), 'Data for unknown channel')
         except Exception as e:
@@ -120,6 +124,12 @@ class WEBSocket (Logging):
             for base in DEFINES.LISTEN_SYMBOLS:
                 if base != 'usd' and quot != base:
                     await self._socket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
+
+    async def run (self):
+        try:
+            await self.listen ()
+        except Exception as e:
+            self.log_error (e)
 
     async def listen(self):
         try:

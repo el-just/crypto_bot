@@ -16,6 +16,7 @@ class Storage (Logging):
 
         return sql
 
+    #TODO: raise exception on clickhouse error
     def parse_response (self, response):
         response = None if response == '' else pd.read_csv (StringIO(response), dtype={'close':np.float64})
         self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
@@ -27,7 +28,7 @@ class Storage (Logging):
                 text = await resp.text()
                 return self.parse_response(text)
 
-    async def get_tick_frame (period):
+    async def get_tick_frame (self, period):
         return await self.execute (self.get_sql ('period_frame').format(base='btc', quot='usd', start=period['start'], end=period['end']))
 
     async def insert_ticks (self, ticks):

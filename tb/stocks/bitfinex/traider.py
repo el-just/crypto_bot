@@ -20,7 +20,7 @@ class Traider (Logging):
     _current_tick = None
     _stop_range = None
 
-    def __init__ (self, stock=None):
+    def set_stock (self, stock):
         self._stock = stock
 
     async def magic (self):
@@ -112,6 +112,8 @@ class Traider (Logging):
         except Exception as e:
             self.log_error (e)
 
+    await 
+
     async def run (self):
         try:
             now = datetime.datetime.now()
@@ -119,6 +121,11 @@ class Traider (Logging):
                 'start':time.mktime((now - datetime.timedelta (minutes=90)).timetuple()),
                 'end': time.mktime(now.timetuple())
                 }
+            
+
+            #TODO: actions for rest socket on miss data
+
+
             missing_periods = await self._stock._storage.get_missing_periods (period)
 
             if len(missing_periods) > 0:
