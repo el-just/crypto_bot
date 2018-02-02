@@ -112,8 +112,6 @@ class Traider (Logging):
         except Exception as e:
             self.log_error (e)
 
-    await 
-
     async def run (self):
         try:
             now = datetime.datetime.now()
