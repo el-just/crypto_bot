@@ -4,24 +4,40 @@ import datetime
 import websockets
 import pandas as pd
 import numpy as np
+import hmac
+import hashlib
+import ast
 
 from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
 
 class WEBSocket (Logging):
     _channels = None
+    _auth_channel = None
     _socket = None
     _tick_actions = []
+    _wallet_actions = []
 
     def add_tick_action (self, tick_action):
         self._tick_actions.append(tick_action)
+
+    def add_wallet_action (self, wallet_action):
+        self._wallet_actions.append (wallet_action)
+
+    async def _process_actions (self, actions, *args):
+        try:
+            if len (actions) > 0:
+                for action in actions:
+                    await action (*args)
+        except Exception as e:
+            self.log_error (e)
 
     def parse_message (self, pure_data):
         if type(pure_data) == str:
             if pure_data[0] == '{':
                 return json.loads (pure_data)
             elif pure_data[0] == '[':
-                return pure_data [1:-1].split (',')
+                return ast.literal_eval(pure_data)
             else:
                 return pure_data
         else:
@@ -65,66 +81,83 @@ class WEBSocket (Logging):
                         float(tick[7]),
                         float(tick[8])
                         ]
-                    tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
+                    tb_tick = pd.Series (data=tb_data, index=['timestamp', 'base', 'quot', 'close', 'volume'])
                     tb_tick.name = datetime.datetime.fromtimestamp(tb_tick.at['timestamp'])
                     
-                    if len (self._tick_actions) > 0:
-                        for tick_action in self._tick_actions:
-                            await tick_action (tb_tick)
+                    await self._process_actions (self._tick_actions, tb_tick)
                 else:
                     raise Warning (str(tick), 'Data for unknown channel')
         except Exception as e:
             self.log_error (e)
 
     async def process_event (self, message):
-        if message['event'] == 'subscribed':
-            self.register_channel (message)
-        elif message['event'] == 'info':
-            if 'code' in message:
-                code = int(str(message['code']).replace ('"',''))
+        try:
+            if message['event'] == 'subscribed':
+                self.register_channel (message)
+            elif message['event'] == 'info':
+                if 'code' in message:
+                    code = int(str(message['code']).replace ('"',''))
 
-                # Stop/Restart Websocket Server (please reconnect)
-                if code == 20051:
-                    self.log_telegram ('Stock requested for restarting webcosket connection. Closing connection...')
-                    self.clear_channels()
-                    await self._socket.close(code=1000, reason='Request of the stock')
-                # Entering in Maintenance mode. Please pause any activity and resume after receiving the info message 20061 (it should take 120 seconds at most)
-                elif code == 20060:
-                    self.log_telegram ('Entering in Maintenance mode')
-                # Maintenance ended. You can resume normal activity. It is advised to unsubscribe/subscribe again all channels
-                elif code == 20061:
-                    self.log_telegram ('Maintenance ended. Restarting webcosket connection')
-                    self.clear_channels()
-                    await self._socket.close(code=1000, reason='Restart because of maintenance ended')
+                    # Stop/Restart Websocket Server (please reconnect)
+                    if code == 20051:
+                        self.log_telegram ('Stock requested for restarting webcosket connection. Closing connection...')
+                        self.clear_channels()
+                        await self._socket.close(code=1000, reason='Request of the stock')
+                    # Entering in Maintenance mode. Please pause any activity and resume after receiving the info message 20061 (it should take 120 seconds at most)
+                    elif code == 20060:
+                        self.log_telegram ('Entering in Maintenance mode')
+                    # Maintenance ended. You can resume normal activity. It is advised to unsubscribe/subscribe again all channels
+                    elif code == 20061:
+                        self.log_telegram ('Maintenance ended. Restarting webcosket connection')
+                        self.clear_channels()
+                        await self._socket.close(code=1000, reason='Restart because of maintenance ended')
+                    else:
+                        self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
+                # right after connecting you receive an info message that contains the actual version of the websocket stream
+                elif 'version' in message:
+                    self.log_info ('version:{0}:{1}'.format(type(message['version']), str(message['version'])))
                 else:
                     self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
-            # right after connecting you receive an info message that contains the actual version of the websocket stream
-            elif 'version' in message:
-                self.log_info ('version:{0}:{1}'.format(type(message['version']), str(message['version'])))
+            elif message['event'] == 'auth':
+                if message['status'].lower() == 'ok':
+                    self._auth_channel = pd.Series (data=[int(message['chanId']), int(message['userId'])], index=['chanId', 'userId'])
+                else:
+                    self.log_error ('Authentification failed')
             else:
-                self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
-        else:
-            self.log_error (str(message))
+                self.log_error (str(message))
+        except Exception as e:
+            self.log_error (e)
+
+    async def process_auth_message (self, message):
+        try:
+            if message[1] == 'ws' or message[1] == 'wu':
+                await self._process_actions (self._wallet_actions, message)
+        except Exception as e:
+            self.log_error (e)
 
     async def route (self, message):
         try:
-            self.log_info ('Web Socket message:\n\t{}'.format (message))
             if type(message) == dict:
                 await self.process_event (message)
             elif type(message) == list:
-                await self.process_tick (message)
+                if self._auth_channel is not None and int(message[0]) == int(self._auth_channel.at['chanId']):
+                    await self.process_auth_message (message)
+                else:
+                    await self.process_tick (message)
             else:
                 self.log_error (str(message))
         except Exception as e:
             self.log_error (e)
 
     async def subscribe_channels (self):
-        for quot in ['usd', 'btc']:
+        try:
             await self._socket.send(json.dumps(self.auth()))
-            for base in DEFINES.LISTEN_SYMBOLS:
-                if base != 'usd' and quot != base:
-                    await self._socket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
-
+            for quot in ['usd', 'btc']:
+                for base in DEFINES.LISTEN_SYMBOLS:
+                    if base != 'usd' and quot != base:
+                        await self._socket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
+        except Exception as e:
+            self.log_error (e)
     async def run (self):
         try:
             await self.listen ()
@@ -142,6 +175,7 @@ class WEBSocket (Logging):
                         self.log_telegram ('Connection established')
                         await self.subscribe_channels ()
                         async for message in websocket:
+                            self.log_info ('Web Socket message:\n\t{}'.format (message))
                             await self.route (self.parse_message(message))
                 except Exception as e:
                     self.log_error (e)

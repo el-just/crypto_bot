@@ -87,14 +87,14 @@ class Traider (Logging):
         
     async def position_in (self, current_tick):
         try:
-            if self._stock._balance.at['usd'] > 0:
+            if self._stock._wallet.loc['usd'].at['balance'] > 0:
                 self._position = pd.Series (data=[current_tick.at['close'], self._stop_range], index=['price', 'stop_range'])
                 self._position.name = datetime.datetime.now()
 
-                self._stock._balance.at['btc'] = self._stock._balance.at['usd'] / current_tick.at['close']
-                self._stock._balance.at['usd'] = 0
+                self._stock._wallet.loc['btc'].at['balance'] = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close']
+                self._stock._wallet.loc['usd'].at['balance'] = 0
 
-                self.log_info (self._stock._balance)
+                self.log_info (self._stock._wallet)
                 self.log_info (current_tick.name)
         except Exception as e:
             self.log_error (e)
@@ -102,12 +102,12 @@ class Traider (Logging):
     async def position_out (self, current_tick):
         try:
             self.log_info ('try out')
-            if self._stock._balance.at['btc'] > 0:
+            if self._stock._wallet.loc['btc'].at['balance'] > 0:
                 self._position = None
-                self._stock._balance.at['usd'] = self._stock._balance.at['btc'] * current_tick.at['close']
-                self._stock._balance.at['btc'] = 0
+                self._stock._wallet.loc['usd'].at['balance'] = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
+                self._stock._wallet.loc['btc'].at['balance'] = 0
 
-                self.log_info (self._stock._balance)
+                self.log_info (self._stock._wallet)
                 self.log_info (self._frame.iloc[self._frame.shape[0]-1].name)
         except Exception as e:
             self.log_error (e)
@@ -132,7 +132,7 @@ class Traider (Logging):
                     tick_period = await self._stock._rest_socket.get_tick_period (miss)
                     self._frame = self._frame.append (tick_period)
             else:
-                self._frame = await self._storage.get_tick_frame (period)
+                self._frame = await self._stock._storage.get_tick_frame (period)
             self._ready = True
         except Exception as e:
             self.log_error (e)
@@ -140,8 +140,7 @@ class Traider (Logging):
     async def resolve (self, tick):
         try:
             self._frame = self._frame.append (tick)
-            if self._position is not None:
-                self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(minutes=90):]
+            self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(minutes=90):]
             if self._ready:
                 await self.magic ()
         except Exception as e:

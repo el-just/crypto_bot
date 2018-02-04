@@ -13,10 +13,6 @@ class RESTSocket (Logging):
     _tick_period_url = 'candles/trade:1m:tBTCUSD/hist?'
     _timeline = pd.DataFrame (data=[], columns=['request'])
     _queue = []
-    _stock = None
-
-    def __init__ (self, stock):
-        self._stock = stock
 
     async def _process_request (self, request):
         try:
@@ -78,8 +74,8 @@ class RESTSocket (Logging):
                 period_frame = self._parse_data (period_pure_data)
                 tick_frame = tick_frame.append (period_frame)
 
-                if period_frame is not None:
-                    await self._stock._storage.insert_ticks (period_frame)
+                # if period_frame is not None:
+                #     await self._stock._storage.insert_ticks (period_frame)
             
             return tick_frame
         except Exception as e:

@@ -5,6 +5,7 @@ import numpy as np
 import asyncio
 from stocks.bitfinex.web_socket import WEBSocket as BWS
 from testing.logging import Logging
+from stocks.bitfinex.defines import DEFINES
 
 class WEBSocket (BWS):
     _iter_frame = None
@@ -36,6 +37,8 @@ class WEBSocket (BWS):
             self._iter_frame = self._iter_frame.set_index (pd.to_datetime(self._iter_frame.loc[:, 'tick_time']).values)
             self._iter_frame = self._iter_frame.iloc[::-1]
 
+            self._iter_frame = self._iter_frame.loc [self._iter_frame.iloc[0].name+datetime.timedelta(**DEFINES.REQUIRED_INTERVAL):]
+
             self.log_info (self._iter_frame.iloc[0].name)
             self.log_info (self._iter_frame.iloc[self._iter_frame.shape[0]-1].name)
 
@@ -48,12 +51,11 @@ class WEBSocket (BWS):
         try:
             await self.get_data ()
             current_idx = 0
+            await self._process_actions (self._wallet_actions, [0,'ws',[['','btc',0.0],['','usd',2000.]]])
             for idx, tick in self._iter_frame.iterrows():
                 if current_idx % int(self._iter_frame.shape[0] / 100) == 0:
                     self.log_info (current_idx // int(self._iter_frame.shape[0] / 100))
-                if len (self._tick_actions) > 0:
-                    for tick_action in self._tick_actions:
-                        await tick_action (tb_tick)
+                await self._process_actions (self._tick_actions, tick)
                 await asyncio.sleep (0)
                 current_idx += 1
         except Exception as e:

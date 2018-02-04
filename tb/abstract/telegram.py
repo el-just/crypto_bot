@@ -35,7 +35,7 @@ class Telegram (Logging):
 
         return command
 
-    def add_command_action (self, command_acition):
+    def add_command_action (self, command_action):
         self._command_actions.append(command_action)
 
     async def send_message (self, message):

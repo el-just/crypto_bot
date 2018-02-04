@@ -6,11 +6,12 @@ from testing.telegram import Telegram
 from testing.logging import Logging
 
 class Stock (Bitfinex):
-	_telegram = Telegram ()
-	_storage = Storage()
-	_web_socket = WEBSocket()
-	_traider = Traider()
+    _telegram = Telegram ()
+    _storage = Storage()
+    _web_socket = WEBSocket()
+    _traider = Traider()
 
-	def __init__ (self):
+    def __init__ (self):
+        super().__init__()
         self.log_info = Logging.log_info
         self.log_error = Logging.log_error
