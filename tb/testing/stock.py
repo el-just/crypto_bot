@@ -11,7 +11,10 @@ class Stock (Bitfinex):
     _web_socket = WEBSocket()
     _traider = Traider()
 
-    def __init__ (self):
+    def __init__ (self, source='csv'):
         super().__init__()
         self.log_info = Logging.log_info
         self.log_error = Logging.log_error
+
+        self._web_socket.set_source (source)
+        self._web_socket.set_storage (self._storage)
