@@ -29,7 +29,13 @@ class Storage (Logging):
                 return self.parse_response(text)
 
     async def get_tick_frame (self, period):
-        return await self.execute (self.get_sql ('period_frame').format(base='btc', quot='usd', start=period['start'], end=period['end']))
+        frame = await self.execute (self.get_sql ('period_frame').format(base='btc', quot='usd', start=period['start'], end=period['end']))
+
+        frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time'])
+        frame['timestamp'] = frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
+        frame = frame.set_index (pd.to_datetime(frame.loc[:, 'tick_time']).values)
+
+        return frame
 
     async def insert_ticks (self, ticks):
         try:

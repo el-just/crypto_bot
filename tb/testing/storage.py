@@ -48,6 +48,10 @@ class Storage (BTFXStorage):
                 'end': time.mktime(end.timetuple())
                 })
 
+            frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time'])
+            frame['timestamp'] = frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
+            frame = frame.set_index (pd.to_datetime(frame.loc[:, 'tick_time']).values)
+
             return frame
         elif self._source == 'csv':
             self._iter_frame = pd.read_csv ('testing/day.csv', dtype={'close':np.float64})

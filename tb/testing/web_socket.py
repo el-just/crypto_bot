@@ -49,6 +49,10 @@ class WEBSocket (BWS):
                 'end': time.mktime(day_end.timetuple())
                 }, real=True)
 
+            frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time'])
+            frame['timestamp'] = frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
+            frame = frame.set_index (pd.to_datetime(frame.loc[:, 'tick_time']).values)
+
             yield frame
 
     async def listen (self):
