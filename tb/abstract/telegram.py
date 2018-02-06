@@ -50,6 +50,9 @@ class Telegram (Logging):
             params = {'limit':1, 'offset':-1}
             response = await self._process_request (self._base_path+'getUpdates?'+(urllib.parse.urlencode(params)))
 
+            self.log_info (response)
+            self.log_info (self._parse_response (response))
+
             return self._parse_response (response)
         except Exception as e:
             self.log_error (e)
