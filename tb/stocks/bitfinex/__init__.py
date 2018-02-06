@@ -38,8 +38,8 @@ class Bitfinex (Logging):
     async def process_tick (self, tick):
         try:
             if tick.name.hour == 0 and self._wallet_notified is False:
-                self._telegram.send_message (self._wallet)
                 self._wallet_notified = True
+                await self._telegram.send_message (self._wallet)
             elif tick.name.hour != 0 and self._wallet_notified is True:
                 self._wallet_notified = False
 
