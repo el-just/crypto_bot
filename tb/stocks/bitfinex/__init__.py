@@ -51,7 +51,7 @@ class Bitfinex (Logging):
     async def process_command (self, command):
         try:
             if command in self._commands:
-                await self.telegram.send_message ('command_accepted')
+                await self._telegram.send_message ('command_accepted')
                 await self.__class__.__dict__[ self._actions[self._commands.index(command)] ](self)
             elif command == 'nice' or command == 'gj':
                 await self._telegram.send_message ('tnx')
