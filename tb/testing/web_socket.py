@@ -69,9 +69,8 @@ class WEBSocket (BWS):
                 await self._process_actions (self._wallet_actions, [0,'ws',[['','btc',0.0],['','usd',2000.]]])
                 async for day_frame in self.day_data_generator():
                     current_idx = 0
-                    self.log_info (day_frame)
                     for idx, tick in day_frame.iterrows():
-                        self.log_info (day_frame)
+                        self.log_info (day_frame.shape)
                         if current_idx % int(day_frame.shape[0] / 100) == 0:
                             self.log_info ('Day: {0}, Percent: {1}'.format ( str(current_day), str(current_idx // int(day_frame.shape[0] / 100)) ))
                         await self._process_actions (self._tick_actions, tick)
