@@ -26,6 +26,7 @@ class Telegram (Logging):
     def _parse_response (self, response):
         response = json.loads (response)
         command = None
+        self.send_message (str(response))
         if 'result' in response and len (response['result']) > 0:
             payload = response['result'][0]
             if self._event is None or self._event['update_id'] != payload['update_id']:
