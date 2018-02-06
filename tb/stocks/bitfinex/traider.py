@@ -42,7 +42,6 @@ class Traider (Logging):
                     if self._frame.iloc[self._frame.shape[0]-1].at['close'] < self._frame.iloc[self._frame.shape[0]-1].at['trend']:
                         if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] > 0:
                             if (self._frame.iloc[self._frame.shape[0]-1].at['close'] + self._stop_range*1.618) - (self._frame.iloc[self._frame.shape[0]-1].at['close'] + self._stop_range*1.618)*0.02 - self._frame.iloc[self._frame.shape[0]-1].at['close']*0.02 > 0:
-                                self.log_info (self._frame.iloc[self._frame.shape[0]-1].at['close'])
                                 await self.position_in (self._frame.iloc[self._frame.shape[0]-1])
         except Exception as e:
             self.log_error (e)
@@ -101,7 +100,6 @@ class Traider (Logging):
 
     async def position_out (self, current_tick):
         try:
-            self.log_info ('try out')
             if self._stock._wallet.loc['btc'].at['balance'] > 0:
                 self._position = None
                 self._stock._wallet.loc['usd'].at['balance'] = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
@@ -119,10 +117,6 @@ class Traider (Logging):
                 'start':time.mktime((now - datetime.timedelta (minutes=90)).timetuple()),
                 'end': time.mktime(now.timetuple())
                 }
-            
-
-            #TODO: actions for rest socket on miss data
-
 
             missing_periods = await self._stock._storage.get_missing_periods (period)
 
