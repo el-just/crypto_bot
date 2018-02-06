@@ -53,7 +53,7 @@ class Bitfinex (Logging):
             if command in self._commands:
                 await self.telegram.send_message ('command_accepted')
                 await self.__class__.__dict__[ self._actions[self._commands.index(command)] ](self)
-            elif command == 'nice':
+            elif command == 'nice' or command == 'gj':
                 await self.telegram.send_message ('tnx')
         except Exception as e:
             self.log_error (e)
