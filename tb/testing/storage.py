@@ -37,7 +37,7 @@ class Storage (BTFXStorage):
         return periods
 
     async def get_tick_frame (self, period):
-        if self._source == 'csv':
+        if self._source == 'db':
             now = datetime.datetime.now()
             start = (now - datetime.timedelta (days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
             end = start + datetime.timedelta (minutes=90)
@@ -47,7 +47,7 @@ class Storage (BTFXStorage):
                 })
 
             return frame
-        elif self._source == 'db':
+        elif self._source == 'csv':
             self._iter_frame = pd.read_csv ('testing/day.csv', dtype={'close':np.float64})
 
             self._iter_frame.loc[:, 'tick_time'] = pd.to_datetime(self._iter_frame.loc[:, 'tick_time'])

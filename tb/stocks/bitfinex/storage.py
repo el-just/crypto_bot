@@ -29,7 +29,6 @@ class Storage (Logging):
                 return self.parse_response(text)
 
     async def get_tick_frame (self, period):
-        self.log_info(self.get_sql ('period_frame').format(base='btc', quot='usd', start=period['start'], end=period['end']))
         return await self.execute (self.get_sql ('period_frame').format(base='btc', quot='usd', start=period['start'], end=period['end']))
 
     async def insert_ticks (self, ticks):

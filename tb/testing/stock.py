@@ -18,3 +18,4 @@ class Stock (Bitfinex):
 
         self._web_socket.set_source (source)
         self._web_socket.set_storage (self._storage)
+        self._storage.set_source (source)
