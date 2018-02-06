@@ -39,16 +39,20 @@ class Telegram (Logging):
         self._command_actions.append(command_action)
 
     async def send_message (self, message):
-        params = {'chat_id': self._chat_id, 'text': str(message)}
-        await self._process_request (self._base_path+'sendMessage?'+urllib.parse.urlencode(params))
+        try:
+            params = {'chat_id': self._chat_id, 'text': str(message)}
+            await self._process_request (self._base_path+'sendMessage?'+urllib.parse.urlencode(params))
+        except Exception as e:
+            self.log_error (e)
 
     async def get_updates (self):
-        params = {'limit':1, 'offset':-1}
-        response = await self._process_request (self._base_path+'getUpdates?'+(urllib.parse.urlencode(params)))
+        try:
+            params = {'limit':1, 'offset':-1}
+            response = await self._process_request (self._base_path+'getUpdates?'+(urllib.parse.urlencode(params)))
 
-        await self.send_message (str(response))
-
-        return self._parse_response (response)
+            return self._parse_response (response)
+        except Exception as e:
+            self.log_error (e)
 
     async def run (self):
         while True:
