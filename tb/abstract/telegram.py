@@ -9,7 +9,7 @@ from abstract.logging import Logging
 
 class Telegram (Logging):
     _chat_id = 276455649
-    _base_path = 'https://api.telegram.org/bot'+DEFINES.TELEGRAM+'509542441:AAF3UMLVxRKLD1jT9W9IRc6fcFMnT7pBFTk/'
+    _base_path = 'https://api.telegram.org/bot'+DEFINES.TELEGRAM+'/'
     _event = None
 
     _command_actions = []
@@ -49,9 +49,6 @@ class Telegram (Logging):
         try:
             params = {'limit':1, 'offset':-1}
             response = await self._process_request (self._base_path+'getUpdates?'+(urllib.parse.urlencode(params)))
-
-            self.log_info (response)
-            self.log_info (self._parse_response (response))
 
             return self._parse_response (response)
         except Exception as e:
