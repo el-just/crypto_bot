@@ -40,10 +40,10 @@ class WEBSocket (BWS):
         start = (now - datetime.timedelta (days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
 
         for day in range (0, 30):
-            day_start = start + datetime.timedelta (days=day)
+            day_start = start + datetime.timedelta (days=day) + datetime.timedelta (minutes=90)
             day_end = day_start.replace (hour=23, minute=59, second=59)
             frame = await self._storage.get_tick_frame ({
-                'start': time.mktime(day_start.timetuple())
+                'start': time.mktime(day_start.timetuple()),
                 'end': time.mktime(day_end.timetuple())
                 })
             yield frame

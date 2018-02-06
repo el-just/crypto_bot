@@ -16,6 +16,7 @@ from stocks.bitfinex.traider import Traider
 
 class Bitfinex (Logging):
     _wallet = None
+    _wallet_notified = False
 
     _web_connection = WEBConnection ()
     _telegram = Telegram ()
@@ -36,6 +37,12 @@ class Bitfinex (Logging):
 
     async def process_tick (self, tick):
         try:
+            if tick.name.hour == 0 and self._wallet_notified is False:
+                self._telegram.send_message (self._wallet)
+                self._wallet_notified = True
+            elif tick.name.hour != 0 and self._wallet_notified is True:
+                self._wallet_notified = False
+
             await self._storage.insert_ticks (tick)
             await self._traider.resolve (tick)
         except Exception as e:
