@@ -63,6 +63,7 @@ class WEBSocket (BWS):
                     current_idx += 1
             elif self._source == 'db':
                 current_day = 1
+                await self._process_actions (self._wallet_actions, [0,'ws',[['','btc',0.0],['','usd',2000.]]])
                 async for day_frame in self.day_data_generator():
                     current_idx = 0
                     for idx, tick in day_frame.iterrows():
