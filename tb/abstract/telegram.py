@@ -62,7 +62,6 @@ class Telegram (Logging):
                     if len (self._command_actions) > 0:
                         for command_action in self._command_actions:
                             await command_action (command)
-                        await self.send_message ('command_procceed')
                 await asyncio.sleep (1)
             except Exception as e:
                 self.log_error (e)
