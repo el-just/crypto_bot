@@ -26,7 +26,6 @@ class Telegram (Logging):
     def _parse_response (self, response):
         response = json.loads (response)
         command = None
-        self.send_message (str(response))
         if 'result' in response and len (response['result']) > 0:
             payload = response['result'][0]
             if self._event is None or self._event['update_id'] != payload['update_id']:
@@ -46,6 +45,8 @@ class Telegram (Logging):
     async def get_updates (self):
         params = {'limit':1, 'offset':-1}
         response = await self._process_request (self._base_path+'getUpdates?'+(urllib.parse.urlencode(params)))
+
+        await self.send_message (str(response))
 
         return self._parse_response (response)
 
