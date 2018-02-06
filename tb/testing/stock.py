@@ -24,4 +24,4 @@ class Stock (Bitfinex):
         self._storage.set_source (source)
 
     async def process_test_action (self):
-        self._telegram.send_message ('test_action')
+        await self._telegram.send_message ('test_action')
