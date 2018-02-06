@@ -36,7 +36,7 @@ class Storage (BTFXStorage):
 
         return periods
 
-    async def get_tick_frame (self, period):
+    async def get_tick_frame (self, period, real=False):
         if self._source == 'db':
             now = datetime.datetime.now()
             start = (now - datetime.timedelta (days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -56,6 +56,6 @@ class Storage (BTFXStorage):
             self._iter_frame = self._iter_frame.iloc[::-1]
 
             return self._iter_frame.loc[:self._iter_frame.iloc[0].name+datetime.timedelta(**DEFINES.REQUIRED_INTERVAL)]
-        else:
+        elif real == True:
             return super().get_tick_frame (period)
 
