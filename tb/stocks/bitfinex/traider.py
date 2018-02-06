@@ -28,14 +28,14 @@ class Traider (Logging):
             self.update_avg ()
             self.update_avg_diff ()
 
-            if self._position is not None:
+            if self._position is not None and self._position.at['state'] != 'pending':
                 if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0 and self._frame.iloc[self._frame.shape[0]-1].at['avg'] >= self._position.at['price'] + self._position.at['stop_range']*1.618:
                     await self.position_out (self._frame.iloc[self._frame.shape[0]-1])
                 elif self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0 and self._frame.iloc[self._frame.shape[0]-1].at['avg'] / self._position.at['price'] <= 1.01:
                     await self.position_out (self._frame.iloc[self._frame.shape[0]-1])
                 elif self._frame.iloc[self._frame.shape[0]-1].at['avg'] / self._position.at['price'] <= 0.99:
                     await self.position_out (self._frame.iloc[self._frame.shape[0]-1])                
-            else:
+            elif self._position is None:
                 self.update_trend ()
                 self.update_stop_range ()
                 if self._trend_model.coef_ > 0:
@@ -87,26 +87,26 @@ class Traider (Logging):
     async def position_in (self, current_tick):
         try:
             if self._stock._wallet.loc['usd'].at['balance'] > 0:
-                self._position = pd.Series (data=[current_tick.at['close'], self._stop_range], index=['price', 'stop_range'])
+                value = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close'] * 0.99
+                
+                self._position = pd.Series (data=[current_tick.at['close'], self._stop_range, 'pending', value, None], index=['price', 'stop_range', 'state', 'expect_currency', 'expect_usd'])
                 self._position.name = datetime.datetime.now()
 
-                self._stock._wallet.loc['btc'].at['balance'] = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close']
-                self._stock._wallet.loc['usd'].at['balance'] = 0
-
-                self.log_info (self._stock._wallet)
-                self.log_info (current_tick.name)
+                self.log_info ('About to go IN current_price={0} currency_value={1}'.format (str(current_tick.at['close']), str(value)))
+                await self._stock.place_order (base='btc', quot='usd', value=value)
         except Exception as e:
             self.log_error (e)
 
     async def position_out (self, current_tick):
         try:
             if self._stock._wallet.loc['btc'].at['balance'] > 0:
-                self._position = None
-                self._stock._wallet.loc['usd'].at['balance'] = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
-                self._stock._wallet.loc['btc'].at['balance'] = 0
+                value = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
+                
+                self._position.at['state'] = 'pending'
+                self._position.at['expect_usd'] = value
 
-                self.log_info (self._stock._wallet)
-                self.log_info (self._frame.iloc[self._frame.shape[0]-1].name)
+                self.log_info ('About to go OUT current_price={0} usd_value={1}'.format (str(current_tick.at['close']), str(value)))
+                await self._stock.place_order (base='usd', quot='btc', value=value)
         except Exception as e:
             self.log_error (e)
 

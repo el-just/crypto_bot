@@ -158,6 +158,7 @@ class WEBSocket (Logging):
                         await self._socket.send(json.dumps({"event":"subscribe", "channel":"ticker", "pair":base+quot}))
         except Exception as e:
             self.log_error (e)
+    
     async def run (self):
         try:
             await self.listen ()

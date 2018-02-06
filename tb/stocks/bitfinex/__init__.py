@@ -70,6 +70,14 @@ class Bitfinex (Logging):
                 self._wallet.loc[message[2][1].lower()] = message[2][2]
         except Exception as e:
             self.log_error (e)
+    
+    async def place_order (self, base=None, quot=None, value=None):
+        try:
+            # TODO web_socket order =====>
+            await self.web_socket.place_order (base=base, quot=quot, value=value)
+        except Exception as e:
+            self.log_error (e)
+
     def run (self):
         return asyncio.gather(
             self._telegram.run (),
