@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      //Здесь можно объявить события до построения дерева
+    </script>
+
+    <meta charset="utf-8">
+    <link href="index.css" rel="stylesheet">
+    <script src="index.js"></script>
+    <script src="math.js"></script>
+    <script src="chart.js"></script>
+    <script src="/sockets/server.js"></script>
+    <title></title>
+  </head>
+  <body>
+    <button class="chartType">SimpleChart</button>
+
+    <script>
+      //Дерево построено. Сообщаем об этом
+      var 
+        structureReadyEvent = new CustomEvent(
+          'structureReady',
+          { 
+            detail: {
+              //Кастомные данные
+            },
+            bubbles: false,
+            cancelable: false
+          }
+        );
+
+      document.dispatchEvent(structureReadyEvent);
+    </script>
+  </body>
+</html>
