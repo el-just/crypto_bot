@@ -2,8 +2,14 @@ import pandas as pd
 import numpy as np
 import aiohttp
 import datetime
+import time
+import hmac
+import hashlib
+import base64
+import json
 import asyncio
 import urllib.parse
+import random
 
 from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
@@ -26,6 +32,29 @@ class RESTSocket (Logging):
         except Exception as e:
             self.log_error (e)
 
+    async def _process_auth_request (self, url=None, payload=None):
+        base_url = 'https://api.bitfinex.com'
+
+        payload_enc = base64.b64encode (json.dumps (payload).encode())
+
+        signature = hmac.new(
+            DEFINES.PATTERN.encode(),
+            msg = payload_enc,
+            digestmod = hashlib.sha384
+            ).hexdigest()
+
+        headers = {
+            'X-BFX-APIKEY': DEFINES.PATH,
+            'X-BFX-PAYLOAD': payload_enc.decode(),
+            'X-BFX-SIGNATURE': signature 
+            }
+
+        async with aiohttp.ClientSession(headers=headers) as session:
+            self.log_info ('Bitfinex order request:\n\t{0}'.format(str(payload)))
+            async with session.post(base_url+url, data=payload) as resp:
+                text = await resp.text()
+                return text
+
     async def _request (self, url, params):
         try:
             now = datetime.datetime.now()
@@ -44,7 +73,40 @@ class RESTSocket (Logging):
         except Exception as e:
             self.log_error (e)
 
-    def fract_period (sekf, period):
+    async def place_order (self, market=None, value=None, side=None):
+        try:
+            url = '/v1/order/new'
+
+            payload = {
+                'request': url,
+                'nonce': str((time.time() * 100000)+.0),
+                'symbol': market.upper(),
+                'amount': value,
+                'price': random.choice (range(1,10000)),
+                'exchange': 'bitfinex',
+                'side': side,
+                'type': 'exchange market',
+                'use_all_available': 1
+                }
+
+            return await self._process_auth_request (url=url, payload=payload)
+        except Exception as e:
+            self.log_error (e)
+
+    async def get_balances (self):
+        try:
+            url = '/v1/balances'
+
+            payload = {
+                'request': url,
+                'nonce': str((time.time() * 100000)+.0)
+                }
+
+            return await self._process_auth_request (url=url, payload=payload)
+        except Exception as e:
+            self.log_error (e)
+
+    def fract_period (self, period):
         request_periods = []
         step_date = period['start']
         while step_date < period['end']:

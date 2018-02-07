@@ -87,26 +87,29 @@ class Traider (Logging):
     async def position_in (self, current_tick):
         try:
             if self._stock._wallet.loc['usd'].at['balance'] > 0:
-                value = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close'] * 0.99
+                #TODO: decrase value for the reason of price goes up
+                value = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close']
+                if len(str(value).split('.')[1]) > 8:
+                    integers = str(value).split('.')[0]
+                    floats = str(value).split('.')[1][:8]
+                    value = float( integers+'.'+floats)
                 
                 self._position = pd.Series (data=[current_tick.at['close'], self._stop_range, 'pending', value, None], index=['price', 'stop_range', 'state', 'expect_currency', 'expect_usd'])
                 self._position.name = datetime.datetime.now()
 
                 self.log_info ('About to go IN current_price={0} currency_value={1}'.format (str(current_tick.at['close']), str(value)))
-                await self._stock.place_order (base='btc', quot='usd', value=value)
+                await self._stock.place_order (market='btcusd', value=value, side='buy')
         except Exception as e:
             self.log_error (e)
 
     async def position_out (self, current_tick):
         try:
             if self._stock._wallet.loc['btc'].at['balance'] > 0:
-                value = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
-                
                 self._position.at['state'] = 'pending'
-                self._position.at['expect_usd'] = value
+                self._position.at['expect_usd'] = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
 
-                self.log_info ('About to go OUT current_price={0} usd_value={1}'.format (str(current_tick.at['close']), str(value)))
-                await self._stock.place_order (base='usd', quot='btc', value=value)
+                self.log_info ('About to go OUT current_price={0} usd_value={1}'.format (str(current_tick.at['close']), str(self._position.at['expect_usd'])))
+                await self._stock.place_order (market='btcusd', value=self._stock._wallet.loc['btc'].at['balance'], side='sell')
         except Exception as e:
             self.log_error (e)
 

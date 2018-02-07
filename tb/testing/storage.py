@@ -62,3 +62,5 @@ class Storage (BTFXStorage):
             self._iter_frame = self._iter_frame.iloc[::-1]
 
             return self._iter_frame.loc[:self._iter_frame.iloc[0].name+datetime.timedelta(**DEFINES.REQUIRED_INTERVAL)]
+        else:
+            return pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])

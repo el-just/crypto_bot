@@ -17,12 +17,16 @@ class WEBSocket (Logging):
     _socket = None
     _tick_actions = []
     _wallet_actions = []
+    _order_actions = []
 
     def add_tick_action (self, tick_action):
         self._tick_actions.append(tick_action)
 
     def add_wallet_action (self, wallet_action):
         self._wallet_actions.append (wallet_action)
+
+    def add_order_action (self, order_action):
+        self._order_actions.append (order_action)
 
     async def _process_actions (self, actions, *args):
         try:
@@ -132,6 +136,8 @@ class WEBSocket (Logging):
         try:
             if message[1] == 'ws' or message[1] == 'wu':
                 await self._process_actions (self._wallet_actions, message)
+            elif message[1] == 'on':
+                await self._process_actions (self._order_actions, message)
         except Exception as e:
             self.log_error (e)
 
