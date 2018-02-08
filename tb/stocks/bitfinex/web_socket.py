@@ -41,6 +41,7 @@ class WEBSocket (Logging):
             if pure_data[0] == '{':
                 return json.loads (pure_data)
             elif pure_data[0] == '[':
+                pure_data = pure_data.replace('null','None')
                 return ast.literal_eval(pure_data)
             else:
                 return pure_data
@@ -136,7 +137,7 @@ class WEBSocket (Logging):
         try:
             if message[1] == 'ws' or message[1] == 'wu':
                 await self._process_actions (self._wallet_actions, message)
-            elif message[1] == 'on':
+            elif message[1] in ('on', 'oc', 'te'):
                 await self._process_actions (self._order_actions, message)
         except Exception as e:
             self.log_error (e)

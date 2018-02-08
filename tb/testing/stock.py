@@ -32,7 +32,7 @@ class Stock (Bitfinex):
 
     async def process_test_order (self):
         try:
-            result = await self._rest_socket.place_order (market='xrpusd', value='696.6', side='sell')
+            result = await self._rest_socket.place_order (market='xrpbtc', value='696.6', side='sell')
             await self._telegram.send_message (result)
         except Exception as e:
             self.log_error (e)
@@ -45,10 +45,10 @@ class Stock (Bitfinex):
             if side == 'buy':
                 balance = self._wallet.loc['usd'].at['balance'] - self._traider._position.at['price']*self._traider._position.at['expect_currency']
                 wallet_state = [0,'ws',[['','btc', self._traider._position.at['expect_currency']],['','usd', balance]]]
-                order_state = [0,'on',[None, 'btcusd', self._traider._position.at['expect_currency'], None, None, 'executed']]
+                order_state = [0,'te',[None, None, None, None, self._traider._position.at['expect_currency'], None, None]]
             else:
                 wallet_state = [0,'ws',[['','btc', 0.],['','usd',self._traider._position.at['expect_usd']+self._wallet.loc['usd'].at['balance']]]]
-                order_state = [0,'on',[None, 'btcusd', -self._traider._position.at['expect_usd'], None, None, 'executed']]
+                order_state = [0,'te',[None, None, None, None, -self._traider._position.at['expect_usd'], None, None]]
             
             await self._web_socket._process_actions (self._web_socket._wallet_actions, wallet_state)
             await self._web_socket._process_actions (self._web_socket._order_actions, order_state)

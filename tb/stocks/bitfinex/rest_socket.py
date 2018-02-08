@@ -79,10 +79,10 @@ class RESTSocket (Logging):
 
             payload = {
                 'request': url,
-                'nonce': str((time.time() * 100000)+.0),
+                'nonce': str((time.time() * 1000000)+.0),
                 'symbol': market.upper(),
                 'amount': value,
-                'price': random.choice (range(1,10000)),
+                'price': str(random.choice (range(1,10000))+.00),
                 'exchange': 'bitfinex',
                 'side': side,
                 'type': 'exchange market',
@@ -99,7 +99,7 @@ class RESTSocket (Logging):
 
             payload = {
                 'request': url,
-                'nonce': str((time.time() * 100000)+.0)
+                'nonce': str((time.time() * 1000000)+.0)
                 }
 
             return await self._process_auth_request (url=url, payload=payload)

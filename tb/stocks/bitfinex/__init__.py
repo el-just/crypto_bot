@@ -62,23 +62,24 @@ class Bitfinex (Logging):
                     currency.name = row[1].lower()
                     self._wallet = self._wallet.append (currency)
             elif message[1] == 'wu':
-                self._wallet.loc[message[2][1].lower()] = message[2][2]
+                #TODO: check that it saves 
+                self._wallet.loc[message[2][1].lower()].at['balance'] = message[2][2]
         except Exception as e:
             self.log_error (e)
 
     async def process_order_update (self, message):
         try:
             #TODO: may be some race in future with wallet
-            if message[2][5].lower() == 'executed':
-                if float(message[2][2]) < 0:
+            if message[1] in ('on', 'oc') and message[2][5].split(' ')[0].lower() == 'canceled':
+                raise Warning ('Order canceled {0}'.format(str(message)))
+            elif message[1] == 'te':
+                if float(message[2][4]) < 0:
                     self._traider._position = None
                     if self._wallet_notify is None or self._wallet_notify.day != datetime.datetime.now().day:
                         self._wallet_notify = datetime.datetime.now()
                         await self.process_balance_command ()
                 else:
                     self._traider._position.at['state'] = 'done'
-            elif message[2][5].lower() == 'canceled':
-                raise Warning ('Order canceled {0}'.format(str(message)))
 
             self.log_info ('Order update: {0}'.format (str(message)))
         except Exception as e:
