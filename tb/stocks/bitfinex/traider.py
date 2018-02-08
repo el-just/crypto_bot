@@ -88,7 +88,7 @@ class Traider (Logging):
         try:
             if self._stock._wallet.loc['usd'].at['balance'] > 0:
                 #TODO: decrase value for the reason of price goes up
-                value = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close']
+                value = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close']*0.998
                 if len(str(value).split('.')[1]) > 8:
                     integers = str(value).split('.')[0]
                     floats = str(value).split('.')[1][:8]

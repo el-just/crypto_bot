@@ -63,11 +63,6 @@ class Bitfinex (Logging):
                     self._wallet = self._wallet.append (currency)
             elif message[1] == 'wu':
                 self._wallet.loc[message[2][1].lower()] = message[2][2]
-
-            if self._wallet_notify is None or self._wallet_notify.day != datetime.datetime.now().day:
-                if self._wallet.loc['btc'].at['balance'] == 0.:
-                    self._wallet_notify = datetime.datetime.now()
-                    await self._telegram.send_message (self._wallet)
         except Exception as e:
             self.log_error (e)
 
@@ -77,10 +72,13 @@ class Bitfinex (Logging):
             if message[2][5].lower() == 'executed':
                 if float(message[2][2]) < 0:
                     self._traider._position = None
+                    if self._wallet_notify is None or self._wallet_notify.day != datetime.datetime.now().day:
+                        self._wallet_notify = datetime.datetime.now()
+                        await self.process_balance_command ()
                 else:
                     self._traider._position.at['state'] = 'done'
             elif message[2][5].lower() == 'canceled':
-                raise Warning ('Order canceled {}'.format(str(message)))
+                raise Warning ('Order canceled {0}'.format(str(message)))
 
             self.log_info ('Order update: {0}'.format (str(message)))
         except Exception as e:
@@ -92,7 +90,7 @@ class Bitfinex (Logging):
         except Exception as e:
             self.log_error (e)
 
-    async def process_balance_command ():
+    async def process_balance_command (self):
         try:
             await self._telegram.send_message (await self._rest_socket.get_balances())
         except Exception as e:
