@@ -20,6 +20,10 @@ class RESTSocket (Logging):
     _tick_period_url = 'candles/trade:1m:tBTCUSD/hist?'
     _timeline = pd.DataFrame (data=[], columns=['request'])
     _queue = []
+    _stock = None
+
+    def set_stock (self, stock):
+        self._stock = stock
 
     async def _process_request (self, request):
         try:
