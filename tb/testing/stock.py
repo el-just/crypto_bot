@@ -25,14 +25,14 @@ class Stock (Bitfinex):
 
     async def process_test_action (self):
         try:
-            wallets_info = await self._rest_socket.get_balances()
+            wallets_info = await self._rest_socket.get_last_order()
             await self._telegram.send_message (wallets_info)
         except Exception as e:
             self.log_error (e)
 
     async def process_test_order (self):
         try:
-            result = await self._rest_socket.place_order (market='xrpbtc', value='696.6', side='sell')
+            result = await self._rest_socket.place_order (market='xrpbtc', value='1000.0', side='sell')
             await self._telegram.send_message (result)
         except Exception as e:
             self.log_error (e)

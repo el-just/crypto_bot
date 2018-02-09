@@ -10,6 +10,7 @@ import json
 import asyncio
 import urllib.parse
 import random
+import ast
 
 from abstract.logging import Logging
 from stocks.bitfinex.defines import DEFINES
@@ -106,6 +107,63 @@ class RESTSocket (Logging):
         except Exception as e:
             self.log_error (e)
 
+    async def get_last_trade (self):
+        try:
+            url = '/v1/mytrades'
+
+            payload = {
+                'request': url,
+                'nonce': str((time.time() * 1000000)+.0),
+                'symbol': 'BTCUSD',
+                'limit_trades': 1
+                }
+
+            pure_data = await self._process_auth_request (url=url, payload=payload)
+            pure_data = pure_data.replace ('null', 'None')
+            pure_data = pure_data.replace ('true', 'True')
+            pure_data = pure_data.replace ('false', 'False')
+
+            return ast.literal_eval(pure_data)[0]
+        except Exception as e:
+            self.log_error (e)
+
+    async def get_active_orders (self):
+        try:
+            url = '/v1/orders'
+
+            payload = {
+                'request': url,
+                'nonce': str((time.time() * 1000000)+.0)
+                }
+
+            pure_data = await self._process_auth_request (url=url, payload=payload)
+            pure_data = pure_data.replace ('null', 'None')
+            pure_data = pure_data.replace ('true', 'True')
+            pure_data = pure_data.replace ('false', 'False')
+
+            return ast.literal_eval(pure_data)
+        except Exception as e:
+            self.log_error (e)
+
+    async def get_last_order (self):
+        try:
+            url = '/v1/orders/hist'
+
+            payload = {
+                'request': url,
+                'nonce': str((time.time() * 1000000)+.0),
+                'limit': 1
+                }
+
+            pure_data = await self._process_auth_request (url=url, payload=payload)
+            pure_data = pure_data.replace ('null', 'None')
+            pure_data = pure_data.replace ('true', 'True')
+            pure_data = pure_data.replace ('false', 'False')
+
+            return ast.literal_eval(pure_data)[0]
+        except Exception as e:
+            self.log_error (e)
+
     def fract_period (self, period):
         request_periods = []
         step_date = period['start']
@@ -136,8 +194,8 @@ class RESTSocket (Logging):
                 period_frame = self._parse_data (period_pure_data)
                 tick_frame = tick_frame.append (period_frame)
 
-                # if period_frame is not None:
-                #     await self._stock._storage.insert_ticks (period_frame)
+                if period_frame is not None:
+                    await self._stock._storage.insert_ticks (period_frame)
             
             return tick_frame
         except Exception as e:

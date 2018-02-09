@@ -94,7 +94,7 @@ class Traider (Logging):
                     floats = str(value).split('.')[1][:8]
                     value = float( integers+'.'+floats)
                 
-                self._position = pd.Series (data=[current_tick.at['close'], self._stop_range, 'pending', value, None], index=['price', 'stop_range', 'state', 'expect_currency', 'expect_usd'])
+                self._position = pd.Series (data=[current_tick.at['close'], self._stop_range, 'pending', value, None, None], index=['price', 'stop_range', 'state', 'expect_currency', 'expect_usd', 'stock_id'])
                 self._position.name = datetime.datetime.now()
 
                 self.log_info ('About to go IN current_price={0} currency_value={1}'.format (str(current_tick.at['close']), str(value)))
@@ -106,6 +106,7 @@ class Traider (Logging):
         try:
             if self._stock._wallet.loc['btc'].at['balance'] > 0:
                 self._position.at['state'] = 'pending'
+                self._position.at['stock_id'] = np.nan
                 self._position.at['expect_usd'] = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
 
                 self.log_info ('About to go OUT current_price={0} usd_value={1}'.format (str(current_tick.at['close']), str(self._position.at['expect_usd'])))
@@ -117,7 +118,7 @@ class Traider (Logging):
         try:
             now = datetime.datetime.now()
             period = {
-                'start':time.mktime((now - datetime.timedelta (minutes=90)).timetuple()),
+                'start':time.mktime((now - datetime.timedelta (**DEFINES.REQUIRED_INTERVAL)).timetuple()),
                 'end': time.mktime(now.timetuple())
                 }
 
@@ -137,7 +138,7 @@ class Traider (Logging):
     async def resolve (self, tick):
         try:
             self._frame = self._frame.append (tick)
-            self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(minutes=90):]
+            self._frame = self._frame.loc[self._frame.iloc[self._frame.shape[0]-1].name-datetime.timedelta(**DEFINES.REQUIRED_INTERVAL):]
             if self._ready:
                 await self.magic ()
         except Exception as e:

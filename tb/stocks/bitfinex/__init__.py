@@ -34,6 +34,7 @@ class Bitfinex (Logging):
         self._web_socket.add_tick_action (self.process_tick)
         self._web_socket.add_wallet_action (self.process_wallet_update)
         self._web_socket.add_order_action (self.process_order_update)
+        self._web_socket.add_reconnect_action (self.process_reconnect)
         self._traider.set_stock (self)
 
     async def process_tick (self, tick):
@@ -53,6 +54,29 @@ class Bitfinex (Logging):
         except Exception as e:
             self.log_error (e)
 
+    async def process_reconnect (self):
+        if self._traider._position is not None and self._traider._position.at['state'] == 'pending':
+            last_order = self._rest_socket.get_last_order ()
+
+            #expect sell order
+            if not np.isnan(self._traider._position.at['expect_usd']):
+                if last_order['side'].lower() == 'sell':
+                    if last_order['is_cancelled'] is True:
+                        self._traider._position.at['state'] = 'done'
+                    elif last_order['is_live'] is False:
+                        self._traider._position = None
+                else:
+                    self._traider._position.at['state'] = 'done'
+            #expect buy order
+            else:
+                if last_order['side'].lower() == 'buy':
+                    if last_order['is_cancelled'] is True:
+                        self._traider._position = None
+                    elif last_order['is_live'] is False:
+                        self._traider._position.at['state'] = 'done'
+                else:
+                    self._traider._position = None
+
     async def process_wallet_update (self, message):
         try:
             if message[1] == 'ws':
@@ -62,7 +86,6 @@ class Bitfinex (Logging):
                     currency.name = row[1].lower()
                     self._wallet = self._wallet.append (currency)
             elif message[1] == 'wu':
-                #TODO: check that it saves 
                 self._wallet.loc[message[2][1].lower()].at['balance'] = message[2][2]
         except Exception as e:
             self.log_error (e)
@@ -87,7 +110,13 @@ class Bitfinex (Logging):
     
     async def place_order (self, market=None, value=None, side=None):
         try:
-            await self._rest_socket.place_order (market=market, value=value, side=side)
+            pure_data = await self._rest_socket.place_order (market=market, value=value, side=side)
+            order_result = json.loads(pure_data)
+
+            if 'order_id' in order_result:
+                self._traider._position.at['stock_id'] = order_result['order_id']
+            else:
+                raise Warning ('No order_id in order_result: {0}'.format(str(pure_data)))
         except Exception as e:
             self.log_error (e)
 

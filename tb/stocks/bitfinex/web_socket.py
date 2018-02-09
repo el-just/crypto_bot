@@ -18,6 +18,7 @@ class WEBSocket (Logging):
     _tick_actions = []
     _wallet_actions = []
     _order_actions = []
+    _reconnect_actions = []
 
     def add_tick_action (self, tick_action):
         self._tick_actions.append(tick_action)
@@ -27,6 +28,9 @@ class WEBSocket (Logging):
 
     def add_order_action (self, order_action):
         self._order_actions.append (order_action)
+
+    def add_reconnect_action (self, reconnect_action):
+        self._reconnect_actions.append (reconnect_action)
 
     async def _process_actions (self, actions, *args):
         try:
@@ -41,7 +45,9 @@ class WEBSocket (Logging):
             if pure_data[0] == '{':
                 return json.loads (pure_data)
             elif pure_data[0] == '[':
-                pure_data = pure_data.replace('null','None')
+                pure_data = pure_data.replace ('null', 'None')
+                pure_data = pure_data.replace ('true', 'True')
+                pure_data = pure_data.replace ('false', 'False')
                 return ast.literal_eval(pure_data)
             else:
                 return pure_data
@@ -182,6 +188,7 @@ class WEBSocket (Logging):
                         self._socket = websocket
                         self.log_telegram ('Connection established')
                         await self.subscribe_channels ()
+                        await self._process_actions (self._reconnect_actions)
                         async for message in websocket:
                             self.log_info ('Web Socket message:\n\t{}'.format (message))
                             await self.route (self.parse_message(message))
