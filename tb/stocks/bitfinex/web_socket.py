@@ -190,7 +190,6 @@ class WEBSocket (Logging):
                         await self.subscribe_channels ()
                         await self._process_actions (self._reconnect_actions)
                         async for message in websocket:
-                            self.log_info ('Web Socket message:\n\t{}'.format (message))
                             await self.route (self.parse_message(message))
                 except Exception as e:
                     self.log_error (e)
