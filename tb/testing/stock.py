@@ -13,7 +13,7 @@ class Stock (Bitfinex):
 
     _commands = ['test_action', 'test_order']
     _actions = ['process_test_action', 'process_test_order']
-
+    _first_try = True
 
 
     def __init__ (self, source='csv'):
