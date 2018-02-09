@@ -17,7 +17,7 @@ modes = [
 
 try:
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(Stock (modes[3]).run())
+    loop.run_until_complete(Stock (modes[4]).run())
     loop.close()
 except Exception as e:
     Logging.log_error (e)
