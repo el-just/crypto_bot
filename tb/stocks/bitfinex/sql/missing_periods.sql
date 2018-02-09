@@ -3,7 +3,8 @@ SELECT * FROM (
         tick_time,
         base,
         quot,
-        runningDifference(tick_time) AS delta
+        runningDifference(tick_time) AS delta,
+        2 as tp
     FROM
     (
         SELECT
@@ -22,7 +23,8 @@ SELECT * FROM (
         tick_time,
         base,
         quot,
-        runningDifference(tick_time) AS delta
+        runningDifference(tick_time) AS delta,
+        0 as tp
     FROM tb.ticker
     WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
     ORDER BY tick_time ASC
@@ -34,13 +36,14 @@ SELECT * FROM (
         tick_time,
         base,
         quot,
-        runningDifference(tick_time) AS delta
+        runningDifference(tick_time) AS delta,
+        1 as tp
     FROM tb.ticker
     WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
     ORDER BY tick_time DESC
     LIMIT 1
 )
 
-ORDER BY delta ASC, tick_time ASC
+ORDER BY tp ASC, tick_time ASC
 
 FORMAT CSVWithNames
