@@ -66,7 +66,7 @@ class Storage (Logging):
             available_data.loc[:, 'tick_time'] = pd.to_datetime(available_data.loc[:, 'tick_time']).astype(int) / 1000000000
 
             periods = []
-            if available_data is not None and :
+            if available_data is not None:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
                 print (available_data.loc[0].at['tick_time'])
                 print (period['start'])
