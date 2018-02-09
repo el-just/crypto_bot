@@ -35,7 +35,7 @@ class Storage (BTFXStorage):
 
             return periods
         else:
-            return await super().get_missing_periods(self, period)
+            return await super().get_missing_periods(period)
 
     async def get_tick_frame (self, period, real=False):
         if real == True or self._source in ('trade_emulation', 'trade_emulation_with_inserts'):

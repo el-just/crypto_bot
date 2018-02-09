@@ -86,7 +86,7 @@ class Traider (Logging):
         
     async def position_in (self, current_tick):
         try:
-            if self._stock._wallet.loc['usd'].at['balance'] > 0:
+            if self._stock._wallet is not None and self._stock._wallet.loc['usd'].at['balance'] > 0:
                 #TODO: decrase value for the reason of price goes up
                 value = self._stock._wallet.loc['usd'].at['balance'] / current_tick.at['close']*0.998
                 if len(str(value).split('.')[1]) > 8:
@@ -104,7 +104,7 @@ class Traider (Logging):
 
     async def position_out (self, current_tick):
         try:
-            if self._stock._wallet.loc['btc'].at['balance'] > 0:
+            if self._stock._wallet is not None and self._stock._wallet.loc['btc'].at['balance'] > 0:
                 self._position.at['state'] = 'pending'
                 self._position.at['stock_id'] = np.nan
                 self._position.at['expect_usd'] = self._stock._wallet.loc['btc'].at['balance'] * current_tick.at['close']
