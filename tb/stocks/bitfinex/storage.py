@@ -23,7 +23,6 @@ class Storage (Logging):
         return response
 
     async def execute (self, query):
-        self.log_info ('wtf')
         async with aiohttp.ClientSession() as session:
             async with session.post('http://localhost:8123/', data=query) as resp:
                 text = await resp.text()
