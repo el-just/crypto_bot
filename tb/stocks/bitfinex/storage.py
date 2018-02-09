@@ -23,6 +23,7 @@ class Storage (Logging):
         return response
 
     async def execute (self, query):
+        self.log_info ('wtf')
         async with aiohttp.ClientSession() as session:
             async with session.post('http://localhost:8123/', data=query) as resp:
                 text = await resp.text()
@@ -39,12 +40,13 @@ class Storage (Logging):
 
     async def insert_ticks (self, ticks):
         try:
-            self.log_info ('insert_ticks '+str(ticks))
+            self.log_info ('insert_ticks')
             rows = []
             tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
             tick_frame = tick_frame.append (ticks, ignore_index=True)
-            
+            self.log_info ('insert_ticks2')
             for idx, tick in tick_frame.iterrows():
+                self.log_info ('insert_ticks3')
                 rows.append ('''(toDate({tick_date}), toDateTime({tick_time}), '{base}', '{quot}', {close}, {volume})'''.format (
                     tick_date = int(tick.at['timestamp']),
                     tick_time = int(tick.at['timestamp']),
@@ -54,7 +56,7 @@ class Storage (Logging):
                     volume = float (tick.at['volume'])
                     ))
 
-            self.log_info ('insert_ticks '+str(rows))
+            self.log_info ('insert_ticks'+str(rows))
             query = '''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES {values}'''.format (values=', '.join (rows))
             self.log_info ('Insert to clickhouse request:\n\t{0}\n'.format(str(tick_frame.shape)))
             await self.execute (query)

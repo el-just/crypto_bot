@@ -21,7 +21,6 @@ class Storage (BTFXStorage):
     async def insert_ticks (self, ticks):
         try:
             if self._source == 'trade_emulation_with_inserts':
-                self.log_info ('insert_ticks '+str(ticks))
                 super().insert_ticks (ticks)
         except Exception as e:
             self.log_error (e)
