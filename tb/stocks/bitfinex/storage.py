@@ -19,7 +19,6 @@ class Storage (Logging):
     #TODO: raise exception on clickhouse error
     def parse_response (self, response):
         response = None if response == '' else pd.read_csv (StringIO(response), dtype={'close':np.float64})
-        self.log_info ('Clickhouse response:\n "{}"'.format (str(response)))
         return response
 
     async def execute (self, query):
@@ -54,7 +53,6 @@ class Storage (Logging):
                     ))
 
             query = '''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES {values}'''.format (values=', '.join (rows))
-            self.log_info ('Insert to clickhouse request:\n\t{0}\n'.format(str(tick_frame.shape)))
             await self.execute (query)
         except Exception as e:
             self.log_error (e)
