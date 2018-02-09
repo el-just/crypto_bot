@@ -68,9 +68,9 @@ class Storage (Logging):
             periods = []
             if available_data is not None:
                 #если последняя доступная дата периода слишком поздняя, то нужно достать все что раньше, до доступной даты минус период тика
-                print (available_data.loc[0].at['tick_time'])
+                print (available_data.iloc[0].at['tick_time'])
                 print (period['start'])
-                if available_data.loc[0].at['tick_time'] - period['start'] > DEFINES.MISS_PERIOD:
+                if available_data.iloc[0].at['tick_time'] - period['start'] > DEFINES.MISS_PERIOD:
                     periods.append ({
                         'start': period['start'],
                         'end': available_data.loc[0].at['tick_time'] - DEFINES.TICK_PERIOD
