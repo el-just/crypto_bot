@@ -210,7 +210,7 @@ class RESTSocket (Logging):
 
         frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
         for tick_data in [text_array.split(',') for text_array in pure_data[2:-2].split('],[')]:
-            tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
+            tick = pd.Series (data=[int(tick_data[0][:-3]), 'btc', 'usd', float(tick_data[2]), float(tick_data[5])], index=['timestamp', 'base', 'quot', 'close', 'volume'])
             tick.name = datetime.datetime.fromtimestamp(tick.at['timestamp'])
             frame = frame.append (tick)
 
