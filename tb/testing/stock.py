@@ -54,7 +54,7 @@ class Stock (Bitfinex):
 
                 if self._first_try is True and self._source in ('trade_emulation', 'trade_emulation_with_inserts'):
                     self._first_try = False
-                    wallet_state = self._wallet_actions, [0,'ws',[['','btc',0.0],['','usd',2000.]]]
+                    wallet_state = [0,'ws',[['','btc',0.0],['','usd',2000.]]]
             
             await self._web_socket._process_actions (self._web_socket._wallet_actions, wallet_state)
             await self._web_socket._process_actions (self._web_socket._order_actions, order_state)
