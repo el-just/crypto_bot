@@ -128,9 +128,8 @@ class Traider (Logging):
                 self.log_info ('Missing periods:\n\t{0}'.format(str(missing_periods)))
                 for miss in missing_periods:
                     tick_period = await self._stock._rest_socket.get_tick_period (miss)
-                    self._frame = self._frame.append (tick_period)
-            else:
-                self._frame = await self._stock._storage.get_tick_frame (period)
+            
+            self._frame = await self._stock._storage.get_tick_frame (period)
             self._ready = True
         except Exception as e:
             self.log_error (e)
