@@ -42,7 +42,6 @@ class Storage (Logging):
             tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
             tick_frame = tick_frame.append (ticks, ignore_index=True)
             for idx, tick in tick_frame.iterrows():
-                self.log_info ('insert_ticks3')
                 rows.append ('''(toDate({tick_date}), toDateTime({tick_time}), '{base}', '{quot}', {close}, {volume})'''.format (
                     tick_date = int(tick.at['timestamp']),
                     tick_time = int(tick.at['timestamp']),
