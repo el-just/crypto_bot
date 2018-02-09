@@ -24,7 +24,7 @@ SELECT * FROM (
         base,
         quot,
         runningDifference(tick_time) AS delta,
-        1 as tp
+        0 as tp
     FROM tb.ticker
     WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
     ORDER BY tick_time ASC
@@ -37,7 +37,7 @@ SELECT * FROM (
         base,
         quot,
         runningDifference(tick_time) AS delta,
-        0 as tp
+        1 as tp
     FROM tb.ticker
     WHERE base='{base}' AND quot='{quot}' AND tick_time >= toDateTime({start}) AND tick_time <= toDateTime({end})
     ORDER BY tick_time DESC
