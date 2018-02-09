@@ -36,6 +36,7 @@ class Bitfinex (Logging):
         self._web_socket.add_order_action (self.process_order_update)
         self._web_socket.add_reconnect_action (self.process_reconnect)
         self._traider.set_stock (self)
+        self._rest_socket.set_stock (self)
 
     async def process_tick (self, tick):
         try:
