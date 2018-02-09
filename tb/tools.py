@@ -18,7 +18,7 @@ from stocks.bitfinex.storage import Storage
 from stocks.bitfinex.rest_socket import RESTSocket
 from stocks.bitfinex.traider import Traider
 from abstract.logging import Logging
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 window = {'minutes':60}
 
