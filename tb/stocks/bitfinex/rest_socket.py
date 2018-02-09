@@ -185,7 +185,7 @@ class RESTSocket (Logging):
     async def get_tick_period (self, period):
         try:
             request_periods = self.fract_period(period)
-            tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'], dtype={'close':np.float64})
+            tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
 
             for period in request_periods:
                 params = {'limit':1000, 'start':str(int(period['start']))+'000', 'end':str(int(period['end']))+'000'}
