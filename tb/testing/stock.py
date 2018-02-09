@@ -14,10 +14,11 @@ class Stock (Bitfinex):
     _commands = ['test_action', 'test_order']
     _actions = ['process_test_action', 'process_test_order']
     _first_try = True
-
+    _source = 'csv'
 
     def __init__ (self, source='csv'):
         super().__init__()
+        self._source = source
         self.log_info = Logging.log_info
         self.log_error = Logging.log_error
 
