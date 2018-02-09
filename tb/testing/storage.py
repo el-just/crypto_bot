@@ -20,7 +20,7 @@ class Storage (BTFXStorage):
 
     async def insert_ticks (self, ticks):
         if self._source == 'trade_emulation_with_inserts':
-            super().insert_ticks (self, ticks)
+            super().insert_ticks (ticks)
 
     async def get_missing_periods (self, period):
         if self._source not in ('trade_emulation', 'trade_emulation_with_inserts'):
