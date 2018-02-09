@@ -19,23 +19,29 @@ class Storage (BTFXStorage):
         self._source = source
 
     async def insert_ticks (self, ticks):
-        if self._source == 'trade_emulation_with_inserts':
-            super().insert_ticks (ticks)
+        try:
+            if self._source == 'trade_emulation_with_inserts':
+                super().insert_ticks (ticks)
+        except Exception as e:
+            self.log_error (e)
 
     async def get_missing_periods (self, period):
-        if self._source not in ('trade_emulation', 'trade_emulation_with_inserts'):
-            now = datetime.datetime.now()
-            interval = datetime.timedelta (**DEFINES.REQUIRED_INTERVAL)
-            periods = []
+        try:
+            if self._source not in ('trade_emulation', 'trade_emulation_with_inserts'):
+                now = datetime.datetime.now()
+                interval = datetime.timedelta (**DEFINES.REQUIRED_INTERVAL)
+                periods = []
 
-            # periods.append ({
-            #   'start':
-            #   'end': now
-            #   })
+                # periods.append ({
+                #   'start':
+                #   'end': now
+                #   })
 
-            return periods
-        else:
-            return await super().get_missing_periods(period)
+                return periods
+            else:
+                return await super().get_missing_periods(period)
+        except Exception as e:
+            self.log_error (e)
 
     async def get_tick_frame (self, period, real=False):
         if real == True or self._source in ('trade_emulation', 'trade_emulation_with_inserts'):
