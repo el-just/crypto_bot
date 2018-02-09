@@ -126,7 +126,7 @@ class WEBSocket (Logging):
                         self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
                 # right after connecting you receive an info message that contains the actual version of the websocket stream
                 elif 'version' in message:
-                    self.log_info ('version:{0}:{1}'.format(type(message['version']), str(message['version'])))
+                    pass
                 else:
                     self.log_error ('ERROR::Unknown event\n\t{0}'.format(str(message)))
             elif message['event'] == 'auth':

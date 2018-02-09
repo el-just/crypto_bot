@@ -39,6 +39,7 @@ class Storage (Logging):
 
     async def insert_ticks (self, ticks):
         try:
+            self.log_info ('insert_ticks '+str(ticks))
             rows = []
             tick_frame = pd.DataFrame (data=[], columns=['timestamp', 'base', 'quot', 'close', 'volume'])
             tick_frame = tick_frame.append (ticks, ignore_index=True)
@@ -53,6 +54,7 @@ class Storage (Logging):
                     volume = float (tick.at['volume'])
                     ))
 
+            self.log_info ('insert_ticks '+str(rows))
             query = '''INSERT INTO tb.ticker (tick_date, tick_time, base, quot, close, volume) VALUES {values}'''.format (values=', '.join (rows))
             self.log_info ('Insert to clickhouse request:\n\t{0}\n'.format(str(tick_frame.shape)))
             await self.execute (query)
