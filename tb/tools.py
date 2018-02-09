@@ -34,6 +34,7 @@ async def get_missing_periods ():
 
     missing_periods = await storage.get_missing_periods (period)
 
+    print (period)
     print (missing_periods)
 
     requests = []
