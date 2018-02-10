@@ -145,5 +145,9 @@ if sys.argv is not None and len (sys.argv) > 1:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(Traider().run())
         loop.close()
+    elif sys.argv[1] == 'tick_frame':
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(get_tick_frame())
+        loop.close()
 else:
     no_args ()
