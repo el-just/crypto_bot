@@ -75,6 +75,15 @@ async def straregy_testing ():
     print (data_frame.shape)
     print (data_frame.head())
 
+async def get_tick_frame ():
+    now = datetime.datetime.now()
+    period = {
+        'start': int(time.mktime((now - datetime.timedelta (days=30)).timetuple()))
+        'end': int(time.mktime(now.timetuple()))
+        }
+    frame = await storage.get_tick_frame (period)
+    frame.to_csv ('testing/month.csv', index=False, header=True)
+
 def no_args ():
     def holt_winters_second_order_ewma( x, span, beta ):
         N = x.size
