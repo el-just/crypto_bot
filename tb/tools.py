@@ -78,7 +78,7 @@ async def straregy_testing ():
 async def get_tick_frame ():
     now = datetime.datetime.now()
     period = {
-        'start': int(time.mktime((now - datetime.timedelta (days=30)).timetuple()))
+        'start': int(time.mktime((now - datetime.timedelta (days=30)).timetuple())),
         'end': int(time.mktime(now.timetuple()))
         }
     frame = await storage.get_tick_frame (period)
