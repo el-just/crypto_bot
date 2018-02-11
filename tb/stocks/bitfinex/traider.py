@@ -8,6 +8,7 @@ from testing.logging import Logging as TLog
 from stocks.bitfinex.defines import DEFINES
 from sklearn import linear_model
 from scipy.signal import argrelextrema
+import analysis.factors as factors
 
 class Traider (Logging):
     _ready = False
@@ -29,20 +30,15 @@ class Traider (Logging):
             self.update_avg_diff ()
 
             if self._position is not None and self._position.at['state'] != 'pending':
-                if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0 and self._frame.iloc[self._frame.shape[0]-1].at['avg'] >= self._position.at['price'] + self._position.at['stop_range']*1.618:
-                    await self.position_out (self._frame.iloc[self._frame.shape[0]-1])
-                elif self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0 and self._frame.iloc[self._frame.shape[0]-1].at['avg'] / self._position.at['price'] <= 1.01:
-                    await self.position_out (self._frame.iloc[self._frame.shape[0]-1])
-                elif self._frame.iloc[self._frame.shape[0]-1].at['avg'] / self._position.at['price'] <= 0.99:
-                    await self.position_out (self._frame.iloc[self._frame.shape[0]-1])                
+                if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] < 0:
+                    if factors.fee (self._frame.iloc[self._frame.shape[0]-1].at['close'], self._position.at['price']) > 0:
+                        await self.position_out (self._frame.iloc[self._frame.shape[0]-1])                
             elif self._position is None:
                 self.update_trend ()
                 self.update_stop_range ()
-                if self._trend_model.coef_ > 0:
-                    if self._frame.iloc[self._frame.shape[0]-1].at['close'] < self._frame.iloc[self._frame.shape[0]-1].at['trend']:
-                        if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] > 0:
-                            if (self._frame.iloc[self._frame.shape[0]-1].at['close'] + self._stop_range*1.618) - (self._frame.iloc[self._frame.shape[0]-1].at['close'] + self._stop_range*1.618)*0.02 - self._frame.iloc[self._frame.shape[0]-1].at['close']*0.02 > 0:
-                                await self.position_in (self._frame.iloc[self._frame.shape[0]-1])
+                if self._frame.iloc[self._frame.shape[0]-1].at['close'] < self._frame.iloc[self._frame.shape[0]-1].at['trend']:
+                    if self._frame.iloc[self._frame.shape[0]-1].at['avg_diff'] > 0:
+                        await self.position_in (self._frame.iloc[self._frame.shape[0]-1])
         except Exception as e:
             self.log_error (e)
 
