@@ -17,7 +17,8 @@ def cave (frame):
     if frame.iloc[frame.shape[0]-1].at['avg'] > minimum.at['avg']:
         if minimum.name > maximum.name:
             if frame.iloc[frame.shape[0]-1].at['avg'] - minimum.at['avg'] >= (maximum.at['avg'] - minimum.at['avg']) / cave_proportion:
-                cave = minimum
+                if fee (frame.iloc[frame.shape[0]-1].at['avg'], maximum.at['avg']) > 0:
+                    cave = minimum
 
     return cave
 

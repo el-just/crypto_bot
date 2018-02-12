@@ -16,18 +16,18 @@ frame = frame.set_index (pd.to_datetime(frame.loc[:, 'tick_time']).values)
 frame['timestamp'] = frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
 frame = frame.loc[datetime.datetime(2018, 1, 17, 0, 0):datetime.datetime(2018, 2, 9, 0, 0)]
 
-frame['avg'] = frame.loc[:,'close'].rolling (100).mean()
+frame['avg'] = frame.loc[:,'close'].rolling (62).mean()
 
-frame = frame.loc[frame.iloc[0].name:frame.iloc[0].name+datetime.timedelta(minutes=60*24)]
+frame = frame.loc[frame.iloc[0].name:frame.iloc[0].name+datetime.timedelta(minutes=60*48)]
 
-watch_cave = frame.iloc[100:102].copy()
-watch_hill = frame.iloc[100:102].copy()
+watch_cave = frame.iloc[62:64].copy()
+watch_hill = frame.iloc[62:64].copy()
 caves = pd.DataFrame()
 hills = pd.DataFrame()
-current_idx = 102
+current_idx = 64
 current_cave = None
 current_hill = None
-for idx, tick in frame.iloc[102:].iterrows():
+for idx, tick in frame.iloc[64:].iterrows():
     if current_idx % int(frame.shape[0] / 100) == 0:
         print(current_idx // int(frame.shape[0] / 100))
     
@@ -35,17 +35,22 @@ for idx, tick in frame.iloc[102:].iterrows():
     cave = factors.cave (watch_cave)
     if cave is not None:
         caves = caves.append (cave)
+        watch_cave = pd.DataFrame()
+        watch_cave = watch_cave.append (tick)
     if tick.at['avg'] > watch_cave.iloc[0].at['avg']:
         watch_cave = pd.DataFrame()
-        watch_cave.append (tick)
+        watch_cave = watch_cave.append (tick)
 
     watch_hill = watch_hill.append (tick)
     hill = factors.hill (watch_hill)
     if hill is not None:
         hills = hills.append (hill)
+        watch_hill = pd.DataFrame()
+        watch_hill = watch_hill.append (tick)
+
     if tick.at['avg'] < watch_hill.iloc[0].at['avg']:
         watch_hill = pd.DataFrame()
-        watch_hill.append (tick)
+        watch_hill = watch_hill.append (tick)
 
     current_idx += 1
 frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
