@@ -17,8 +17,7 @@ def cave (frame):
     if frame.iloc[frame.shape[0]-1].at['avg'] > minimum.at['avg']:
         if minimum.name > maximum.name:
             if frame.iloc[frame.shape[0]-1].at['avg'] - minimum.at['avg'] >= (maximum.at['avg'] - minimum.at['avg']) / cave_proportion:
-                if fee (frame.iloc[frame.shape[0]-1].at['avg'], maximum.at['avg']) > 0:
-                    cave = minimum
+                cave = minimum
 
     return cave
 
@@ -35,3 +34,20 @@ def hill (frame):
                 hill = maximum
 
     return hill
+
+def predict_out (watch_cave):
+    maximum = watch_cave.loc[watch_cave.loc[:, 'avg'] == watch_cave.loc[:,'avg'].max()].iloc[0]
+
+    minimum = watch_cave.loc[watch_cave.loc[:, 'avg'] == watch_cave.loc[:,'avg'].min()]
+    minimum = minimum.iloc[minimum.shape[0]-1]
+
+    current = watch_cave.iloc[watch_cave.shape[0]-1]
+
+    predicted_timestamp = minimum['timestamp'] + (minimum.at['timestamp'] - maximum['timestamp'])
+
+    maximum_trend = maximum.at['timestamp'] * current.at['trend_coef'] + current.at['trend_intercept']
+    predict_trend = predicted_timestamp * current.at['trend_coef'] + current.at['trend_intercept']
+
+    predicted_price = maximum.at['avg'] + (predict_trend - maximum_trend)
+    
+    return pd.Series (data=[predicted_timestamp, predicted_timestamp - maximum['timestamp'], predicted_price, predicted_price - minimum.at['avg']], index=['timestamp', 'gap', 'price', 'range'])
