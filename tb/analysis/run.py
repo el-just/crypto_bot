@@ -60,7 +60,7 @@ def analise ():
 
     def position_in (tick, balance):
         balance['btc'] = balance['usd'] / tick.at['close'] - balance['usd'] / tick.at['close']*0.002
-        balance['usd'] = 0
+        balance['usd'] = 0.
 
         log_info (balance)
 
@@ -71,6 +71,7 @@ def analise ():
         log_info (balance)
 
     frame = get_frame ('data/month.csv')
+    frame = frame.reset_index().drop_duplicates(subset='index', keep='last').set_index('index')
     frame['trend_coef'] = None
     frame['trend_intercept'] = None
     frame['avg'] = frame.loc[:, 'close'].rolling (62).mean()
@@ -125,6 +126,7 @@ def analise ():
         current_idx = frame.index.get_loc (tick.name) + 1
 
     predicts.to_csv ('data/month_predicts.csv', index=False, header=True)
+    frame.to_csv ('data/month_prepared.csv', index=False, header=True)
     caves.to_csv ('data/month_caves.csv', index=True, header=True)
 
     #frame.loc[ : , ['close', 'avg', 'avg2', 'avg3']].plot(figsize=(12,8))
