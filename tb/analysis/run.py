@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -70,28 +70,24 @@ def analise ():
 
         log_info (balance)
 
-    frame = get_frame ('data/month.csv')
-    frame = frame.reset_index().drop_duplicates(subset='index', keep='last').set_index('index')
-    frame['trend_coef'] = None
-    frame['trend_intercept'] = None
-    frame['avg'] = frame.loc[:, 'close'].rolling (62).mean()
+    frame = get_frame ('data/month_prepared.csv')
+    frame['avg2'] = frame.loc[:, 'close'].rolling(23).mean()
+    frame['diff2'] = frame.loc[:, 'avg2'].diff()
     
     frame = frame.iloc[62:].copy()
     watch_cave = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
+    watch_hill = pd.DataFrame()
     caves = pd.DataFrame()
+    outs = pd.DataFrame()
+    ins = pd.DataFrame()
     current_idx = frame.index.get_loc(frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[0].name)
-    for idx, tick in frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[2:].iterrows():
+    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):frame.iloc[0].name+datetime.timedelta(minutes=60*110)].copy()
+    for idx, tick in frame.iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
 
-        trend_frame = frame.loc[tick.name-datetime.timedelta(minutes=60*24):tick.name]
-        clf = linear_model.LinearRegression()
-        clf.fit (trend_frame.loc[:,'timestamp'].values.reshape(-1,1), trend_frame.loc[:, 'avg'].values)
-        frame.at[idx, 'trend_coef'] = clf.coef_[0]
-        frame.at[idx, 'trend_intercept'] = clf.intercept_
-
         watch_cave = watch_cave.append (frame.loc[tick.name])
-        watch_cave = watch_cave.loc[watch_cave.iloc[watch_cave.shape[0]-1].name - datetime.timedelta (minutes=60*24/1.618):]
+        watch_cave = watch_cave.loc[watch_cave.iloc[watch_cave.shape[0]-1].name - datetime.timedelta (minutes=60*24/2.618):]
         cave = factors.cave (watch_cave)
         if cave is not None:
             predict = factors.predict_out (watch_cave)
@@ -101,6 +97,7 @@ def analise ():
                 predicts = predicts.append (predict)
                 if position is None:
                     position_in (tick, balance)
+                    ins = ins.append (tick)
                     position = predict
                 watch_cave = pd.DataFrame()
                 watch_cave = watch_cave.append (frame.loc[tick.name])
@@ -108,9 +105,18 @@ def analise ():
             watch_cave = pd.DataFrame()
             watch_cave = watch_cave.append (frame.loc[tick.name])
 
-        if position is not None and tick.name >= datetime.datetime.fromtimestamp(position.at['timestamp']):
-            position_out (tick, balance)
-            position = None
+        if position is not None and tick.name >= datetime.datetime.fromtimestamp(position.at['timestamp'] - position.at['gap']/2/2.618):
+            if watch_hill.shape[0] == 0:
+                watch_hill = frame.loc[watch_cave.iloc[0].name:tick.name].copy()
+            else:
+                watch_hill = watch_hill.append(tick)
+
+            hill = factors.hill (watch_hill, column='avg2', proportion=2.618*2.618)
+            if hill is not None:
+                position_out (tick, balance)
+                outs = outs.append (tick)
+                position = None
+                watch_hill = pd.DataFrame()
 
         # watch_hill = watch_hill.append (tick)
         # hill = factors.hill (watch_hill)
@@ -125,13 +131,11 @@ def analise ():
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    predicts.to_csv ('data/month_predicts.csv', index=False, header=True)
-    frame.to_csv ('data/month_prepared.csv', index=False, header=True)
-    caves.to_csv ('data/month_caves.csv', index=True, header=True)
-
-    #frame.loc[ : , ['close', 'avg', 'avg2', 'avg3']].plot(figsize=(12,8))
-    # plt.plot (caves.index, caves.loc[:,'avg'], 'm*')
-    # plt.plot (predicts.loc[:, 'timestamp'].apply (lambda timestamp: datetime.datetime.fromtimestamp(timestamp)), predicts.loc[:,'price'], 'g*')
-    #plt.show()
+    frame.loc[ : , ['close', 'avg', 'avg2']].plot(figsize=(12,8))
+    plt.plot (ins.index, ins.loc[:,'close'], 'm*')
+    plt.plot (predicts.loc[:, 'timestamp'].apply (lambda timestamp: datetime.datetime.fromtimestamp(timestamp)), predicts.loc[:,'price'], 'c*')
+    plt.plot (outs.index, outs.loc[:,'close'], 'g*')
+    #print(frame.iloc[frame.index.get_loc(outs.iloc[outs.shape[0]-1].name):frame.index.get_loc(outs.iloc[outs.shape[0]-1].name)+20].loc[:, 'diff2'])
+    plt.show()
 
 analise ()
