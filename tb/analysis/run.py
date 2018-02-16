@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -162,11 +162,11 @@ def analise ():
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    frame.loc[ : , ['close', 'avg', 'avg2']].plot(figsize=(12,8))
-    plt.plot (ins.index, ins.loc[:,'close'], 'm*')
+    #frame.loc[ : , ['close', 'avg', 'avg2']].plot(figsize=(12,8))
+    #plt.plot (ins.index, ins.loc[:,'close'], 'm*')
     #plt.plot (predicts.loc[:, 'timestamp'].apply (lambda timestamp: datetime.datetime.fromtimestamp(timestamp)), predicts.loc[:,'price'], 'c*')
-    plt.plot (outs.index, outs.loc[:,'close'], 'g*')
+    #plt.plot (outs.index, outs.loc[:,'close'], 'g*')
     #print(frame.iloc[frame.index.get_loc(outs.iloc[outs.shape[0]-1].name):frame.index.get_loc(outs.iloc[outs.shape[0]-1].name)+20].loc[:, 'diff2'])
-    plt.show()
+    #plt.show()
 
 analise ()
