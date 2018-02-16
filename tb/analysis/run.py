@@ -98,7 +98,7 @@ def analise ():
     ins = pd.DataFrame()
     positions = pd.DataFrame ()
     current_idx = frame.index.get_loc(frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[0].name)
-    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
+    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].copy()
     for idx, tick in frame.iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
