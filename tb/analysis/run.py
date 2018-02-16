@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -91,82 +91,83 @@ def analise ():
     frame['diff2'] = frame.loc[:, 'avg2'].diff()
     
     frame = frame.iloc[62:].copy()
-    watch_cave = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
+    watch_cave100 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
+    watch_cave200 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
+    watch_cave300 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
+    watch_cave500 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
     watch_hill = pd.DataFrame()
-    caves = pd.DataFrame()
+    caves100 = pd.DataFrame()
+    caves200 = pd.DataFrame()
+    caves300 = pd.DataFrame()
+    caves500 = pd.DataFrame()
     outs = pd.DataFrame()
     ins = pd.DataFrame()
     positions = pd.DataFrame ()
     current_idx = frame.index.get_loc(frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[0].name)
-    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].copy()
+    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
     for idx, tick in frame.iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
 
-        watch_cave = watch_cave.append (frame.loc[tick.name])
-        watch_cave = watch_cave.loc[watch_cave.iloc[watch_cave.shape[0]-1].name - datetime.timedelta (minutes=60*24/2.618):]
-        cave = factors.cave (watch_cave)
-        if cave is not None and cave.name not in caves.index:
-            predict = factors.predict_out (watch_cave)
-            #  and factors.shape_proportion (predict) >= 1.618 
-            if factors.fee (tick.at['close'], predict.at['price']) > 0:
-                caves = caves.append (cave)
-                predict.name = tick.name
-                predicts = predicts.append (predict)
-                if position is None and predict.at['range'] > 200 and (predict.at['range'] / predict.at['gap'] > 0.03 or predict.at['gap'] > 10000):
-                    position_in (tick, balance)
-                    log_info (predict)
-                    ins = ins.append (tick)
-                    position = get_empty_position ()
-                    position.at['cave_price'] = cave.at['avg']
-                    position.at['cave_max_price'] = watch_cave.loc[:, 'avg'].max()
-                    position.at['cave_gap'] = predict.at['gap']
-                    position.at['in_price'] = tick.at['close']
-                    position.at['predicted_price'] = predict.at['price']
-                    position.at['cave_timestamp'] = cave.at['timestamp']
-                    position.at['in_timestamp'] = tick.at['timestamp']
-                    position.at['predicted_timestamp'] = predict.at['timestamp']
-                    
-                watch_cave = pd.DataFrame()
-                watch_cave = watch_cave.append (frame.loc[tick.name])
-        if tick.at['avg'] > watch_cave.iloc[0].at['avg']:
-            watch_cave = pd.DataFrame()
-            watch_cave = watch_cave.append (frame.loc[tick.name])
+        watch_cave100 = watch_cave100.append (frame.loc[tick.name])
+        watch_cave200 = watch_cave200.append (frame.loc[tick.name])
+        watch_cave300 = watch_cave300.append (frame.loc[tick.name])
+        watch_cave500 = watch_cave500.append (frame.loc[tick.name])
+        cave100 = factors.cave (watch_cave100)
+        cave200 = factors.cave (watch_cave200)
+        cave300 = factors.cave (watch_cave300)
+        cave500 = factors.cave (watch_cave500)
+        
+        if cave100 is not None and cave100.name not in caves100.index and factors.fee (watch_cave100.loc[:, 'avg'].min(), watch_cave100.loc[:, 'avg'].max()) > 100:
+            caves100 = caves100.append (cave100)
+            watch_cave100 = pd.DataFrame()
+            watch_cave100 = watch_cave100.append (frame.loc[tick.name])
+        if tick.at['avg'] > watch_cave100.iloc[0].at['avg']:
+            watch_cave100 = pd.DataFrame()
+            watch_cave100 = watch_cave100.append (frame.loc[tick.name])
 
-        if position is not None and tick.name >= datetime.datetime.fromtimestamp(position.at['predicted_timestamp'] - position.at['cave_gap']/2/2.618):
-            if watch_hill.shape[0] == 0:
-                watch_hill = frame.loc[watch_cave.iloc[0].name:tick.name].copy()
-            else:
-                watch_hill = watch_hill.append(tick)
+        if cave200 is not None and cave200.name not in caves200.index and factors.fee (watch_cave200.loc[:, 'avg'].min(), watch_cave200.loc[:, 'avg'].max()) > 200:
+            caves200 = caves200.append (cave200)
+            watch_cave200 = pd.DataFrame()
+            watch_cave200 = watch_cave200.append (frame.loc[tick.name])
+        if tick.at['avg'] > watch_cave200.iloc[0].at['avg']:
+            watch_cave200 = pd.DataFrame()
+            watch_cave200 = watch_cave200.append (frame.loc[tick.name])
 
-            hill = factors.hill (watch_hill, column='avg2', proportion=2.618*2.618)
-            if hill is not None:
-                position_out (tick, balance)
-                outs = outs.append (tick)
-                position.at['out_price'] = tick.at['close']
-                position.at['out_timestamp'] = tick['timestamp']
-                position.name = tick.name
-                positions = positions.append (position)
-                position = None
-                watch_hill = pd.DataFrame()
+        if cave300 is not None and cave300.name not in caves300.index and factors.fee (watch_cave300.loc[:, 'avg'].min(), watch_cave300.loc[:, 'avg'].max()) > 300:
+            caves300 = caves300.append (cave300)
+            watch_cave300 = pd.DataFrame()
+            watch_cave300 = watch_cave300.append (frame.loc[tick.name])
+        if tick.at['avg'] > watch_cave300.iloc[0].at['avg']:
+            watch_cave300 = pd.DataFrame()
+            watch_cave300 = watch_cave300.append (frame.loc[tick.name])
 
-        if position is not None and position.at['cave_price'] - tick.at['avg'] > (position.at['cave_max_price'] - position.at['cave_price'])/2.6218:
-            position_out (tick, balance)
-            outs = outs.append (tick)
-            position.at['out_price'] = tick.at['close']
-            position.at['out_timestamp'] = tick['timestamp']
-            position.name = tick.name
-            positions = positions.append (position)
-            position = None
-            watch_hill = pd.DataFrame()
+        if cave500 is not None and cave500.name not in caves500.index and factors.fee (watch_cave500.loc[:, 'avg'].min(), watch_cave500.loc[:, 'avg'].max()) > 500:
+            caves500 = caves500.append (cave500)
+            watch_cave500 = pd.DataFrame()
+            watch_cave500 = watch_cave500.append (frame.loc[tick.name])
+        if tick.at['avg'] > watch_cave500.iloc[0].at['avg']:
+            watch_cave500 = pd.DataFrame()
+            watch_cave500 = watch_cave500.append (frame.loc[tick.name])
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    #frame.loc[ : , ['close', 'avg', 'avg2']].plot(figsize=(12,8))
-    #plt.plot (ins.index, ins.loc[:,'close'], 'm*')
+    frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
+    if caves100.shape[0] > 0:
+        caves100.to_csv ('data/caves100.csv', index=True, header=True)
+        plt.plot (caves100.index, caves100.loc[:,'avg'], 'm*')
+    if caves200.shape[0] > 0:
+        caves200.to_csv ('data/caves200.csv', index=True, header=True)
+        plt.plot (caves200.index, caves200.loc[:,'avg'], 'g*')
+    if caves300.shape[0] > 0:
+        caves300.to_csv ('data/caves300.csv', index=True, header=True)
+        plt.plot (caves300.index, caves300.loc[:,'avg'], 'b*')
+    if caves500.shape[0] > 0:
+        caves500.to_csv ('data/caves500.csv', index=True, header=True)
+        plt.plot (caves500.index, caves500.loc[:,'avg'], 'c*')
     #plt.plot (predicts.loc[:, 'timestamp'].apply (lambda timestamp: datetime.datetime.fromtimestamp(timestamp)), predicts.loc[:,'price'], 'c*')
     #plt.plot (outs.index, outs.loc[:,'close'], 'g*')
     #print(frame.iloc[frame.index.get_loc(outs.iloc[outs.shape[0]-1].name):frame.index.get_loc(outs.iloc[outs.shape[0]-1].name)+20].loc[:, 'diff2'])
-    #plt.show()
+    plt.show()
 
 analise ()

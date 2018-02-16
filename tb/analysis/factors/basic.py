@@ -8,7 +8,7 @@ def fee (price_in, price_out):
 
     return (price_out - price_in) - fee * (price_in + price_out)
 
-def cave (frame):
+def cave (frame, proportion=1/2.618/2.618):
     cave = None
 
     maximum = frame.loc[frame.loc[:, 'avg'] == frame.loc[:,'avg'].max()].iloc[0]
@@ -18,7 +18,7 @@ def cave (frame):
     
     if frame.iloc[frame.shape[0]-1].at['avg'] > minimum.at['avg']:
         if minimum.name > maximum.name:
-            if frame.iloc[frame.shape[0]-1].at['avg'] - minimum.at['avg'] >= (maximum.at['avg'] - minimum.at['avg']) / cave_proportion:
+            if frame.iloc[frame.shape[0]-1].at['avg'] - minimum.at['avg'] >= (maximum.at['avg'] - minimum.at['avg']) * proportion:
                 cave = minimum
 
     return cave
@@ -62,16 +62,16 @@ def shape_proportion (predict):
 
 
 
-timestamp = [26280, 13920, 16200, 5166, 1858, 20518, 4680, 10500]
-price = [664, 269, 218, 224, 139, 815, 407, 559]
+# timestamp = [26280, 13920, 16200, 5166, 1858, 20518, 4680, 10500]
+# price = [664, 269, 218, 224, 139, 815, 407, 559]
 
-for i in range (0, len(timestamp)):
-    print (price[i] / timestamp[i])
+# for i in range (0, len(timestamp)):
+#     print (price[i] / timestamp[i])
 
-print ('==============')
+# print ('==============')
 
-timestamp = [14400, 25320, 4320, 2902]
-price = [190, 221, 218, 184]
+# timestamp = [14400, 25320, 4320, 2902]
+# price = [190, 221, 218, 184]
 
-for i in range (0, len(timestamp)):
-    print (price[i] / timestamp[i])
+# for i in range (0, len(timestamp)):
+#     print (price[i] / timestamp[i])
