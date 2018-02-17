@@ -78,6 +78,13 @@ def show (item):
         if items[idx].shape[0] > 0:
             plt.plot (items[idx].index, items[idx].loc[:,'avg'], item_colors[idx]+'*')
     plt.show()
+
+def get_trend (frame, tick, window):
+    trend_frame = frame.loc[tick.name-datetime.timedelta(**window):tick.name]
+    clf = linear_model.LinearRegression()
+    clf.fit (trend_frame.loc[:,'timestamp'].values.reshape(-1,1), trend_frame.loc[:, 'avg'].values)
+
+    return clf
     
 def analise ():
     position = None
@@ -112,50 +119,81 @@ def analise ():
     
     frame = frame.iloc[62:].copy()
     positions = pd.DataFrame ()
+    trend = pd.DataFrame ()
     current_idx = frame.index.get_loc(frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[0].name)
     frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
     for idx, tick in frame.iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
 
-        for idx in range(0, len(cave_ranges)):
-            watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
-            cave = factors.cave (watch_caves[idx])
+        trend_s = get_trend (frame, tick, {'minutes': 60*24/2.618})
+        trend_d = get_trend (frame, tick, {'minutes': 60*24/2.618/2.618})
+        trend_t = get_trend (frame, tick, {'minutes': 60*24/2.618/2.618/2.618})
 
-            if cave is not None and cave.name not in caves[idx].index.values:
-                if factors.fee (watch_caves[idx].loc[:, 'avg'].min(), watch_caves[idx].loc[:, 'avg'].max()) > cave_ranges[idx]:
-                    caves[idx] = caves[idx].append (cave)
-                    watch_caves[idx] = pd.DataFrame()
-                    watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+        trend_row = pd.Series (data=[trend_s.coef_[0], trend_d.coef_[0], trend_t.coef_[0]], index=['single', 'double', 'triple'])
+        trend_row.name = tick.name
+        trend = trend.append (trend_row)
+
+
+        # for idx in range(0, len(cave_ranges)):
+        #     watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+        #     cave = factors.cave (watch_caves[idx])
+
+        #     if cave is not None and cave.name not in caves[idx].index.values:
+        #         if factors.fee (watch_caves[idx].loc[:, 'avg'].min(), watch_caves[idx].loc[:, 'avg'].max()) > cave_ranges[idx]:
+        #             caves[idx] = caves[idx].append (cave)
+        #             watch_caves[idx] = pd.DataFrame()
+        #             watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
             
-            if tick.at['avg'] > watch_caves[idx].iloc[0].at['avg']:
-                watch_caves[idx] = pd.DataFrame()
-                watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+        #     if tick.at['avg'] > watch_caves[idx].iloc[0].at['avg']:
+        #         watch_caves[idx] = pd.DataFrame()
+        #         watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
 
-        for idx in range(0, len(hill_ranges)):
-            watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
-            hill = factors.hill (watch_hills[idx])
+        # for idx in range(0, len(hill_ranges)):
+        #     watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+        #     hill = factors.hill (watch_hills[idx])
 
-            if hill is not None and hill.name not in hills[idx].index.values:
-                if factors.fee (watch_hills[idx].loc[:, 'avg'].min(), watch_hills[idx].loc[:, 'avg'].max()) > hill_ranges[idx]:
-                    hills[idx] = hills[idx].append (hill)
-                    watch_hills[idx] = pd.DataFrame()
-                    watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+        #     if hill is not None and hill.name not in hills[idx].index.values:
+        #         if factors.fee (watch_hills[idx].loc[:, 'avg'].min(), watch_hills[idx].loc[:, 'avg'].max()) > hill_ranges[idx]:
+        #             hills[idx] = hills[idx].append (hill)
+        #             watch_hills[idx] = pd.DataFrame()
+        #             watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
             
-            if tick.at['avg'] < watch_hills[idx].iloc[0].at['avg']:
-                watch_hills[idx] = pd.DataFrame()
-                watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+        #     if tick.at['avg'] < watch_hills[idx].iloc[0].at['avg']:
+        #         watch_hills[idx] = pd.DataFrame()
+        #         watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
 
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    for idx in range(0, len(cave_ranges)):
-        if caves[idx].shape[0] > 0:
-            caves[idx].to_csv ('data/caves'+str(cave_ranges[idx])+'.csv', index=True, header=True)
+    trend.to_csv ('data/trend.csv', index=True, header=True)
 
-    for idx in range(0, len(hill_ranges)):
-        if hills[idx].shape[0] > 0:
-            hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
+    # for idx in range(0, len(cave_ranges)):
+    #     if caves[idx].shape[0] > 0:
+    #         caves[idx].to_csv ('data/caves'+str(cave_ranges[idx])+'.csv', index=True, header=True)
+
+    # for idx in range(0, len(hill_ranges)):
+    #     if hills[idx].shape[0] > 0:
+    #         hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
+
+def analyse_pepared ():
+    ranges = [100, 200, 300, 500]
+
+    frame = get_frame ('data/month_prepared.csv')
+    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
+    
+    caves = pd.DataFrame ()
+    hills = pd.DataFrame ()
+
+    for idx in range (0, len(ranges)):
+        current_caves = get_frame ('data/caves'+str(ranges[idx])+'.csv')
+        current_caves['range'] = ranges[idx]
+        caves = caves.append (current_caves)
+
+        current_hills = get_frame ('data/hills'+str(ranges[idx])+'.csv')
+        current_hills['range'] = ranges[idx]
+        hills = hills.append (current_hills)
+
+    print (caves.loc[caves.loc[:,'range'] == 100].head()) 
 
 analise ()
-#show ('caves')
