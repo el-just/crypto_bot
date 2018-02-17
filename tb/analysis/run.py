@@ -86,7 +86,7 @@ def get_trend (frame, tick, window):
 
     return clf
     
-def analise ():
+def analyse ():
     position = None
     balance = {
         'usd': 2000.,
@@ -108,6 +108,8 @@ def analise ():
         log_info (balance)
 
     frame = get_frame ('data/month_prepared.csv')
+    
+    frame = frame.iloc[62:].copy()
 
     cave_ranges = [100, 200, 300, 500]
     watch_caves = [frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()]*len(cave_ranges)
@@ -116,12 +118,11 @@ def analise ():
     hill_ranges = [100, 200, 300, 500]
     watch_hills = [frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()]*len(hill_ranges)
     hills = [pd.DataFrame()]*len(hill_ranges)
-    
-    frame = frame.iloc[62:].copy()
+
     positions = pd.DataFrame ()
     trend = pd.DataFrame ()
     current_idx = frame.index.get_loc(frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[0].name)
-    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
+    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].copy()
     for idx, tick in frame.iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
@@ -134,49 +135,49 @@ def analise ():
         trend_row.name = tick.name
         trend = trend.append (trend_row)
 
+        for idx in range(0, len(cave_ranges)):
+            watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            cave = factors.cave (watch_caves[idx])
 
-        # for idx in range(0, len(cave_ranges)):
-        #     watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
-        #     cave = factors.cave (watch_caves[idx])
-
-        #     if cave is not None and cave.name not in caves[idx].index.values:
-        #         if factors.fee (watch_caves[idx].loc[:, 'avg'].min(), watch_caves[idx].loc[:, 'avg'].max()) > cave_ranges[idx]:
-        #             caves[idx] = caves[idx].append (cave)
-        #             watch_caves[idx] = pd.DataFrame()
-        #             watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            if cave is not None and cave.name not in caves[idx].index.values:
+                if factors.fee (watch_caves[idx].loc[:, 'avg'].min(), watch_caves[idx].loc[:, 'avg'].max()) > cave_ranges[idx]:
+                    cave['in_close'] = tick.at['close']
+                    caves[idx] = caves[idx].append (cave)
+                    watch_caves[idx] = pd.DataFrame()
+                    watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
             
-        #     if tick.at['avg'] > watch_caves[idx].iloc[0].at['avg']:
-        #         watch_caves[idx] = pd.DataFrame()
-        #         watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            if tick.at['avg'] > watch_caves[idx].iloc[0].at['avg']:
+                watch_caves[idx] = pd.DataFrame()
+                watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
 
-        # for idx in range(0, len(hill_ranges)):
-        #     watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
-        #     hill = factors.hill (watch_hills[idx])
+        for idx in range(0, len(hill_ranges)):
+            watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            hill = factors.hill (watch_hills[idx])
 
-        #     if hill is not None and hill.name not in hills[idx].index.values:
-        #         if factors.fee (watch_hills[idx].loc[:, 'avg'].min(), watch_hills[idx].loc[:, 'avg'].max()) > hill_ranges[idx]:
-        #             hills[idx] = hills[idx].append (hill)
-        #             watch_hills[idx] = pd.DataFrame()
-        #             watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            if hill is not None and hill.name not in hills[idx].index.values:
+                if factors.fee (watch_hills[idx].loc[:, 'avg'].min(), watch_hills[idx].loc[:, 'avg'].max()) > hill_ranges[idx]:
+                    hills[idx] = hills[idx].append (hill)
+                    watch_hills[idx] = pd.DataFrame()
+                    watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
             
-        #     if tick.at['avg'] < watch_hills[idx].iloc[0].at['avg']:
-        #         watch_hills[idx] = pd.DataFrame()
-        #         watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            if tick.at['avg'] < watch_hills[idx].iloc[0].at['avg']:
+                watch_hills[idx] = pd.DataFrame()
+                watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
 
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
     trend.to_csv ('data/trend.csv', index=True, header=True)
 
-    # for idx in range(0, len(cave_ranges)):
-    #     if caves[idx].shape[0] > 0:
-    #         caves[idx].to_csv ('data/caves'+str(cave_ranges[idx])+'.csv', index=True, header=True)
+    for idx in range(0, len(cave_ranges)):
+        if caves[idx].shape[0] > 0:
+            caves[idx].to_csv ('data/caves'+str(cave_ranges[idx])+'.csv', index=True, header=True)
 
-    # for idx in range(0, len(hill_ranges)):
-    #     if hills[idx].shape[0] > 0:
-    #         hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
+    for idx in range(0, len(hill_ranges)):
+        if hills[idx].shape[0] > 0:
+            hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
 
-def analyse_pepared ():
+def analyse_prepared ():
     ranges = [100, 200, 300, 500]
 
     frame = get_frame ('data/month_prepared.csv')
@@ -194,6 +195,8 @@ def analyse_pepared ():
         current_hills['range'] = ranges[idx]
         hills = hills.append (current_hills)
 
-    print (caves.loc[caves.loc[:,'range'] == 100].head()) 
+    trend = pd.read_csv ('data/trend.csv', index_col=0)
+    print (trend.tail())
+    #print (caves.loc[caves.loc[:,'range'] == 100].head()) 
 
-analise ()
+analyse ()
