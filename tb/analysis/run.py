@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -64,7 +64,21 @@ def get_empty_position ():
         ]
 
     return pd.Series (data=[None, None, None, None, None, None, None, None, None, None], index=index)
+def show (item):
+    ranges = [100, 200, 300, 500]
+    frame = get_frame ('data/month_prepared.csv')
+    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
 
+    frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
+    item_colors = ['m', 'g', 'b', 'c']
+
+    items = []
+    for idx in range (0, len(ranges)):
+        items.append (get_frame ('data/'+item+str(ranges[idx])+'.csv'))
+        if items[idx].shape[0] > 0:
+            plt.plot (items[idx].index, items[idx].loc[:,'avg'], item_colors[idx]+'*')
+    plt.show()
+    
 def analise ():
     position = None
     balance = {
@@ -87,21 +101,16 @@ def analise ():
         log_info (balance)
 
     frame = get_frame ('data/month_prepared.csv')
-    frame['avg2'] = frame.loc[:, 'close'].rolling(38).mean()
-    frame['diff2'] = frame.loc[:, 'avg2'].diff()
+
+    cave_ranges = [100, 200, 300, 500]
+    watch_caves = [frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()]*len(cave_ranges)
+    caves = [pd.DataFrame()]*len(cave_ranges)
+
+    hill_ranges = [100, 200, 300, 500]
+    watch_hills = [frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()]*len(hill_ranges)
+    hills = [pd.DataFrame()]*len(hill_ranges)
     
     frame = frame.iloc[62:].copy()
-    watch_cave100 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
-    watch_cave200 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
-    watch_cave300 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
-    watch_cave500 = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[:2].copy()
-    watch_hill = pd.DataFrame()
-    caves100 = pd.DataFrame()
-    caves200 = pd.DataFrame()
-    caves300 = pd.DataFrame()
-    caves500 = pd.DataFrame()
-    outs = pd.DataFrame()
-    ins = pd.DataFrame()
     positions = pd.DataFrame ()
     current_idx = frame.index.get_loc(frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24):].iloc[0].name)
     frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
@@ -109,65 +118,44 @@ def analise ():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
 
-        watch_cave100 = watch_cave100.append (frame.loc[tick.name])
-        watch_cave200 = watch_cave200.append (frame.loc[tick.name])
-        watch_cave300 = watch_cave300.append (frame.loc[tick.name])
-        watch_cave500 = watch_cave500.append (frame.loc[tick.name])
-        cave100 = factors.cave (watch_cave100)
-        cave200 = factors.cave (watch_cave200)
-        cave300 = factors.cave (watch_cave300)
-        cave500 = factors.cave (watch_cave500)
-        
-        if cave100 is not None and cave100.name not in caves100.index and factors.fee (watch_cave100.loc[:, 'avg'].min(), watch_cave100.loc[:, 'avg'].max()) > 100:
-            caves100 = caves100.append (cave100)
-            watch_cave100 = pd.DataFrame()
-            watch_cave100 = watch_cave100.append (frame.loc[tick.name])
-        if tick.at['avg'] > watch_cave100.iloc[0].at['avg']:
-            watch_cave100 = pd.DataFrame()
-            watch_cave100 = watch_cave100.append (frame.loc[tick.name])
+        for idx in range(0, len(cave_ranges)):
+            watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            cave = factors.cave (watch_caves[idx])
 
-        if cave200 is not None and cave200.name not in caves200.index and factors.fee (watch_cave200.loc[:, 'avg'].min(), watch_cave200.loc[:, 'avg'].max()) > 200:
-            caves200 = caves200.append (cave200)
-            watch_cave200 = pd.DataFrame()
-            watch_cave200 = watch_cave200.append (frame.loc[tick.name])
-        if tick.at['avg'] > watch_cave200.iloc[0].at['avg']:
-            watch_cave200 = pd.DataFrame()
-            watch_cave200 = watch_cave200.append (frame.loc[tick.name])
+            if cave is not None and cave.name not in caves[idx].index.values:
+                if factors.fee (watch_caves[idx].loc[:, 'avg'].min(), watch_caves[idx].loc[:, 'avg'].max()) > cave_ranges[idx]:
+                    caves[idx] = caves[idx].append (cave)
+                    watch_caves[idx] = pd.DataFrame()
+                    watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            
+            if tick.at['avg'] > watch_caves[idx].iloc[0].at['avg']:
+                watch_caves[idx] = pd.DataFrame()
+                watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
 
-        if cave300 is not None and cave300.name not in caves300.index and factors.fee (watch_cave300.loc[:, 'avg'].min(), watch_cave300.loc[:, 'avg'].max()) > 300:
-            caves300 = caves300.append (cave300)
-            watch_cave300 = pd.DataFrame()
-            watch_cave300 = watch_cave300.append (frame.loc[tick.name])
-        if tick.at['avg'] > watch_cave300.iloc[0].at['avg']:
-            watch_cave300 = pd.DataFrame()
-            watch_cave300 = watch_cave300.append (frame.loc[tick.name])
+        for idx in range(0, len(hill_ranges)):
+            watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            hill = factors.hill (watch_hills[idx])
 
-        if cave500 is not None and cave500.name not in caves500.index and factors.fee (watch_cave500.loc[:, 'avg'].min(), watch_cave500.loc[:, 'avg'].max()) > 500:
-            caves500 = caves500.append (cave500)
-            watch_cave500 = pd.DataFrame()
-            watch_cave500 = watch_cave500.append (frame.loc[tick.name])
-        if tick.at['avg'] > watch_cave500.iloc[0].at['avg']:
-            watch_cave500 = pd.DataFrame()
-            watch_cave500 = watch_cave500.append (frame.loc[tick.name])
+            if hill is not None and hill.name not in hills[idx].index.values:
+                if factors.fee (watch_hills[idx].loc[:, 'avg'].min(), watch_hills[idx].loc[:, 'avg'].max()) > hill_ranges[idx]:
+                    hills[idx] = hills[idx].append (hill)
+                    watch_hills[idx] = pd.DataFrame()
+                    watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            
+            if tick.at['avg'] < watch_hills[idx].iloc[0].at['avg']:
+                watch_hills[idx] = pd.DataFrame()
+                watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
-    if caves100.shape[0] > 0:
-        caves100.to_csv ('data/caves100.csv', index=True, header=True)
-        plt.plot (caves100.index, caves100.loc[:,'avg'], 'm*')
-    if caves200.shape[0] > 0:
-        caves200.to_csv ('data/caves200.csv', index=True, header=True)
-        plt.plot (caves200.index, caves200.loc[:,'avg'], 'g*')
-    if caves300.shape[0] > 0:
-        caves300.to_csv ('data/caves300.csv', index=True, header=True)
-        plt.plot (caves300.index, caves300.loc[:,'avg'], 'b*')
-    if caves500.shape[0] > 0:
-        caves500.to_csv ('data/caves500.csv', index=True, header=True)
-        plt.plot (caves500.index, caves500.loc[:,'avg'], 'c*')
-    #plt.plot (predicts.loc[:, 'timestamp'].apply (lambda timestamp: datetime.datetime.fromtimestamp(timestamp)), predicts.loc[:,'price'], 'c*')
-    #plt.plot (outs.index, outs.loc[:,'close'], 'g*')
-    #print(frame.iloc[frame.index.get_loc(outs.iloc[outs.shape[0]-1].name):frame.index.get_loc(outs.iloc[outs.shape[0]-1].name)+20].loc[:, 'diff2'])
-    plt.show()
+    for idx in range(0, len(cave_ranges)):
+        if caves[idx].shape[0] > 0:
+            caves[idx].to_csv ('data/caves'+str(cave_ranges[idx])+'.csv', index=True, header=True)
+
+    for idx in range(0, len(hill_ranges)):
+        if hills[idx].shape[0] > 0:
+            hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
 
 analise ()
+#show ('caves')

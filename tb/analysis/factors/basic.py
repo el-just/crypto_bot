@@ -23,7 +23,7 @@ def cave (frame, proportion=1/2.618/2.618):
 
     return cave
 
-def hill (frame, column='avg', proportion=2.618*1.618):
+def hill (frame, column='avg', proportion=1/2.618/2.618):
     hill = None
     maximum = frame.loc[frame.loc[:, column] == frame.loc[:,column].max()]
     maximum = maximum.iloc[maximum.shape[0]-1]
@@ -32,7 +32,7 @@ def hill (frame, column='avg', proportion=2.618*1.618):
 
     if frame.iloc[frame.shape[0]-1].at[column] < maximum.at[column]:
         if maximum.name > minimum.name:
-            if maximum.at[column] - frame.iloc[frame.shape[0]-1].at[column] >= (maximum.at[column] - minimum.at[column]) / proportion:
+            if maximum.at[column] - frame.iloc[frame.shape[0]-1].at[column] >= (maximum.at[column] - minimum.at[column]) * proportion:
                 hill = maximum
 
     return hill
