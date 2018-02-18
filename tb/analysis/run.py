@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -21,8 +21,8 @@ def log_info (message):
     f.write ('{0}:\n\t{1}\n'.format(datetime.datetime.now().isoformat(), message))
     f.close ()
 
-def get_frame (data_path):
-    frame = pd.read_csv (data_path, dtype={'close':np.float64, 'volume':np.float64})
+def get_frame (data_path, index_col=None):
+    frame = pd.read_csv (data_path, dtype={'close':np.float64, 'volume':np.float64}, index_col=index_col)
     frame.loc[:, 'tick_time'] = pd.to_datetime(frame.loc[:, 'tick_time'])
     frame = frame.set_index (pd.to_datetime(frame.loc[:, 'tick_time']).values)
     frame['timestamp'] = frame.loc[:, 'tick_time'].apply (lambda tick_time: time.mktime (tick_time.timetuple()))
@@ -67,7 +67,7 @@ def get_empty_position ():
 def show (item):
     ranges = [100, 200, 300, 500]
     frame = get_frame ('data/month_prepared.csv')
-    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
+    #frame = frame.loc[:frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
 
     frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
     item_colors = ['m', 'g', 'b', 'c']
@@ -76,6 +76,7 @@ def show (item):
     for idx in range (0, len(ranges)):
         items.append (get_frame ('data/'+item+str(ranges[idx])+'.csv'))
         if items[idx].shape[0] > 0:
+            #items[idx] = items[idx].loc [:frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
             plt.plot (items[idx].index, items[idx].loc[:,'avg'], item_colors[idx]+'*')
     plt.show()
 
@@ -177,26 +178,49 @@ def analyse ():
         if hills[idx].shape[0] > 0:
             hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
 
+def assume_hill (cave, caves, hills):
+    def pick_hill (cave, hills, caves):
+        hill = hills.loc[hills.index > cave.name].iloc[0]
+
+        if caves.index.get_loc (cave.name) < caves.shape[0]-1:
+            return hill if hill.name < caves.iloc [caves.index.get_loc (cave.name)+1].name else pd.Series ()
+        else:
+            return pd.Series ()
+    
+    hill_range = None
+    similar_caves = caves.loc[
+        (caves.loc[:, 'range'] == cave.at['range']) & (caves.index <= cave.name)]
+    relevant_hills = similar_caves.apply (pick_hill, args=(hills, similar_caves), axis=1)
+    relevant_hills = relevant_hills.dropna ()
+
+    return relevant_hills.loc [:, 'avg'].median()
+
 def analyse_prepared ():
     ranges = [100, 200, 300, 500]
 
     frame = get_frame ('data/month_prepared.csv')
-    frame = frame.loc[frame.iloc[0].name+datetime.timedelta(minutes=60*24*4):frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
+    date_start = frame.iloc[0].name+datetime.timedelta(minutes=60*24*1)
+    date_end = frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)
     
+    frame = frame.loc[date_start:date_end].copy()
+
     caves = pd.DataFrame ()
     hills = pd.DataFrame ()
-
     for idx in range (0, len(ranges)):
-        current_caves = get_frame ('data/caves'+str(ranges[idx])+'.csv')
+        current_caves = get_frame ('data/caves'+str(ranges[idx])+'.csv', index_col=0)
         current_caves['range'] = ranges[idx]
         caves = caves.append (current_caves)
 
-        current_hills = get_frame ('data/hills'+str(ranges[idx])+'.csv')
+        current_hills = get_frame ('data/hills'+str(ranges[idx])+'.csv', index_col=0)
         current_hills['range'] = ranges[idx]
         hills = hills.append (current_hills)
 
-    trend = pd.read_csv ('data/trend.csv', index_col=0)
-    print (trend.tail())
-    #print (caves.loc[caves.loc[:,'range'] == 100].head()) 
 
-analyse ()
+    trend = pd.read_csv ('data/trend.csv', index_col=0)
+    caves.sort_index (inplace=True)
+    hills.sort_index (inplace=True)
+
+    #print (caves.loc[caves.loc[:,'range'] == 100].head())
+    print (assume_hill (caves.loc[date_end:].iloc[0], caves, hills))
+
+analyse_prepared ()
