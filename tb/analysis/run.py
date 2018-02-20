@@ -178,29 +178,59 @@ def analyse ():
         if hills[idx].shape[0] > 0:
             hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
 
-def assume_hill (cave, caves, hills):
+def assume_hill (cave, caves, hills, trend_col):
     def pick_hill (cave, hills, caves):
-        hill = hills.loc[hills.index > cave.name].iloc[0]
+        hill = hills.loc[hills.index > cave.name]
+        hill = hill.iloc[0] if hill.shape[0] > 0 else None
 
-        if caves.index.get_loc (cave.name) < caves.shape[0]-1:
-            return hill if hill.name < caves.iloc [caves.index.get_loc (cave.name)+1].name else pd.Series ()
+        if hill is not None and caves.index.get_loc (cave.name) < caves.shape[0]-1:
+            return hill.at['avg'] - cave.at['avg'] if hill.name < caves.iloc [caves.index.get_loc (cave.name)+1].name else None
         else:
-            return pd.Series ()
+            return None
     
     hill_range = None
     similar_caves = caves.loc[
-        (caves.loc[:, 'range'] == cave.at['range']) & (caves.index <= cave.name)]
+        (caves.loc[:, 'range'] == cave.at['range']) & (caves.index <= cave.name) & (caves.loc[:, trend_col] > 0)]
     relevant_hills = similar_caves.apply (pick_hill, args=(hills, similar_caves), axis=1)
     relevant_hills = relevant_hills.dropna ()
 
-    return relevant_hills.loc [:, 'avg'].median()
+    return relevant_hills.median()
 
 def analyse_prepared ():
+    balance_s = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_d = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_t = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+    
+    def position_in (tick, balance):
+        balance['btc'] = balance['usd'] / tick.at['close'] - balance['usd'] / tick.at['close']*0.002
+        balance['usd'] = 0.
+
+    def position_out (tick, balance):
+        balance['usd'] = tick.at['close'] * balance['btc'] - tick.at['close'] * balance['btc']*0.002
+        balance['btc'] = 0.
+
     ranges = [100, 200, 300, 500]
 
+    trend = pd.read_csv ('data/trend.csv', index_col=0)
     frame = get_frame ('data/month_prepared.csv')
+    frame = frame.join (trend, how="inner")
+    frame['diff2'] = frame.loc[:, 'close'].rolling(38).mean().diff()
+    frame['diff3'] = frame.loc[:, 'close'].rolling(23).mean().diff()
+
     date_start = frame.iloc[0].name+datetime.timedelta(minutes=60*24*1)
-    date_end = frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)
+    date_ready = date_start + datetime.timedelta(minutes=60*24*7)
+    date_end = date_ready + datetime.timedelta (minutes=60*24*7)
     
     frame = frame.loc[date_start:date_end].copy()
 
@@ -208,19 +238,128 @@ def analyse_prepared ():
     hills = pd.DataFrame ()
     for idx in range (0, len(ranges)):
         current_caves = get_frame ('data/caves'+str(ranges[idx])+'.csv', index_col=0)
-        current_caves['range'] = ranges[idx]
+        current_caves['range'] = ranges[idx]        
+        current_caves = current_caves.join (trend, how="inner")
         caves = caves.append (current_caves)
 
         current_hills = get_frame ('data/hills'+str(ranges[idx])+'.csv', index_col=0)
         current_hills['range'] = ranges[idx]
+        current_hills = current_hills.join (trend, how="inner")
         hills = hills.append (current_hills)
 
-
-    trend = pd.read_csv ('data/trend.csv', index_col=0)
     caves.sort_index (inplace=True)
     hills.sort_index (inplace=True)
+    
+    caves = caves.loc[caves.index < date_ready].copy()
+    hills = hills.loc[hills.index < date_ready].copy()
 
-    #print (caves.loc[caves.loc[:,'range'] == 100].head())
-    print (assume_hill (caves.loc[date_end:].iloc[0], caves, hills))
+    cave_max = frame.loc[caves.iloc[caves.shape[0]-1].name:date_ready, 'avg'].max()
+    cave_ext = frame.loc[caves.iloc[caves.shape[0]-1].name:date_ready, :].copy()
+    watch_caves = [frame.loc[cave_ext.loc [cave_ext.loc[:, 'avg'] == cave_max].iloc[0].name: date_ready]]*len(ranges)
+
+    hill_min = frame.loc[hills.iloc[hills.shape[0]-1].name:date_ready, 'avg'].min()
+    hill_ext = frame.loc[hills.iloc[hills.shape[0]-1].name:date_ready, :].copy()
+    watch_hills = [frame.loc[hill_ext.loc [hill_ext.loc[:, 'avg'] == hill_min].iloc[0].name: date_ready]]*len(ranges)
+
+    current_idx = frame.index.get_loc(frame.loc[date_ready:].iloc[0].name)
+
+    for idx, tick in frame.loc [date_ready:date_end].iterrows():
+        if current_idx % int(frame.shape[0] / 100) == 0:
+            log_info(current_idx // int(frame.shape[0] / 100))
+
+        current_caves = pd.DataFrame ()
+        for idx in range(0, len(ranges)):
+            watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            cave = factors.cave (watch_caves[idx])
+
+            if cave is not None and cave.name not in caves.loc[caves.loc[:, 'range'] == ranges[idx]].index.values:
+                if factors.fee (watch_caves[idx].loc[:, 'avg'].min(), watch_caves[idx].loc[:, 'avg'].max()) > ranges[idx]:
+                    cave['range'] = ranges[idx]
+                    caves = caves.append (cave)
+                    caves.sort_index (inplace=True)
+                    current_caves = current_caves.append (cave)
+                    watch_caves[idx] = pd.DataFrame()
+                    watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+            
+            if tick.at['avg'] > watch_caves[idx].iloc[0].at['avg']:
+                watch_caves[idx] = pd.DataFrame()
+                watch_caves[idx] = watch_caves[idx].append (frame.loc[tick.name])
+
+            watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            hill = factors.hill (watch_hills[idx])
+
+            if hill is not None and hill.name not in hills.loc[hills.loc[:, 'range'] == ranges[idx]].index.values:
+                if factors.fee (watch_hills[idx].loc[:, 'avg'].min(), watch_hills[idx].loc[:, 'avg'].max()) > ranges[idx]:
+                    hill['range'] = ranges[idx]
+                    hills = hills.append (hill)
+                    hills.sort_index (inplace=True)
+                    watch_hills[idx] = pd.DataFrame()
+                    watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+            
+            if tick.at['avg'] < watch_hills[idx].iloc[0].at['avg']:
+                watch_hills[idx] = pd.DataFrame()
+                watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
+
+        if current_caves.shape[0] > 0:
+            if position_s is None:
+                hill_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
+                if factors.fee (tick.at['close'], (tick.at['close'] + hill_range)/1.618) > 0:
+                    position_s = pd.Series (data=[tick.at['close'], tick.at['avg'], hill_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s.name = tick.name
+
+                    position_in (tick, balance_s)
+
+            if position_d is None:
+                hill_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
+
+                if factors.fee (tick.at['close'], (tick.at['close'] + hill_range)/1.618) > 0:
+                    position_d = pd.Series (data=[tick.at['close'], tick.at['avg'], hill_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d.name = tick.name
+
+                    position_in (tick, balance_d)
+
+            if position_t is None:
+                hill_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
+
+                if factors.fee (tick.at['close'], (tick.at['close'] + hill_range)/1.618) > 0:
+                    position_t = pd.Series (data=[tick.at['close'], tick.at['avg'], hill_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t.name = tick.name
+
+                    position_in (tick, balance_t)
+
+        if position_s is not None or position_d is not None or position_t is not None:
+            if position_s is not None:
+                if tick.name >= (position_s.at['in_price'] + position_s.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
+                    position_s.at['out_price'] = tick.at['close']
+                    log_info (position_s)
+                    position_out (tick, balance_s)
+                elif tick.at['avg'] < position_s.at['in_avg']:
+                    position_s.at['out_price'] = tick.at['close']
+                    log_info (position_s)
+                    position_out (tick, balance_s)
+            if position_d is not None:
+                if tick.name >= (position_d.at['in_price'] + position_d.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
+                    position_d.at['out_price'] = tick.at['close']
+                    log_info (position_d)
+                    position_out (tick, balance_d)
+                elif tick.at['avg'] < position_d.at['in_avg']:
+                    position_d.at['out_price'] = tick.at['close']
+                    log_info (position_d)
+                    position_out (tick, balance_d)
+            if position_t is not None:
+                if tick.name >= (position_t.at['in_price'] + position_t.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
+                    position_t.at['out_price'] = tick.at['close']
+                    log_info (position_t)
+                    position_out (tick, balance_t)
+                elif tick.at['avg'] < position_t.at['in_avg']:
+                    position_t.at['out_price'] = tick.at['close']
+                    log_info (position_t)
+                    position_out (tick, balance_t)
+
+        current_idx = frame.index.get_loc (tick.name) + 1
+
+    log_info (balance_s)
+    log_info (balance_d)
+    log_info (balance_t)
 
 analyse_prepared ()
