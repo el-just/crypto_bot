@@ -569,14 +569,14 @@ def analyse_prepared ():
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    positions_s_1.to_csv ('positions_s_1.csv', index=True, header=True)
-    positions_d_1.to_csv ('positions_d_1.csv', index=True, header=True)
-    positions_t_1.to_csv ('positions_t_1.csv', index=True, header=True)
-    positions_s_2.to_csv ('positions_s_2.csv', index=True, header=True)
-    positions_d_2.to_csv ('positions_d_2.csv', index=True, header=True)
-    positions_t_2.to_csv ('positions_t_2.csv', index=True, header=True)
-    positions_s_3.to_csv ('positions_s_3.csv', index=True, header=True)
-    positions_d_3.to_csv ('positions_d_3.csv', index=True, header=True)
-    positions_t_3.to_csv ('positions_t_3.csv', index=True, header=True)
+    positions_s_1.to_csv ('data/positions_s_1.csv', index=True, header=True)
+    positions_d_1.to_csv ('data/positions_d_1.csv', index=True, header=True)
+    positions_t_1.to_csv ('data/positions_t_1.csv', index=True, header=True)
+    positions_s_2.to_csv ('data/positions_s_2.csv', index=True, header=True)
+    positions_d_2.to_csv ('data/positions_d_2.csv', index=True, header=True)
+    positions_t_2.to_csv ('data/positions_t_2.csv', index=True, header=True)
+    positions_s_3.to_csv ('data/positions_s_3.csv', index=True, header=True)
+    positions_d_3.to_csv ('data/positions_d_3.csv', index=True, header=True)
+    positions_t_3.to_csv ('data/positions_t_3.csv', index=True, header=True)
 
 analyse_prepared ()
