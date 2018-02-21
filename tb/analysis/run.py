@@ -197,17 +197,47 @@ def assume_hill (cave, caves, hills, trend_col):
     return relevant_hills.median()
 
 def analyse_prepared ():
-    balance_s = {
+    balance_s_1 = {
         'usd': 2000.,
         'btc': 0.
         }
 
-    balance_d = {
+    balance_s_2 = {
         'usd': 2000.,
         'btc': 0.
         }
 
-    balance_t = {
+    balance_s_3 = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_d_1 = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_d_2 = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_d_3 = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_t_1 = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_t_2 = {
+        'usd': 2000.,
+        'btc': 0.
+        }
+
+    balance_t_3 = {
         'usd': 2000.,
         'btc': 0.
         }
@@ -225,6 +255,7 @@ def analyse_prepared ():
     trend = pd.read_csv ('data/trend.csv', index_col=0)
     frame = get_frame ('data/month_prepared.csv')
     frame = frame.join (trend, how="inner")
+    frame['diff'] = frame.loc[:, 'avg'].diff()
     frame['diff2'] = frame.loc[:, 'close'].rolling(38).mean().diff()
     frame['diff3'] = frame.loc[:, 'close'].rolling(23).mean().diff()
 
@@ -262,6 +293,8 @@ def analyse_prepared ():
     watch_hills = [frame.loc[hill_ext.loc [hill_ext.loc[:, 'avg'] == hill_min].iloc[0].name: date_ready]]*len(ranges)
 
     current_idx = frame.index.get_loc(frame.loc[date_ready:].iloc[0].name)
+
+    position_s_1 = position_s_2 = position_s_3 =position_d_1 = position_d_2 = position_d_3 = position_t_1 = position_t_2 = position_t_3 = None
 
     for idx, tick in frame.loc [date_ready:date_end].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
@@ -301,65 +334,210 @@ def analyse_prepared ():
                 watch_hills[idx] = watch_hills[idx].append (frame.loc[tick.name])
 
         if current_caves.shape[0] > 0:
-            if position_s is None:
-                hill_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
-                if factors.fee (tick.at['close'], (tick.at['close'] + hill_range)/1.618) > 0:
-                    position_s = pd.Series (data=[tick.at['close'], tick.at['avg'], hill_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
-                    position_s.name = tick.name
+            if position_s_1 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_s_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s_1.name = tick.name
 
-                    position_in (tick, balance_s)
+                    log_info (position_s_1)
+                    position_in (tick, balance_s_1)
 
-            if position_d is None:
-                hill_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
+            if position_d_1 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
 
-                if factors.fee (tick.at['close'], (tick.at['close'] + hill_range)/1.618) > 0:
-                    position_d = pd.Series (data=[tick.at['close'], tick.at['avg'], hill_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
-                    position_d.name = tick.name
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_d_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d_1.name = tick.name
 
-                    position_in (tick, balance_d)
+                    log_info (position_d_1)
+                    position_in (tick, balance_d_1)
 
-            if position_t is None:
-                hill_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
+            if position_t_1 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
 
-                if factors.fee (tick.at['close'], (tick.at['close'] + hill_range)/1.618) > 0:
-                    position_t = pd.Series (data=[tick.at['close'], tick.at['avg'], hill_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
-                    position_t.name = tick.name
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_t_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t_1.name = tick.name
 
-                    position_in (tick, balance_t)
+                    log_info (position_t_1)
+                    position_in (tick, balance_t_1)
 
-        if position_s is not None or position_d is not None or position_t is not None:
-            if position_s is not None:
-                if tick.name >= (position_s.at['in_price'] + position_s.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
-                    position_s.at['out_price'] = tick.at['close']
-                    log_info (position_s)
-                    position_out (tick, balance_s)
-                elif tick.at['avg'] < position_s.at['in_avg']:
-                    position_s.at['out_price'] = tick.at['close']
-                    log_info (position_s)
-                    position_out (tick, balance_s)
-            if position_d is not None:
-                if tick.name >= (position_d.at['in_price'] + position_d.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
-                    position_d.at['out_price'] = tick.at['close']
-                    log_info (position_d)
-                    position_out (tick, balance_d)
-                elif tick.at['avg'] < position_d.at['in_avg']:
-                    position_d.at['out_price'] = tick.at['close']
-                    log_info (position_d)
-                    position_out (tick, balance_d)
-            if position_t is not None:
-                if tick.name >= (position_t.at['in_price'] + position_t.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
-                    position_t.at['out_price'] = tick.at['close']
-                    log_info (position_t)
-                    position_out (tick, balance_t)
-                elif tick.at['avg'] < position_t.at['in_avg']:
-                    position_t.at['out_price'] = tick.at['close']
-                    log_info (position_t)
-                    position_out (tick, balance_t)
+
+            if position_s_2 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_s_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s_2.name = tick.name
+
+                    log_info (position_s_2)
+                    position_in (tick, balance_s_2)
+
+            if position_d_2 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
+
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_d_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d_2.name = tick.name
+
+                    log_info (position_d_2)
+                    position_in (tick, balance_d_2)
+
+            if position_t_2 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
+
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_t_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t_2.name = tick.name
+
+                    log_info (position_t_2)
+                    position_in (tick, balance_t_2)
+
+
+            if position_s_3 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_s_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s_3.name = tick.name
+
+                    log_info (position_s_3)
+                    position_in (tick, balance_s_3)
+
+            if position_d_3 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
+
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_d_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d_3.name = tick.name
+
+                    log_info (position_d_3)
+                    position_in (tick, balance_d_3)
+
+            if position_t_3 is None:
+                assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
+
+                if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)/1.618) > 0:
+                    position_t_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t_3.name = tick.name
+
+                    log_info (position_t_3)
+                    position_in (tick, balance_t_3)
+
+        if position_s_1 is not None or position_d_1 is not None or position_t_1 is not None:
+            if position_s_1 is not None:
+                if tick.name >= (position_s_1.at['in_price'] + position_s_1.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
+                    position_s_1.at['out_price'] = tick.at['close']
+                    log_info (position_s_1)
+                    position_out (tick, balance_s_1)
+                    position_s_1 = None
+                elif tick.at['avg'] < position_s_1.at['in_avg']:
+                    position_s_1.at['out_price'] = tick.at['close']
+                    log_info (position_s_1)
+                    position_out (tick, balance_s_1)
+                    position_s_1 = None
+            if position_d_1 is not None:
+                if tick.name >= (position_d_1.at['in_price'] + position_d_1.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
+                    position_d_1.at['out_price'] = tick.at['close']
+                    log_info (position_d_1)
+                    position_out (tick, balance_d_1)
+                    position_d_1 = None
+                elif tick.at['avg'] < position_d_1.at['in_avg']:
+                    position_d_1.at['out_price'] = tick.at['close']
+                    log_info (position_d_1)
+                    position_out (tick, balance_d_1)
+                    position_d_1 = None
+            if position_t_1 is not None:
+                if tick.name >= (position_t_1.at['in_price'] + position_t_1.at['assume_range']) / 1.618 and tick.at['diff'] < 0:
+                    position_t_1.at['out_price'] = tick.at['close']
+                    log_info (position_t_1)
+                    position_out (tick, balance_t_1)
+                    position_t_1 = None
+                elif tick.at['avg'] < position_t_1.at['in_avg']:
+                    position_t_1.at['out_price'] = tick.at['close']
+                    log_info (position_t_1)
+                    position_out (tick, balance_t_1)
+                    position_t_1 = None
+
+        if position_s_2 is not None or position_d_2 is not None or position_t_2 is not None:
+            if position_s_2 is not None:
+                if tick.name >= (position_s_2.at['in_price'] + position_s_2.at['assume_range']) / 1.618 and tick.at['diff2'] < 0:
+                    position_s_2.at['out_price'] = tick.at['close']
+                    log_info (position_s_2)
+                    position_out (tick, balance_s_2)
+                    position_s_2 = None
+                elif tick.at['avg'] < position_s_2.at['in_avg']:
+                    position_s_2.at['out_price'] = tick.at['close']
+                    log_info (position_s_2)
+                    position_out (tick, balance_s_2)
+                    position_s_2 = None
+            if position_d_2 is not None:
+                if tick.name >= (position_d_2.at['in_price'] + position_d_2.at['assume_range']) / 1.618 and tick.at['diff2'] < 0:
+                    position_d_2.at['out_price'] = tick.at['close']
+                    log_info (position_d_2)
+                    position_out (tick, balance_d_2)
+                    position_d_2 = None
+                elif tick.at['avg'] < position_d_2.at['in_avg']:
+                    position_d_2.at['out_price'] = tick.at['close']
+                    log_info (position_d_2)
+                    position_out (tick, balance_d_2)
+                    position_d_2 = None
+            if position_t_2 is not None:
+                if tick.name >= (position_t_2.at['in_price'] + position_t_2.at['assume_range']) / 1.618 and tick.at['diff2'] < 0:
+                    position_t_2.at['out_price'] = tick.at['close']
+                    log_info (position_t_2)
+                    position_out (tick, balance_t_2)
+                    position_t_2 = None
+                elif tick.at['avg'] < position_t_2.at['in_avg']:
+                    position_t_2.at['out_price'] = tick.at['close']
+                    log_info (position_t_2)
+                    position_out (tick, balance_t_2)
+                    position_t_2 = None
+
+        if position_s_3 is not None or position_d_3 is not None or position_t_3 is not None:
+            if position_s_3 is not None:
+                if tick.name >= (position_s_3.at['in_price'] + position_s_3.at['assume_range']) / 1.618 and tick.at['diff3'] < 0:
+                    position_s_3.at['out_price'] = tick.at['close']
+                    log_info (position_s_3)
+                    position_out (tick, balance_s_3)
+                    position_s_3 = None
+                elif tick.at['avg'] < position_s_3.at['in_avg']:
+                    position_s_3.at['out_price'] = tick.at['close']
+                    log_info (position_s_3)
+                    position_out (tick, balance_s_3)
+                    position_s_3 = None
+            if position_d_3 is not None:
+                if tick.name >= (position_d_3.at['in_price'] + position_d_3.at['assume_range']) / 1.618 and tick.at['diff3'] < 0:
+                    position_d_3.at['out_price'] = tick.at['close']
+                    log_info (position_d_3)
+                    position_out (tick, balance_d_3)
+                    position_d_3 = None
+                elif tick.at['avg'] < position_d_3.at['in_avg']:
+                    position_d_3.at['out_price'] = tick.at['close']
+                    log_info (position_d_3)
+                    position_out (tick, balance_d_3)
+                    position_d_3 = None
+            if position_t_3 is not None:
+                if tick.name >= (position_t_3.at['in_price'] + position_t_3.at['assume_range']) / 1.618 and tick.at['diff3'] < 0:
+                    position_t_3.at['out_price'] = tick.at['close']
+                    log_info (position_t_3)
+                    position_out (tick, balance_t_3)
+                    position_t_3 = None
+                elif tick.at['avg'] < position_t_3.at['in_avg']:
+                    position_t_3.at['out_price'] = tick.at['close']
+                    log_info (position_t_3)
+                    position_out (tick, balance_t_3)
+                    position_t_3 = None
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    log_info (balance_s)
-    log_info (balance_d)
-    log_info (balance_t)
+    log_info (balance_s_1)
+    log_info (balance_s_2)
+    log_info (balance_s_3)
+    log_info (balance_d_1)
+    log_info (balance_d_2)
+    log_info (balance_d_3)
+    log_info (balance_t_1)
+    log_info (balance_t_2)
+    log_info (balance_t_3)
 
 analyse_prepared ()
