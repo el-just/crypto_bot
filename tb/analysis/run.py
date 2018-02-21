@@ -295,6 +295,15 @@ def analyse_prepared ():
     current_idx = frame.index.get_loc(frame.loc[date_ready:].iloc[0].name)
 
     position_s_1 = position_s_2 = position_s_3 =position_d_1 = position_d_2 = position_d_3 = position_t_1 = position_t_2 = position_t_3 = None
+    positions_s_1 = pd.DataFrame()
+    positions_s_2 = pd.DataFrame()
+    positions_s_3 = pd.DataFrame()
+    positions_d_1 = pd.DataFrame()
+    positions_d_2 = pd.DataFrame()
+    positions_d_3 = pd.DataFrame()
+    positions_t_1 = pd.DataFrame()
+    positions_t_2 = pd.DataFrame()
+    positions_t_3 = pd.DataFrame()
 
     for idx, tick in frame.loc [date_ready:date_end].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
@@ -337,7 +346,7 @@ def analyse_prepared ():
             if position_s_1 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_s_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_s_1.name = tick.name
 
                     log_info (position_s_1)
@@ -346,7 +355,7 @@ def analyse_prepared ():
             if position_d_1 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_d_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_d_1.name = tick.name
 
                     log_info (position_d_1)
@@ -355,7 +364,7 @@ def analyse_prepared ():
             if position_t_1 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_t_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t_1 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_t_1.name = tick.name
 
                     log_info (position_t_1)
@@ -365,7 +374,7 @@ def analyse_prepared ():
             if position_s_2 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_s_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_s_2.name = tick.name
 
                     log_info (position_s_2)
@@ -374,7 +383,7 @@ def analyse_prepared ():
             if position_d_2 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_d_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_d_2.name = tick.name
 
                     log_info (position_d_2)
@@ -383,7 +392,7 @@ def analyse_prepared ():
             if position_t_2 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_t_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t_2 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_t_2.name = tick.name
 
                     log_info (position_t_2)
@@ -393,7 +402,7 @@ def analyse_prepared ():
             if position_s_3 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'single')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_s_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_s_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'single'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_s_3.name = tick.name
 
                     log_info (position_s_3)
@@ -402,7 +411,7 @@ def analyse_prepared ():
             if position_d_3 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'double')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_d_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_d_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'double'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_d_3.name = tick.name
 
                     log_info (position_d_3)
@@ -411,7 +420,7 @@ def analyse_prepared ():
             if position_t_3 is None:
                 assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, 'triple')
                 if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0:
-                    position_t_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'trend_type'])
+                    position_t_3 = pd.Series (data=[tick.at['close'], tick.at['avg'], assume_range, None, None, 'triple'], index=['in_price', 'in_avg', 'assume_range', 'out_price', 'out_date', 'trend_type'])
                     position_t_3.name = tick.name
 
                     log_info (position_t_3)
@@ -421,34 +430,46 @@ def analyse_prepared ():
             if position_s_1 is not None:
                 if tick.at['close'] >= (position_s_1.at['in_price'] + position_s_1.at['assume_range'] / 1.618) and tick.at['diff'] < 0:
                     position_s_1.at['out_price'] = tick.at['close']
+                    position_s_1.at['out_date'] = tick.name
                     log_info (position_s_1)
+                    positions_s_1 = positions_s_1.append (position_s_1)
                     position_out (tick, balance_s_1)
                     position_s_1 = None
                 elif tick.at['avg'] < position_s_1.at['in_avg']:
                     position_s_1.at['out_price'] = tick.at['close']
+                    position_s_1.at['out_date'] = tick.name
                     log_info (position_s_1)
+                    positions_s_1 = positions_s_1.append (position_s_1)
                     position_out (tick, balance_s_1)
                     position_s_1 = None
             if position_d_1 is not None:
                 if tick.at['close'] >= (position_d_1.at['in_price'] + position_d_1.at['assume_range'] / 1.618) and tick.at['diff'] < 0:
                     position_d_1.at['out_price'] = tick.at['close']
+                    position_d_1.at['out_date'] = tick.name
                     log_info (position_d_1)
+                    positions_d_1 = positions_d_1.append (position_d_1)
                     position_out (tick, balance_d_1)
                     position_d_1 = None
                 elif tick.at['avg'] < position_d_1.at['in_avg']:
                     position_d_1.at['out_price'] = tick.at['close']
+                    position_d_1.at['out_date'] = tick.name
                     log_info (position_d_1)
+                    positions_d_1 = positions_d_1.append (position_d_1)
                     position_out (tick, balance_d_1)
                     position_d_1 = None
             if position_t_1 is not None:
                 if tick.at['close'] >= (position_t_1.at['in_price'] + position_t_1.at['assume_range'] / 1.618) and tick.at['diff'] < 0:
                     position_t_1.at['out_price'] = tick.at['close']
+                    position_t_1.at['out_date'] = tick.name
                     log_info (position_t_1)
+                    positions_t_1 = positions_t_1.append (position_t_1)
                     position_out (tick, balance_t_1)
                     position_t_1 = None
                 elif tick.at['avg'] < position_t_1.at['in_avg']:
                     position_t_1.at['out_price'] = tick.at['close']
+                    position_t_1.at['out_date'] = tick.name
                     log_info (position_t_1)
+                    positions_t_1 = positions_t_1.append (position_t_1)
                     position_out (tick, balance_t_1)
                     position_t_1 = None
 
@@ -456,34 +477,46 @@ def analyse_prepared ():
             if position_s_2 is not None:
                 if tick.at['close'] >= (position_s_2.at['in_price'] + position_s_2.at['assume_range'] / 1.618) and tick.at['diff2'] < 0:
                     position_s_2.at['out_price'] = tick.at['close']
+                    position_s_2.at['out_date'] = tick.name
                     log_info (position_s_2)
+                    positions_s_2 = positions_s_2.append (position_s_2)
                     position_out (tick, balance_s_2)
                     position_s_2 = None
                 elif tick.at['avg'] < position_s_2.at['in_avg']:
                     position_s_2.at['out_price'] = tick.at['close']
+                    position_s_2.at['out_date'] = tick.name
                     log_info (position_s_2)
+                    positions_s_2 = positions_s_2.append (position_s_2)
                     position_out (tick, balance_s_2)
                     position_s_2 = None
             if position_d_2 is not None:
                 if tick.at['close'] >= (position_d_2.at['in_price'] + position_d_2.at['assume_range'] / 1.618) and tick.at['diff2'] < 0:
                     position_d_2.at['out_price'] = tick.at['close']
+                    position_d_2.at['out_date'] = tick.name
                     log_info (position_d_2)
+                    positions_d_2 = positions_d_2.append (position_d_2)
                     position_out (tick, balance_d_2)
                     position_d_2 = None
                 elif tick.at['avg'] < position_d_2.at['in_avg']:
                     position_d_2.at['out_price'] = tick.at['close']
+                    position_d_2.at['out_date'] = tick.name
                     log_info (position_d_2)
+                    positions_d_2 = positions_d_2.append (position_d_2)
                     position_out (tick, balance_d_2)
                     position_d_2 = None
             if position_t_2 is not None:
                 if tick.at['close'] >= (position_t_2.at['in_price'] + position_t_2.at['assume_range'] / 1.618) and tick.at['diff2'] < 0:
                     position_t_2.at['out_price'] = tick.at['close']
+                    position_t_2.at['out_date'] = tick.name
                     log_info (position_t_2)
+                    positions_t_2 = positions_t_2.append (position_t_2)
                     position_out (tick, balance_t_2)
                     position_t_2 = None
                 elif tick.at['avg'] < position_t_2.at['in_avg']:
                     position_t_2.at['out_price'] = tick.at['close']
+                    position_t_2.at['out_date'] = tick.name
                     log_info (position_t_2)
+                    positions_t_2 = positions_t_2.append (position_t_2)
                     position_out (tick, balance_t_2)
                     position_t_2 = None
 
@@ -491,47 +524,59 @@ def analyse_prepared ():
             if position_s_3 is not None:
                 if tick.at['close'] >= (position_s_3.at['in_price'] + position_s_3.at['assume_range'] / 1.618) and tick.at['diff3'] < 0:
                     position_s_3.at['out_price'] = tick.at['close']
+                    position_s_3.at['out_date'] = tick.name
                     log_info (position_s_3)
+                    positions_s_3 = positions_s_3.append (position_s_3)
                     position_out (tick, balance_s_3)
                     position_s_3 = None
                 elif tick.at['avg'] < position_s_3.at['in_avg']:
                     position_s_3.at['out_price'] = tick.at['close']
+                    position_s_3.at['out_date'] = tick.name
                     log_info (position_s_3)
+                    positions_s_3 = positions_s_3.append (position_s_3)
                     position_out (tick, balance_s_3)
                     position_s_3 = None
             if position_d_3 is not None:
                 if tick.at['close'] >= (position_d_3.at['in_price'] + position_d_3.at['assume_range'] / 1.618) and tick.at['diff3'] < 0:
                     position_d_3.at['out_price'] = tick.at['close']
+                    position_d_3.at['out_date'] = tick.name
                     log_info (position_d_3)
+                    positions_d_3 = positions_d_3.append (position_d_3)
                     position_out (tick, balance_d_3)
                     position_d_3 = None
                 elif tick.at['avg'] < position_d_3.at['in_avg']:
                     position_d_3.at['out_price'] = tick.at['close']
+                    position_d_3.at['out_date'] = tick.name
                     log_info (position_d_3)
+                    positions_d_3 = positions_d_3.append (position_d_3)
                     position_out (tick, balance_d_3)
                     position_d_3 = None
             if position_t_3 is not None:
                 if tick.at['close'] >= (position_t_3.at['in_price'] + position_t_3.at['assume_range'] / 1.618) and tick.at['diff3'] < 0:
                     position_t_3.at['out_price'] = tick.at['close']
+                    position_t_3.at['out_date'] = tick.name
                     log_info (position_t_3)
+                    positions_t_3 = positions_t_3.append (position_t_3)
                     position_out (tick, balance_t_3)
                     position_t_3 = None
                 elif tick.at['avg'] < position_t_3.at['in_avg']:
                     position_t_3.at['out_price'] = tick.at['close']
+                    position_t_3.at['out_date'] = tick.name
                     log_info (position_t_3)
+                    positions_t_3 = positions_t_3.append (position_t_3)
                     position_out (tick, balance_t_3)
                     position_t_3 = None
 
         current_idx = frame.index.get_loc (tick.name) + 1
 
-    log_info (balance_s_1)
-    log_info (balance_s_2)
-    log_info (balance_s_3)
-    log_info (balance_d_1)
-    log_info (balance_d_2)
-    log_info (balance_d_3)
-    log_info (balance_t_1)
-    log_info (balance_t_2)
-    log_info (balance_t_3)
+    positions_s_1.to_csv ('positions_s_1.csv', index=True, header=True)
+    positions_d_1.to_csv ('positions_d_1.csv', index=True, header=True)
+    positions_t_1.to_csv ('positions_t_1.csv', index=True, header=True)
+    positions_s_2.to_csv ('positions_s_2.csv', index=True, header=True)
+    positions_d_2.to_csv ('positions_d_2.csv', index=True, header=True)
+    positions_t_2.to_csv ('positions_t_2.csv', index=True, header=True)
+    positions_s_3.to_csv ('positions_s_3.csv', index=True, header=True)
+    positions_d_3.to_csv ('positions_d_3.csv', index=True, header=True)
+    positions_t_3.to_csv ('positions_t_3.csv', index=True, header=True)
 
 analyse_prepared ()

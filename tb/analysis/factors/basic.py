@@ -59,19 +59,3 @@ def shape_proportion (predict):
     e_range = 618
     
     return (predict.at['range'] / e_range) / (predict.at['gap'] / e_gap)
-
-
-
-# timestamp = [26280, 13920, 16200, 5166, 1858, 20518, 4680, 10500]
-# price = [664, 269, 218, 224, 139, 815, 407, 559]
-
-# for i in range (0, len(timestamp)):
-#     print (price[i] / timestamp[i])
-
-# print ('==============')
-
-# timestamp = [14400, 25320, 4320, 2902]
-# price = [190, 221, 218, 184]
-
-# for i in range (0, len(timestamp)):
-#     print (price[i] / timestamp[i])
