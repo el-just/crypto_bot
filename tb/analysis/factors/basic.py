@@ -4,7 +4,7 @@ cave_window = {'minutes':90}
 cave_proportion = 2.618
 
 def fee (price_in, price_out):
-    fee = 0.002
+    fee = 0.004
 
     return (price_out - price_in) - fee * (price_in + price_out)
 
