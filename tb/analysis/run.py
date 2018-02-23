@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -78,7 +78,7 @@ def show_results (file_name):
     frame['avg3'] = frame.loc[:, 'close'].rolling(23).mean()
     frame = frame.loc[date_ready:date_end].copy()
 
-    frame.loc[ : , ['close', 'avg', 'avg2', 'avg3']].plot(figsize=(12,8))
+    frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
 
     positions = pd.read_csv ('data/positions_'+file_name+'.csv', index_col=0)
     positions.loc[:, 'out_date'] = pd.to_datetime(positions.loc[:, 'out_date'])
@@ -252,8 +252,8 @@ class Traider ():
         elif self._position is not None:
             if tick.at['close'] >= (self._position.at['in_price'] + self._position.at['assume_range'] / 1.618) and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
-            elif tick.at['close'] / self._position.at['in_price'] < 1.01 and tick.at[self._diff_field] < 0:
-                self.position_out (tick)
+            # elif tick.at['close'] / self._position.at['in_price'] < 1.01 and tick.at[self._diff_field] < 0:
+                # self.position_out (tick)
             elif self._position.at['in_price'] - tick.at['close'] > self._position.at['assume_range']/2.618 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
 
@@ -365,5 +365,5 @@ def analyse_prepared ():
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
 # show ('caves')
-# show_results('trend_custom_diff2')
-analyse_prepared ()
+show_results('trend_custom_diff2')
+# analyse_prepared ()
