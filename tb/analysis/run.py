@@ -364,6 +364,6 @@ def analyse_prepared ():
     caves.to_csv ('data/caves.csv', index=True, header=True)
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
-show ('caves')
+# show ('caves')
 # show_results('trend_custom_diff2')
-# analyse_prepared ()
+analyse_prepared ()
