@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -364,6 +364,6 @@ def analyse_prepared ():
     caves.to_csv ('data/caves.csv', index=True, header=True)
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
-# show ('caves')
-show_results('trend_custom_diff2')
+show ('caves')
+# show_results('trend_custom_diff2')
 # analyse_prepared ()
