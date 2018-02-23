@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -51,18 +51,19 @@ def trend_to_csv ():
 
 def show (item):
     ranges = [100, 200, 300, 500]
-    frame = get_frame ('data/month_prepared.csv')
-    #frame = frame.loc[:frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
+    frame = get_frame ('data/month_prepared.csv', index_col=0)
+
+    date_start = frame.iloc[0].name+datetime.timedelta(minutes=60*24*1)
+    date_ready = date_start + datetime.timedelta(minutes=60*24*7)
+    date_end = date_ready + datetime.timedelta (minutes=60*24*10)
+    frame = frame.loc[date_ready:date_end].copy()
 
     frame.loc[ : , ['close', 'avg']].plot(figsize=(12,8))
     item_colors = ['m', 'g', 'b', 'c']
 
-    items = []
+    items = get_frame ('data/'+item+'.csv')
     for idx in range (0, len(ranges)):
-        items.append (get_frame ('data/'+item+str(ranges[idx])+'.csv'))
-        if items[idx].shape[0] > 0:
-            #items[idx] = items[idx].loc [:frame.iloc[0].name+datetime.timedelta(minutes=60*24*8)].copy()
-            plt.plot (items[idx].index, items[idx].loc[:,'avg'], item_colors[idx]+'*')
+        plt.plot (items.loc[items.loc[:, 'range'] == ranges[idx]].index, items.loc[items.loc[:, 'range'] == ranges[idx]].loc[:,'avg'], item_colors[idx]+'*')
     plt.show()
 
 def show_results (file_name):
@@ -197,8 +198,9 @@ def assume_hill (cave, caves, hills, trend_col):
             return None
     
     hill_range = None
+     # & (caves.loc[:, trend_col] > 0)
     similar_caves = caves.loc[
-        (caves.loc[:, 'range'] == cave.at['range']) & (caves.index <= cave.name) & (caves.loc[:, trend_col] > 0)]
+        (caves.loc[:, 'range'] == cave.at['range']) & (caves.index <= cave.name)]
     relevant_hills = similar_caves.apply (pick_hill, args=(hills, similar_caves), axis=1)
     relevant_hills = relevant_hills.dropna ()
 
@@ -213,9 +215,10 @@ class Traider ():
     _positions = pd.DataFrame ()
     _position = None
 
-    def __init__ (self, trend_field=None, diff_field=None):
-        self._trend_field = trend_field
+    def __init__ (self, trend_field=None, diff_field=None, trend_window=None):
+        self._trend_field = trend_field if trend_window is None else 'trend_custom'
         self._diff_field = diff_field
+        self._trend_window = trend_window
 
         self._balance = {
             'usd': 2000.00,
@@ -240,15 +243,21 @@ class Traider ():
         log_info ('trend={0}, diff={1}, close_in={2}, close_out={3}, balance={4}'.format(self._trend_field, self._diff_field, self._position.at['in_price'], self._position.at['out_price'], self._balance['usd']))
         self._position = None
 
-    def decide (self, current_caves=None, caves=None, hills=None, tick=None):
+    def decide (self, current_caves=None, caves=None, hills=None, tick=None, frame=None):
+        if self._trend_window is not None:
+            tick.at[self._trend_field] = get_trend (frame, tick, self._trend_window).coef_[0]
+
         if self._position is None and current_caves.shape[0] > 0:
             assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, self._trend_field)
-            if factors.fee (tick.at['close'], (tick.at['close'] + assume_range/1.618)) > 0 and tick.at[self._trend_field] > 0:
-                self.position_in (tick, assume_range)
+            if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)) > 0 and tick.at[self._trend_field] > 0:
+                if assume_range / abs(tick.at['close'] - tick.at['avg']) >= 2.618:
+                    self.position_in (tick, assume_range)
         elif self._position is not None:
             if tick.at['close'] >= (self._position.at['in_price'] + self._position.at['assume_range'] / 1.618) and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
-            elif tick.at['avg'] < self._position.at['in_avg']:
+            elif tick.at['close'] / self._position.at['in_price'] < 1.01 and tick.at[self._diff_field] < 0:
+                self.position_out (tick)
+            elif self._position.at['in_price'] - tick.at['close'] > self._position.at['assume_range']/2.618:
                 self.position_out (tick)
 
     def to_csv (self):
@@ -256,15 +265,7 @@ class Traider ():
 
 def analyse_prepared ():
     traiders = [
-        Traider (trend_field='single', diff_field='diff'),
-        Traider (trend_field='single', diff_field='diff2'),
-        Traider (trend_field='single', diff_field='diff3'),
-        Traider (trend_field='double', diff_field='diff'),
-        Traider (trend_field='double', diff_field='diff2'),
-        Traider (trend_field='double', diff_field='diff3'),
-        Traider (trend_field='triple', diff_field='diff'),
-        Traider (trend_field='triple', diff_field='diff2'),
-        Traider (trend_field='triple', diff_field='diff3')
+        Traider (trend_field='custom', diff_field='diff2', trend_window={'minutes':60*6})
         ]
 
     ranges = [100, 200, 300, 500]
@@ -275,6 +276,7 @@ def analyse_prepared ():
     frame['diff'] = frame.loc[:, 'avg'].diff()
     frame['diff2'] = frame.loc[:, 'close'].rolling(38).mean().diff()
     frame['diff3'] = frame.loc[:, 'close'].rolling(23).mean().diff()
+    frame['trend_custom'] = None
 
     date_start = frame.iloc[0].name+datetime.timedelta(minutes=60*24*1)
     date_ready = date_start + datetime.timedelta(minutes=60*24*7)
@@ -353,7 +355,8 @@ def analyse_prepared ():
                 current_caves = current_caves,
                 caves = caves,
                 hills = hills,
-                tick = tick
+                tick = tick,
+                frame = frame
                 )
 
         current_idx = frame.index.get_loc (tick.name) + 1
@@ -364,4 +367,6 @@ def analyse_prepared ():
     caves.to_csv ('data/caves.csv', index=True, header=True)
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
+# show ('caves')
+# show_results('double_diff2')
 analyse_prepared ()

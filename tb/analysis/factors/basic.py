@@ -8,7 +8,7 @@ def fee (price_in, price_out):
 
     return (price_out - price_in) - fee * (price_in + price_out)
 
-def cave (frame, proportion=1/2.618/2.618):
+def cave (frame, proportion=1/2.618/2.618/2.618):
     cave = None
 
     maximum = frame.loc[frame.loc[:, 'avg'] == frame.loc[:,'avg'].max()].iloc[0]
