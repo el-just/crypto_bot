@@ -250,7 +250,7 @@ class Traider ():
             #     if assume_range / abs(tick.at['close'] - tick.at['avg']) >= 2.618:
                 self.position_in (tick, assume_range)
         elif self._position is not None:
-            if factors.fee (self._position.at['in_close'], tick.at['close']) > 0 and tick.at[self._diff_field] < 0:
+            if factors.fee (self._position.at['in_price'], tick.at['close']) > 0 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
             # elif tick.at['close'] / self._position.at['in_price'] < 1.01 and tick.at[self._diff_field] < 0:
                 # self.position_out (tick)
