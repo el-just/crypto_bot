@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -254,7 +254,7 @@ class Traider ():
                 self.position_out (tick)
             elif tick.at['close'] / self._position.at['in_price'] < 1.01 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
-            elif self._position.at['in_price'] - tick.at['close'] > self._position.at['assume_range']/2.618:
+            elif self._position.at['in_price'] - tick.at['close'] > self._position.at['assume_range']/2.618 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
 
     def to_csv (self):
@@ -262,7 +262,7 @@ class Traider ():
 
 def analyse_prepared ():
     traiders = [
-        Traider (trend_field='custom', diff_field='diff2', trend_window={'minutes':60*6})
+        Traider (trend_field='custom', diff_field='diff', trend_window={'minutes':60*6})
         ]
 
     ranges = [100, 200, 300, 500]
@@ -365,5 +365,5 @@ def analyse_prepared ():
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
 # show ('caves')
-# show_results('double_diff2')
+# show_results('trend_custom_diff2')
 analyse_prepared ()
