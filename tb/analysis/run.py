@@ -245,7 +245,7 @@ class Traider ():
 
     def decide (self, current_caves=None, caves=None, hills=None, tick=None, frame=None):
         if self._position is None and current_caves.shape[0] > 0:
-            # assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, self._trend_field)
+            assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, self._trend_field)
             # if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)) > 0:
             #     if assume_range / abs(tick.at['close'] - tick.at['avg']) >= 2.618:
             self.position_in (tick, assume_range)
