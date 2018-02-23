@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 import methods.mvag as mvag
@@ -246,11 +246,11 @@ class Traider ():
     def decide (self, current_caves=None, caves=None, hills=None, tick=None, frame=None):
         if self._position is None and current_caves.shape[0] > 0:
             assume_range = assume_hill (current_caves.iloc[current_caves.shape[0]-1], caves, hills, self._trend_field)
-            # if factors.fee (tick.at['close'], (tick.at['close'] + assume_range)) > 0:
+            if factors.fee (tick.at['close'], (tick.at['avg'] + assume_range)) > 0:
             #     if assume_range / abs(tick.at['close'] - tick.at['avg']) >= 2.618:
-            self.position_in (tick, assume_range)
+                self.position_in (tick, assume_range)
         elif self._position is not None:
-            if tick.at['close'] >= (self._position.at['in_price'] + self._position.at['assume_range'] / 1.618) and tick.at[self._diff_field] < 0:
+            if tick.at['close'] >= (self._position.at['in_avg'] + self._position.at['assume_range'] / 1.618) and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
             # elif tick.at['close'] / self._position.at['in_price'] < 1.01 and tick.at[self._diff_field] < 0:
                 # self.position_out (tick)
@@ -365,5 +365,5 @@ def analyse_prepared ():
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
 # show ('caves')
-# show_results('trend_custom_diff2')
+# show_results('trend_custom_diff')
 analyse_prepared ()
