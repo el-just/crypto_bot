@@ -4,7 +4,7 @@ cave_window = {'minutes':90}
 cave_proportion = 2.618
 
 def fee (price_in, price_out):
-    fee = 0.004
+    fee = 0.002
 
     return (price_out - price_in) - fee * (price_in + price_out)
 
@@ -19,7 +19,25 @@ def cave (frame, proportion=1/2.618/2.618):
     if frame.iloc[frame.shape[0]-1].at['avg'] > minimum.at['avg']:
         if minimum.name > maximum.name:
             if frame.iloc[frame.shape[0]-1].at['avg'] - minimum.at['avg'] >= (maximum.at['avg'] - minimum.at['avg']) * proportion:
-                cave = minimum
+                cave = pd.Series (
+                    data=[
+                        minimum.name,
+                        maximum.name,
+                        minimum.at['avg'],
+                        maximum.at['avg'],
+                        maximum.name-minimum.name,
+                        maximum.at['avg']-minimum.at['avg'],
+                        frame.iloc[frame.shape[0]-1].at['close']],
+                    index=[
+                        'min_time',
+                        'max_time',
+                        'min',
+                        'max',
+                        'hrz_range',
+                        'vrt_range',
+                        'in_close']
+                    )
+                cave.name = frame.iloc[frame.shape[0]-1].name
 
     return cave
 
@@ -33,7 +51,25 @@ def hill (frame, column='avg', proportion=1/2.618/2.618):
     if frame.iloc[frame.shape[0]-1].at[column] < maximum.at[column]:
         if maximum.name > minimum.name:
             if maximum.at[column] - frame.iloc[frame.shape[0]-1].at[column] >= (maximum.at[column] - minimum.at[column]) * proportion:
-                hill = maximum
+                hill = pd.Series (
+                    data=[
+                        minimum.name,
+                        maximum.name,
+                        minimum.at['avg'],
+                        maximum.at['avg'],
+                        maximum.name-minimum.name,
+                        maximum.at['avg']-minimum.at['avg'],
+                        frame.iloc[frame.shape[0]-1].at['close']],
+                    index=[
+                        'min_time',
+                        'max_time',
+                        'min',
+                        'max',
+                        'hrz_range',
+                        'vrt_range',
+                        'in_close']
+                    )
+                hill.name = frame.iloc[frame.shape[0]-1].name
 
     return hill
 
