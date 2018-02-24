@@ -116,10 +116,11 @@ def analyse ():
             log_info(current_idx // int(frame.shape[0] / 100))
 
         if caves.shape[0] > 0:
+            last_cave = caves.iloc[caves.shape[0]-1]
             if tick.at['close'] > caves.iloc[caves.shape[0]-1].at['in_close'] and tick.at['close'] > caves.iloc[caves.shape[0]-1].at['out_max']:
-                caves.iloc[caves.shape[0]-1].at['out_max'] = tick.at['close']
+                caves.at[last_cave.name, 'out_max'] = tick.at['close']
             if factors.fee (caves.iloc[caves.shape[0]-1].at['in_close'], tick.at['close']) > 10:
-                caves.iloc[caves.shape[0]-1].at['out_10'] = True
+                caves.at[last_cave.name, 'out_10'] = True
 
         watch_caves = watch_caves.append (frame.loc[tick.name])
         cave = factors.cave (watch_caves)
