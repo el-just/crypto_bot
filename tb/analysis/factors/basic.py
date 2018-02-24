@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 
 cave_window = {'minutes':90}
@@ -25,7 +26,7 @@ def cave (frame, proportion=1/2.618/2.618):
                         maximum.name,
                         minimum.at['avg'],
                         maximum.at['avg'],
-                        maximum.name-minimum.name,
+                        time.mktime(minimum.name.timetuple())-time.mktime(maximum.name.timetuple()),
                         maximum.at['avg']-minimum.at['avg'],
                         frame.iloc[frame.shape[0]-1].at['close']],
                     index=[
@@ -57,7 +58,7 @@ def hill (frame, column='avg', proportion=1/2.618/2.618):
                         maximum.name,
                         minimum.at['avg'],
                         maximum.at['avg'],
-                        maximum.name-minimum.name,
+                        time.mktime(maximum.name.timetuple())-time.mktime(minimum.name.timetuple()),
                         maximum.at['avg']-minimum.at['avg'],
                         frame.iloc[frame.shape[0]-1].at['close']],
                     index=[

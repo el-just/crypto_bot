@@ -110,9 +110,16 @@ def analyse ():
     frame = frame.loc[:edge_date].iloc[2:].copy()
 
     current_idx = 0
+    position = None
     for idx, tick in frame.loc[:edge_date].iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
+
+        if caves.shape[0] > 0:
+            if tick.at['close'] > caves.iloc[caves.shape[0]-1].at['in_close'] and tick.at['close'] > caves.iloc[caves.shape[0]-1].at['out_max']:
+                caves.iloc[caves.shape[0]-1].at['out_max'] = tick.at['close']
+            if factors.fee (caves.iloc[caves.shape[0]-1].at['in_close'], tick.at['close']) > 10:
+                caves.iloc[caves.shape[0]-1].at['out_10'] = True
 
         watch_caves = watch_caves.append (frame.loc[tick.name])
         cave = factors.cave (watch_caves)
@@ -121,6 +128,8 @@ def analyse ():
             if factors.fee(cave.at['min'], cave.at['max']) > 0:
                 cave['hill_hrz_range'] = None
                 cave['hill_vrt_range'] = None
+                cave['out_10'] = False
+                cave['out_max'] = 0.0
                 if hills.shape[0] > 0:
                     prev_hills = hills.loc[hills.index < cave.at['min_time']]
                     prev_hill = prev_hills.iloc[prev_hills.shape[0]-1]
@@ -136,6 +145,8 @@ def analyse ():
                 caves = caves.append (cave)
                 watch_caves = pd.DataFrame()
                 watch_caves = watch_caves.append (frame.loc[tick.name])
+
+                position = cave
         
         if tick.at['avg'] > watch_caves.iloc[0].at['avg']:
             watch_caves = pd.DataFrame()
