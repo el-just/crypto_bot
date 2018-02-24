@@ -120,7 +120,7 @@ def analyse ():
             if tick.at['close'] > caves.iloc[caves.shape[0]-1].at['in_close'] and tick.at['close'] > caves.iloc[caves.shape[0]-1].at['out_max']:
                 caves.at[last_cave.name, 'out_max'] = tick.at['close']
             if factors.fee (caves.iloc[caves.shape[0]-1].at['in_close'], tick.at['close']) > 10:
-                caves.at[last_cave.name, 'out_10'] = True
+                caves.at[last_cave.name, 'out_10'] = 1
 
         watch_caves = watch_caves.append (frame.loc[tick.name])
         cave = factors.cave (watch_caves)
@@ -129,7 +129,7 @@ def analyse ():
             if factors.fee(cave.at['min'], cave.at['max']) > 0:
                 cave['hill_hrz_range'] = None
                 cave['hill_vrt_range'] = None
-                cave['out_10'] = False
+                cave['out_10'] = 0
                 cave['out_max'] = 0.0
                 if hills.shape[0] > 0:
                     prev_hills = hills.loc[hills.index < cave.at['min_time']]
