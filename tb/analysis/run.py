@@ -1,11 +1,12 @@
 import os
 import time
 import datetime
+import pickle
 
 import numpy as np
 import pandas as pd
 # import matplotlib.pyplot as plt
-from sklearn import linear_model
+from sklearn import linear_model, tree, model_selection, neighbors, metrics, ensemble, externals
 
 import methods.mvag as mvag
 import methods.extremums as extremums
@@ -111,6 +112,8 @@ def analyse ():
 
     current_idx = 0
     position = None
+    caves_grid = externals.joblib.load('models/forest.pkl')
+    caves_grid.predict ([X_train.iloc[3]])
     for idx, tick in frame.loc[:edge_date].iloc[2:].iterrows():
         if current_idx % int(frame.shape[0] / 100) == 0:
             log_info(current_idx // int(frame.shape[0] / 100))
@@ -358,7 +361,45 @@ def analyse_prepared ():
     caves.to_csv ('data/caves.csv', index=True, header=True)
     caves.to_csv ('data/hills.csv', index=True, header=True)
 
+def analyse_profit ():
+    frame = get_frame ('data/month_prepared.csv', index_col=0)
+    caves = pd.read_csv ('data/caves.csv', index_col=0)
+    caves = caves.join (frame, how="inner")
+
+    y = caves.loc[:,'out_10'].astype(np.int32).copy()
+    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
+    
+    X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
+
+    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
+    caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
+    caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
+    caves_grid.fit (X_train, y_train)
+
+    predict = caves_grid.predict (X_valid)
+    print (metrics.accuracy_score(y_valid, predict))
+    externals.joblib.dump(caves_grid, 'models/forest.pkl')
+
+    #caves_grid = externals.joblib.load('models/forest.pkl')
+    
+    # print (metrics.accuracy_score(y_valid, predict))
+
+    #{'n_neighbors': 123}
+    # knn_classifier = neighbors.KNeighborsClassifier()
+    # caves_params = {'n_neighbors':range(100,201)}
+    # caves_grid = model_selection.GridSearchCV (knn_classifier, caves_params, cv=5, n_jobs=-1)
+    # print (datetime.datetime.now())
+    # caves_grid.fit (X_train, y_train)
+    # print (datetime.datetime.now())
+    # print(caves_grid.best_score_)
+    # print(caves_grid.best_params_)
+
+    # predict = caves_grid.predict (X_valid)
+    # print(caves_grid.score (X_valid, y_valid))
+    # print (metrics.accuracy_score(y_valid, predict))
+    
 # show ('caves')
 # show_results('trend_custom_diff')
 # analyse_prepared ()
-analyse ()
+# analyse ()
+analyse_profit ()
