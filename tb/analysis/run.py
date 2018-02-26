@@ -273,6 +273,7 @@ def analyse_profit ():
     caves = caves.join (frame, how='inner')
 
     y = caves.loc[:,'out_10'].astype(np.int32).copy()
+    caves['out_10'] = caves.loc[:, 'out_max'].apply (lambda out_max: 1 if out_max >= 100 else 0)
     X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_min', 'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
     
     # true_caves = caves.loc[caves.loc[:, 'out_10'] == 1, :]
@@ -282,13 +283,13 @@ def analyse_profit ():
 
     print (X_train.columns)
 
-    # forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
-    # caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
-    # caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
-    # caves_grid.fit (X_train, y_train)
+    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
+    caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
+    caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
+    caves_grid.fit (X_train, y_train)
 
-    # predict = caves_grid.predict (X_valid)
-    # print (metrics.accuracy_score(y_valid, predict))
+    predict = caves_grid.predict (X_valid)
+    print (metrics.accuracy_score(y_valid, predict))
     # externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
 
     # caves_grid = externals.joblib.load('models/forest.pkl')
@@ -316,5 +317,5 @@ def analyse ():
 # show ('caves')
 # show_results('trend_custom_diff')
 # analyse_prepared ()
-analyse ()
-# analyse_profit ()
+# analyse ()
+analyse_profit ()
