@@ -77,9 +77,7 @@ class Traider ():
 
     def decide (self, tick=None, cave=None):
         if self._position is None and cave is not None:
-            prepared_cave = pd.Series (data=[cave.at['hill_hrz_range'], cave.at['hill_vrt_range'], cave.at['hrz_range'], cave.at['in_close'], cave.at['prev_out_max'], cave.at['prev_out_min'], cave.at['trend1'], cave.at['trend13'], cave.at['trend2'], cave.at['trend21'], cave.at['trend3'], cave.at['trend5'], cave.at['trend8'], cave.at['volume'], cave.at['vrt_range'], cave.at['volume_diff'], cave.at['diff']], index=['hill_hrz_range', 'hill_vrt_range', 'hrz_range', 'in_close', 'prev_out_max', 'prev_out_min', 'trend1', 'trend13', 'trend2', 'trend21', 'trend3', 'trend5', 'trend8', 'volume', 'vrt_range', 'volume_diff', 'diff'])
-            if self._model.predict([prepared_cave])[0] == 1:
-                self.position_in (tick)
+            self.position_in (tick)
         elif self._position is not None:
             if factors.fee (self._position.at['in_price'], tick.at['close']) > 0 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
