@@ -268,10 +268,14 @@ def analyse_profit ():
     frame = get_frame ('data/month_prepared.csv', index_col=0)
     caves = pd.read_csv ('data/caves.csv', index_col=0)
     caves = caves.join (frame, how="inner")
+    caves['volume_diff'] = caves.loc[: ,'volume'].diff()
+    caves['diff'] = caves.loc[: ,'avg'].diff()
 
     y = caves.loc[:,'out_10'].astype(np.int32).copy()
     X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max',  'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
     
+    # true_caves = caves.loc[caves.loc[:, 'out_10'] == 1, :]
+
     X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
 
     forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=1, random_state=17)
@@ -283,7 +287,7 @@ def analyse_profit ():
     print (metrics.accuracy_score(y_valid, predict))
     externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
 
-    #caves_grid = externals.joblib.load('models/forest.pkl')
+    # caves_grid = externals.joblib.load('models/forest.pkl')
     
     # print (metrics.accuracy_score(y_valid, predict))
 
@@ -308,5 +312,5 @@ def analyse ():
 # show ('caves')
 # show_results('trend_custom_diff')
 # analyse_prepared ()
-analyse ()
-# analyse_profit ()
+# analyse ()
+analyse_profit ()
