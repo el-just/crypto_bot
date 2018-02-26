@@ -279,32 +279,32 @@ def analyse_profit ():
 
     X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
 
-    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
-    caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
-    caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
-    caves_grid.fit (X_train, y_train)
+    # forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
+    # caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
+    # caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
+    # caves_grid.fit (X_train, y_train)
 
-    predict = caves_grid.predict (X_valid)
-    print (metrics.accuracy_score(y_valid, predict))
-    externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
+    # predict = caves_grid.predict (X_valid)
+    # print (metrics.accuracy_score(y_valid, predict))
+    # externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
 
     # caves_grid = externals.joblib.load('models/forest.pkl')
     
     # print (metrics.accuracy_score(y_valid, predict))
 
-    #{'n_neighbors': 123}
-    # knn_classifier = neighbors.KNeighborsClassifier()
-    # caves_params = {'n_neighbors':range(100,201)}
-    # caves_grid = model_selection.GridSearchCV (knn_classifier, caves_params, cv=5, n_jobs=-1)
-    # print (datetime.datetime.now())
-    # caves_grid.fit (X_train, y_train)
-    # print (datetime.datetime.now())
-    # print(caves_grid.best_score_)
-    # print(caves_grid.best_params_)
+    {'n_neighbors': 123}
+    knn_classifier = neighbors.KNeighborsClassifier()
+    caves_params = {'n_neighbors':range(100,201)}
+    caves_grid = model_selection.GridSearchCV (knn_classifier, caves_params, cv=5, n_jobs=-1)
+    print (datetime.datetime.now())
+    caves_grid.fit (X_train, y_train)
+    print (datetime.datetime.now())
+    print(caves_grid.best_score_)
+    print(caves_grid.best_params_)
 
-    # predict = caves_grid.predict (X_valid)
-    # print(caves_grid.score (X_valid, y_valid))
-    # print (metrics.accuracy_score(y_valid, predict))
+    predict = caves_grid.predict (X_valid)
+    print(caves_grid.score (X_valid, y_valid))
+    print (metrics.accuracy_score(y_valid, predict))
 
 def analyse ():
    model = externals.joblib.load('models/forest_deb.pkl')
