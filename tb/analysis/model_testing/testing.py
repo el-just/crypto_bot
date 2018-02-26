@@ -99,6 +99,7 @@ class Testing ():
     def run (self):
         frame = get_frame ('data/month_prepared.csv')
         frame.loc[:, 'avg'] = frame.loc[:, 'close'].rolling (12).mean()
+        frame['diff'] = frame.loc[:, 'avg'].diff()
         frame = frame.loc [frame.iloc[0].name+datetime.timedelta (minutes=60*24):,:].copy()
 
         edge_date = frame.iloc[frame.shape[0]-1].name
