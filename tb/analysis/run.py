@@ -315,5 +315,5 @@ def analyse ():
 # show ('caves')
 # show_results('trend_custom_diff')
 # analyse_prepared ()
-# analyse ()
-analyse_profit ()
+analyse ()
+# analyse_profit ()
