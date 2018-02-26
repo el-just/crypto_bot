@@ -281,16 +281,14 @@ def analyse_profit ():
 
     X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
 
-    print (X_train.columns)
-
     forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
-    caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
+    caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,17)}
     caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
     caves_grid.fit (X_train, y_train)
 
     predict = caves_grid.predict (X_valid)
     print (metrics.accuracy_score(y_valid, predict))
-    # externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
+    externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
 
     # caves_grid = externals.joblib.load('models/forest.pkl')
     
