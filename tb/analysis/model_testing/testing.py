@@ -72,7 +72,7 @@ class Traider ():
         self._position.at['out_date'] = tick.name
         self._positions = self._positions.append (self._position)
 
-        log_info ('name={0}, close_in={2}, close_out={3}, balance={4}'.format(self._name, self._position.at['in_price'], self._position.at['out_price'], self._balance['usd']))
+        log_info ('name={0}, close_in={1}, close_out={2}, balance={3}'.format(self._name, self._position.at['in_price'], self._position.at['out_price'], self._balance['usd']))
         self._position = None
 
     def decide (self, tick=None, cave=None):
