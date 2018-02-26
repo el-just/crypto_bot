@@ -266,15 +266,15 @@ def analyse_prepared ():
 
 def analyse_profit ():
     frame = get_frame ('data/month_prepared.csv', index_col=0)
-    frame['volume_diff'] = frame.loc[: ,'volume'].diff()
-    frame = frame.drop(['volume'], axis=1)
-    frame['diff'] = frame.loc[: ,'close'].rolling(12).mean().diff()
+    # frame['volume_diff'] = frame.loc[: ,'volume'].diff()
+    # frame['diff'] = frame.loc[: ,'close'].rolling(12).mean().diff()
+    # frame = frame.drop(['volume'], axis=1)
     caves = pd.read_csv ('data/caves.csv', index_col=0)
-    caves = caves.join (frame, how='inner')
+    # caves = caves.join (frame, how='inner')
 
     y = caves.loc[:,'out_10'].astype(np.int32).copy()
     caves['out_10'] = caves.loc[:, 'out_max'].apply (lambda out_max: 1 if out_max >= 100 else 0)
-    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_min', 'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
+    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_min', 'out_10'], axis=1)
     
     # true_caves = caves.loc[caves.loc[:, 'out_10'] == 1, :]
     # print (true_caves.loc[:, 'in_close'] - true_caves.loc[:, 'out_min'])
