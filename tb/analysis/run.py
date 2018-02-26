@@ -275,10 +275,12 @@ def analyse_profit ():
     y = caves.loc[:,'out_10'].astype(np.int32).copy()
     X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_min', 'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
     
-    true_caves = caves.loc[caves.loc[:, 'out_10'] == 1, :]
-    print (true_caves.loc[:, 'in_close'] - true_caves.loc[:, 'out_min'])
+    # true_caves = caves.loc[caves.loc[:, 'out_10'] == 1, :]
+    # print (true_caves.loc[:, 'in_close'] - true_caves.loc[:, 'out_min'])
 
-    # X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
+    X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
+
+    print (X_train.columns)
 
     # forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
     # caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}

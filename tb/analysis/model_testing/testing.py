@@ -77,9 +77,7 @@ class Traider ():
 
     def decide (self, tick=None, cave=None):
         if self._position is None and cave is not None:
-            cave = cave.copy()
-            cave = cave.drop (['out_max', 'out_min', 'prev_out_max', 'prev_out_min', 'out_10', 'max', 'max_time', 'min', 'min_time'])
-            prepared_cave = pd.Series (data=[cave.at['hill_hrz_range'], cave.at['hill_vrt_range'], cave.at['hrz_range'], cave.at['in_close'], cave.at['trend1'], cave.at['trend13'], cave.at['trend2'], cave.at['trend21'], cave.at['trend3'], cave.at['trend5'], cave.at['trend8'], cave.at['vrt_range'], cave.at['volume']], index=['hill_hrz_range', 'hill_vrt_range', 'hrz_range', 'in_close', 'trend1', 'trend13', 'trend2', 'trend21', 'trend3', 'trend5', 'trend8', 'vrt_range', 'volume'])
+            prepared_cave = pd.Series (data=[cave.at['hill_hrz_range'], cave.at['hill_vrt_range'], cave.at['hrz_range'], cave.at['in_close'], cave.at['prev_out_max'], cave.at['prev_out_min'], cave.at['trend1'], cave.at['trend13'], cave.at['trend2'], cave.at['trend21'], cave.at['trend3'], cave.at['trend5'], cave.at['trend8'], cave.at['volume'], cave.at['vrt_range'], cave.at['volume_diff'], cave.at['diff']], index=['hill_hrz_range', 'hill_vrt_range', 'hrz_range', 'in_close', 'prev_out_max', 'prev_out_min', 'trend1', 'trend13', 'trend2', 'trend21', 'trend3', 'trend5', 'trend8', 'volume', 'vrt_range', 'volume_diff', 'diff'])
             if self._model.predict([prepared_cave])[0] == 1:
                 self.position_in (tick)
         elif self._position is not None:
@@ -100,6 +98,7 @@ class Testing ():
         frame = get_frame ('data/month_prepared.csv')
         frame.loc[:, 'avg'] = frame.loc[:, 'close'].rolling (12).mean()
         frame['diff'] = frame.loc[:, 'avg'].diff()
+        frame['volume_diff'] = frame.loc[:, 'volume'].diff()
         frame = frame.loc [frame.iloc[0].name+datetime.timedelta (minutes=60*24):,:].copy()
 
         edge_date = frame.iloc[frame.shape[0]-1].name
@@ -137,6 +136,9 @@ class Testing ():
                     cave['out_max'] = 0.0
                     cave['out_min'] = cave.at['min']
                     cave['prev_out_max'] = 0.0
+                    cave['prev_out_min'] = 0.0
+                    cave['diff'] = tick.at['diff']
+                    cave['volume_diff'] = tick.at['volume_diff']
                     cave['prev_out_min'] = 0.0
                     if hills.shape[0] > 0:
                         prev_hills = hills.loc[hills.index < cave.at['min_time']]
