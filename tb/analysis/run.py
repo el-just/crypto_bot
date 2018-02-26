@@ -266,19 +266,20 @@ def analyse_prepared ():
 
 def analyse_profit ():
     frame = get_frame ('data/month_prepared.csv', index_col=0)
+    frame['volume_diff'] = frame.loc[: ,'volume'].diff()
+    frame = frame.drop(['volume'], axis=1)
+    frame['diff'] = frame.loc[: ,'close'].rolling(12).mean().diff()
     caves = pd.read_csv ('data/caves.csv', index_col=0)
-    caves = caves.join (frame, how="inner")
-    caves['volume_diff'] = caves.loc[: ,'volume'].diff()
-    caves['diff'] = caves.loc[: ,'avg'].diff()
+    caves = caves.join (frame, how='inner')
 
     y = caves.loc[:,'out_10'].astype(np.int32).copy()
-    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max',  'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
+    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_min', 'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
     
     # true_caves = caves.loc[caves.loc[:, 'out_10'] == 1, :]
 
     X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
 
-    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=1, random_state=17)
+    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
     caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
     caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
     caves_grid.fit (X_train, y_train)
