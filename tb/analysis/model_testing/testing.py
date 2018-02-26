@@ -85,7 +85,7 @@ class Traider ():
         elif self._position is not None:
             if factors.fee (self._position.at['in_price'], tick.at['close']) > 0 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
-            elif tick.at['close'] < self._position.at['in_price'] and tick.at[self._diff_field] < 0:
+            elif self._position.at['in_price'] - tick.at['close'] > 100 and tick.at[self._diff_field] < 0:
                 self.position_out (tick)
 
     def to_csv (self):
