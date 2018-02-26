@@ -11,6 +11,7 @@ from sklearn import linear_model, tree, model_selection, neighbors, metrics, ens
 import methods.mvag as mvag
 import methods.extremums as extremums
 import factors.basic as factors
+from model_testing.testing import Testing
 
 def log_info (message):
     try:
@@ -87,103 +88,6 @@ def show_results (file_name):
 
     plt.show()
 
-def get_trend (frame, tick, window):
-    trend_frame = frame.loc[tick.name-datetime.timedelta(**window):tick.name]
-    clf = linear_model.LinearRegression()
-    clf.fit (trend_frame.loc[:,'timestamp'].values.reshape(-1,1), trend_frame.loc[:, 'avg'].values)
-
-    return clf
-    
-def analyse ():
-    frame = get_frame ('data/month_prepared.csv')
-    frame.loc[:, 'avg'] = frame.loc[:, 'close'].rolling (12).mean()
-    frame = frame.loc [frame.iloc[0].name+datetime.timedelta (minutes=60*24):,:].copy()
-    # frame = frame.iloc[12:].copy()
-
-    edge_date = frame.iloc[frame.shape[0]-1].name
-
-    watch_caves = frame.iloc[:2].copy()
-    caves = pd.DataFrame()
-
-    watch_hills = frame.iloc[:2].copy()
-    hills = pd.DataFrame()
-
-    frame = frame.loc[:edge_date].iloc[2:].copy()
-
-    current_idx = 0
-    position = None
-    caves_grid = externals.joblib.load('models/forest.pkl')
-    caves_grid.predict ([X_train.iloc[3]])
-    for idx, tick in frame.loc[:edge_date].iloc[2:].iterrows():
-        if current_idx % int(frame.shape[0] / 100) == 0:
-            log_info(current_idx // int(frame.shape[0] / 100))
-
-        if caves.shape[0] > 0:
-            last_cave = caves.iloc[caves.shape[0]-1]
-            if tick.at['close'] > caves.iloc[caves.shape[0]-1].at['in_close'] and tick.at['close'] > caves.iloc[caves.shape[0]-1].at['out_max']:
-                caves.at[last_cave.name, 'out_max'] = tick.at['close']
-            if factors.fee (caves.iloc[caves.shape[0]-1].at['in_close'], tick.at['close']) > 10:
-                caves.at[last_cave.name, 'out_10'] = 1
-
-        watch_caves = watch_caves.append (frame.loc[tick.name])
-        cave = factors.cave (watch_caves)
-
-        if cave is not None and cave.name not in caves.index.values:
-            if factors.fee(cave.at['min'], cave.at['max']) > 0:
-                cave['hill_hrz_range'] = None
-                cave['hill_vrt_range'] = None
-                cave['out_10'] = 0
-                cave['out_max'] = 0.0
-                if hills.shape[0] > 0:
-                    prev_hills = hills.loc[hills.index < cave.at['min_time']]
-                    prev_hill = prev_hills.iloc[prev_hills.shape[0]-1]
-                    cave['hill_hrz_range'] = prev_hill.at['hrz_range']
-                    cave['hill_vrt_range'] = prev_hill.at['vrt_range']
-                cave['trend1'] = get_trend (frame, tick, {'minutes':60*1}).coef_[0]
-                cave['trend2'] = get_trend (frame, tick, {'minutes':60*2}).coef_[0]
-                cave['trend3'] = get_trend (frame, tick, {'minutes':60*3}).coef_[0]
-                cave['trend5'] = get_trend (frame, tick, {'minutes':60*5}).coef_[0]
-                cave['trend8'] = get_trend (frame, tick, {'minutes':60*8}).coef_[0]
-                cave['trend13'] = get_trend (frame, tick, {'minutes':60*13}).coef_[0]
-                cave['trend21'] = get_trend (frame, tick, {'minutes':60*21}).coef_[0]
-                caves = caves.append (cave)
-                watch_caves = pd.DataFrame()
-                watch_caves = watch_caves.append (frame.loc[tick.name])
-
-                position = cave
-        
-        if tick.at['avg'] > watch_caves.iloc[0].at['avg']:
-            watch_caves = pd.DataFrame()
-            watch_caves = watch_caves.append (frame.loc[tick.name])
-
-        watch_hills = watch_hills.append (frame.loc[tick.name])
-        hill = factors.hill (watch_hills)
-
-        if hill is not None and hill.name not in hills.index.values:
-            if factors.fee(hill.at['min'], hill.at['max']) > 0:
-                hills = hills.append (hill)
-                watch_hills = pd.DataFrame()
-                watch_hills = watch_hills.append (frame.loc[tick.name])
-        
-        if tick.at['avg'] < watch_hills.iloc[0].at['avg']:
-            watch_hills = pd.DataFrame()
-            watch_hills = watch_hills.append (frame.loc[tick.name])
-
-        current_idx = frame.index.get_loc (tick.name) + 1
-
-    # trend.to_csv ('data/trend.csv', index=True, header=True)
-
-    caves.to_csv ('data/caves.csv')
-    hills.to_csv ('data/hills.csv')
-
-    # for idx in range(0, len(cave_ranges)):
-    #     if caves[idx].shape[0] > 0:
-    #         caves[idx].to_csv ('data/caves'+str(cave_ranges[idx])+'.csv', index=True, header=True)
-
-    # for idx in range(0, len(hill_ranges)):
-    #     if hills[idx].shape[0] > 0:
-    #         hills[idx].to_csv ('data/hills'+str(hill_ranges[idx])+'.csv', index=True, header=True)
-
 def assume_hill (cave, caves, hills, trend_col):
     def pick_hill (cave, hills, caves):
         hill = hills.loc[hills.index > cave.name]
@@ -195,7 +99,6 @@ def assume_hill (cave, caves, hills, trend_col):
             return None
     
     hill_range = None
-     # & (caves.loc[:, trend_col] > 0)
     similar_caves = caves.loc[
         (caves.loc[:, 'range'] == cave.at['range']) & (caves.index <= cave.name)]
     relevant_hills = similar_caves.apply (pick_hill, args=(hills, similar_caves), axis=1)
@@ -367,18 +270,18 @@ def analyse_profit ():
     caves = caves.join (frame, how="inner")
 
     y = caves.loc[:,'out_10'].astype(np.int32).copy()
-    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max', 'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
+    X = caves.drop (['max', 'max_time', 'min', 'min_time', 'out_max',  'out_10', 'tick_time','base','quot','close','timestamp','trend_coef','trend_intercept','avg'], axis=1)
     
     X_train, X_valid, y_train, y_valid = model_selection.train_test_split (X, y, test_size=0.38, random_state=17)
 
-    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
+    forest = ensemble.RandomForestClassifier(n_estimators=100, n_jobs=1, random_state=17)
     caves_params = {'max_depth': np.arange(1,11), 'max_features':np.arange(1,13)}
     caves_grid = model_selection.GridSearchCV (forest, caves_params, cv=5, n_jobs=-1)
     caves_grid.fit (X_train, y_train)
 
     predict = caves_grid.predict (X_valid)
     print (metrics.accuracy_score(y_valid, predict))
-    externals.joblib.dump(caves_grid, 'models/forest.pkl')
+    externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
 
     #caves_grid = externals.joblib.load('models/forest.pkl')
     
@@ -397,9 +300,13 @@ def analyse_profit ():
     # predict = caves_grid.predict (X_valid)
     # print(caves_grid.score (X_valid, y_valid))
     # print (metrics.accuracy_score(y_valid, predict))
+
+def analyse ():
+   model = externals.joblib.load('models/forest_deb.pkl')
+   Testing (model=model).run ()
     
 # show ('caves')
 # show_results('trend_custom_diff')
 # analyse_prepared ()
-# analyse ()
-analyse_profit ()
+analyse ()
+# analyse_profit ()
