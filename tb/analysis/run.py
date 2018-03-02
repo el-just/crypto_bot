@@ -5,7 +5,7 @@ import pickle
 
 import numpy as np
 import pandas as pd
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sklearn import linear_model, tree, model_selection, neighbors, metrics, ensemble, externals
 
 import methods.mvag as mvag
@@ -288,9 +288,9 @@ def analyse_profit ():
 
     predict = caves_grid.predict (X_valid)
     print (metrics.accuracy_score(y_valid, predict))
-    externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
+    #externals.joblib.dump(caves_grid, 'models/forest_deb.pkl')
 
-    # caves_grid = externals.joblib.load('models/forest.pkl')
+    caves_grid = externals.joblib.load('models/forest_deb.pkl')
     
     # print (metrics.accuracy_score(y_valid, predict))
 
@@ -311,9 +311,15 @@ def analyse_profit ():
 def analyse ():
    model = externals.joblib.load('models/forest_deb.pkl')
    Testing (model=model).run ()
-    
+
+def custom ():
+    caves = pd.read_csv ('data/caves.csv', index_col=0)
+    caves.loc[:, 'out_max']
+    plt.plot (caves.index, caves.loc[:, 'out_max'], 'co')
+    plt.show()
 # show ('caves')
 # show_results('trend_custom_diff')
 # analyse_prepared ()
-analyse ()
+# analyse ()
+custom ()
 # analyse_profit ()
