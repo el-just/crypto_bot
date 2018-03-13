@@ -11,7 +11,15 @@
 (add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
 (el-get 'sync)
 
-(load-theme 'zenburn t)
+(add-hook 'python-mode-hook 'jedi:setup)
+(setq jedi:complete-on-dot t)
+
+(require 'autopair)
+(autopair-global-mode)
+
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+(load-theme 'atom-one-dark t)
 (setq-default cursor-type 'bar)
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
