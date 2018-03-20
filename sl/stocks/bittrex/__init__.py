@@ -7,7 +7,7 @@ class Bittrex ():
     def __init__ (self):
         self._socket = Socket ()
 
-    async def get (self):
+    async def ping (self):
         try:
             print (await self._socket.get_order_book('BTC-ETH'))
         except Exception as e:
