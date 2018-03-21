@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+traid_view
+{% endblock %}
+
+{% block head %}
+<script src="static/js/seed.js"></script>
+<link href="static/css/seed.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div>
+    Login page
+</div>
+<script>
+    //Дерево построено. Сообщаем об этом
+    var structureReadyEvent = new CustomEvent(
+        'structureReady',
+        { 
+            detail: {
+	        //Кастомные данные
+	    },
+	    bubbles: false,
+	    cancelable: false
+	}
+    );
+
+    document.dispatchEvent(structureReadyEvent);
+</script>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
