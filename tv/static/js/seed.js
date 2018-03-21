@@ -25,7 +25,7 @@ function send (payLoad) {
 */
 
 document.addEventListener(
-   'structureReady',
+   'structure.ready',
    function (event) {
       var socket = new WebSocket('ws://'+window.location.host+'/ws');
       
