@@ -15,6 +15,6 @@ class Binance ():
 
     async def custom_action (self):
         try:
-            Logger.log_info (await self._socket.get_last_trades ('ETHBTC'))
+            await self._socket.connect ()
         except Exception as e:
             Logger.log_error (e)
