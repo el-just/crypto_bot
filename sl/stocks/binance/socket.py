@@ -12,9 +12,9 @@ class Socket ():
     _ws_path = 'wss://stream.binance.com:9443/'
     _volume_watcher = None
 
-    _true_tick = None 
-    _tick_buffer = None 
-    _kline_buffer = None 
+    _true_tick = None
+    _tick_buffer = None
+    _kline_buffer = None
 
     def __init__ (self):
         self._rest = RESTSocket (url='https://api.binance.com/api/v1/')
@@ -39,7 +39,7 @@ class Socket ():
         try:
             market_name = message['data']['s'].lower()
             tick = pd.Series (
-                data=[int(message['data']['E']) // 1000, market_name, float(message['data']['k']['c']), None, None],
+                data=['binance', int(message['data']['E']) // 1000, market_name, float(message['data']['k']['c']), None, None],
                 index=formats.tick
             )
             tick.name = datetime.datetime.fromtimestamp(int(message['data']['E']) // 1000)
@@ -53,9 +53,9 @@ class Socket ():
                 previous_base_volume = self._volume_watcher[market_name]['kline_buffer'].loc[:, 'base_volume'].sum() if not np.isnan(self._volume_watcher[market_name]['kline_buffer'].loc[:, 'base_volume'].sum()) else 0.
                 previous_quot_volume = self._volume_watcher[market_name]['kline_buffer'].loc[:, 'quot_volume'].sum() if not np.isnan(self._volume_watcher[market_name]['kline_buffer'].loc[:, 'quot_volume'].sum()) else 0.
 
-                buffer_tick.at['base_volume'] = current_base_volume - previous_base_volume 
-                buffer_tick.at['quot_volume'] = current_quot_volume - previous_quot_volume 
-            
+                buffer_tick.at['base_volume'] = current_base_volume - previous_base_volume
+                buffer_tick.at['quot_volume'] = current_quot_volume - previous_quot_volume
+
                 self._volume_watcher[market_name]['tick_buffer'] = self._volume_watcher[market_name]['tick_buffer'].append(buffer_tick)
                 self._volume_watcher[market_name]['kline_buffer'] = self._volume_watcher[market_name]['kline_buffer'].append(buffer_tick)
 
