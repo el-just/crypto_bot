@@ -1,12 +1,20 @@
+import json
+import websockets
 from common.logger import Logger
 from common.rest_socket import RESTSocket
 
 class Socket ():
     _rest = None
+    _key = '00c786da0d6643a5824486ca3c9f2361'
+    _pattern = '56ff213321a14f7ea8d93181a5065e9e'
+    #_ws_path = ['https://www.bittrex.com/signalR/', 'https://socket-stage.bittrex.com/signalr', 'https://socket.bittrex.com/signalr']
+    _ws_path = 'wss://socket.bittrex.com/signalr'
 
     def __init__ (self):
         self._rest = RESTSocket (url='https://bittrex.com/api/')
 
+    async def _resolve_message (self, message):
+        Logger.log_info(message)
 
 ##################### API #############################
     ########### API v1.1 ##############
@@ -30,7 +38,7 @@ class Socket ():
         try:
             request_url = 'v1.1/public/getmarketsummaries'
 
-            return await self._rest.request (request_url, {'market': market})
+            return await self._rest.request (request_url, {})
         except Exception as e:
             Logger.log_error (e)
 
@@ -67,3 +75,6 @@ class Socket ():
             return await self._rest.request (request_url, {'marketname': market, 'tickinterval':'onemin'})
         except Exception as e:
             Logger.log_error (e)
+
+    async def connect (self):
+        pass
