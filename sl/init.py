@@ -2,7 +2,7 @@ import asyncio
 
 from common.logger import Logger
 from stocks.bittrex import Bittrex
-import sticks.bittrex.signalr_socket as bss
+import stocks.bittrex.signalr_socket as bss
 from stocks.binance import Binance
 from stocks.bitfinex import Bitfinex
 from stocks.gdax import GDAX
