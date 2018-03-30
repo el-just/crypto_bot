@@ -5,46 +5,52 @@ import hmac
 import hashlib
 from common.logger import Logger
 
-def start ():
-    with Session() as session:
-        #create a connection
-        path = 'https://beta.bittrex.com/signalr'
-        key = '00c786da0d6643a5824486ca3c9f2361'
-        pattern = '56ff213321a14f7ea8d93181a5065e9e'
+#{'H': 'c2', 'M': 'GetAuthContext', 'A': ('00c786da0d6643a5824486ca3c9f2361',), 'I': 0}
 
-        def sign (text):
-            return hmac.new(pattern.encode(), text.encode(), hashlib.sha256).hexdigest()
-        
-        connection = Connection(path, session)
-        hub = connection.register_hub('c2')
+class SignalrSocket ():
 
-        #create new chat message handler
-        def print_received_message(data):
-            Logger.log_info(data)
+    async def connect (self):
+        pass
 
-        #create error handler
-        def print_error(error):
-            Logger.log_error(error)
+class SignalrSocket_pure ():
+    _hub = None
+    _path = 'https://beta.bittrex.com/signalr'
+    _key = '00c786da0d6643a5824486ca3c9f2361'
+    _pattern = '56ff213321a14f7ea8d93181a5065e9e'
 
-        #receive new chat messages from the hub
-        hub.client.on('uE', print_received_message)
-        hub.client.on('uO', print_received_message)
-        hub.client.on('uB', print_received_message)
+    def process_auth_context (self, proof_seed):
+        response = hmac.new(self._pattern.encode(), proof_seed.encode(), hashlib.sha256).hexdigest()
+        self._hub.server.invoke('Authenticate', self._key, response)
+        self._connection.wait(5)
+        self._hub.server.invoke('SubscribeToExchangeDeltas', 'BTC-ETH')
+        self._connection.wait(5)
 
-        #process errors
-        connection.error += print_error
+    def connect (self):
+        with Session() as session:
+            self._connection = Connection(self._path, session)
+            self._hub = self._connection.register_hub('c2')
 
-        #start connection, optionally can be connection.start()
-        with connection:
-            #post new message
-            text = hub.server.invoke('GetAuthContext', key)
-            Logger.log_info ('context response')
-            Logger.log_info (text)
-            hub.server.invoke('Authenticate', key, sign(text))
-            hub.server.invoke('SubscribeToExchangeDeltas', 'BTC-ETH')
-            #wait a second before exit
-            connection.wait(1)
+            #create new chat message handler
+            def print_received_message(data):
+                Logger.log_info(data)
 
-            Logger.log_info('shut down')
+            #create error handler
+            def print_error(error):
+                Logger.log_error(error)
 
-        Logger.log_info('stopped')
+            def process_response (response):
+                Logger.log_info (response)
+
+            #start connection, optionally can be connection.start()
+            with self._connection:
+                #receive new chat messages from the hub
+                self._hub.client.on('uE', print_received_message)
+                self._hub.client.on('uO', print_received_message)
+                self._hub.client.on('uB', print_received_message)
+
+                #process errors
+                self._connection.error += print_error
+
+                #post new message
+                self._hub.server.invoke('GetAuthContext', self._key, response=process_response)
+                self._connection.wait(5)
