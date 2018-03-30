@@ -37,7 +37,7 @@ def start ():
         #start connection, optionally can be connection.start()
         with connection:
             #post new message
-            text = chat.server.invoke('GetAuthContext', key)
+            text = hub.server.invoke('GetAuthContext', key)
             Logger.log_info ('context response')
             Logger.log_info (text)
             hub.server.invoke('Authenticate', key, sign(text))
