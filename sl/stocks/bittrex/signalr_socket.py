@@ -38,8 +38,10 @@ def start ():
         with connection:
             #post new message
             text = chat.server.invoke('GetAuthContext', key)
-            chat.server.invoke('Authenticate', key, sign(text))
-            chat.server.invoke('SubscribeToExchangeDeltas', 'BTC-ETH')
+            Logger.log_info ('context response')
+            Logger.log_info (text)
+            hub.server.invoke('Authenticate', key, sign(text))
+            hub.server.invoke('SubscribeToExchangeDeltas', 'BTC-ETH')
             #wait a second before exit
             connection.wait(1)
 
