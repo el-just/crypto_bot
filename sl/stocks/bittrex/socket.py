@@ -1,5 +1,6 @@
 import json
 import websockets
+import signalr
 from common.logger import Logger
 from common.rest_socket import RESTSocket
 
@@ -7,8 +8,7 @@ class Socket ():
     _rest = None
     _key = '00c786da0d6643a5824486ca3c9f2361'
     _pattern = '56ff213321a14f7ea8d93181a5065e9e'
-    #_ws_path = ['https://www.bittrex.com/signalR/', 'https://socket-stage.bittrex.com/signalr', 'https://socket.bittrex.com/signalr']
-    _ws_path = 'wss://socket.bittrex.com/signalr'
+    _ws_path = 'https://beta.bittrex.com/signalr'
 
     def __init__ (self):
         self._rest = RESTSocket (url='https://bittrex.com/api/')
@@ -76,5 +76,6 @@ class Socket ():
         except Exception as e:
             Logger.log_error (e)
 
+    ########### WebSocket #############
     async def connect (self):
         pass
