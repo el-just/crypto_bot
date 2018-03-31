@@ -1,12 +1,12 @@
 from common.logger import Logger
 from stocks.bittrex.socket import Socket
-from stocks.bittrex.signalr_socket import SignalrSocket
+from stocks.bittrex.signalr import Signalr
 
 class Bittrex ():
     _socket = None
 
     def __init__ (self):
-        self._socket = SignalrSocket ()
+        self._socket = Signalr ()
 
     async def ping (self):
         try:

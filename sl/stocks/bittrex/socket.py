@@ -1,6 +1,5 @@
 import json
 import websockets
-import signalr
 from common.logger import Logger
 from common.rest_socket import RESTSocket
 

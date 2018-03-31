@@ -47,9 +47,9 @@ class Socket ():
     async def _assume_tick(self, tick_data):
         if not self._channels.loc[int(tick_data[0])].empty and (len(tick_data) > 2 or self._last_ticks[int(tick_data[0])] is not None):
             current_date = datetime.datetime.now()
-            current_close = float(tick_data[7]) if len(tick_data) > 2 else self._last_ticks[int(tick_data[0])].at['price'] 
-            current_volume = float(tick_data[8]) if len(tick_data) > 2 else self._last_ticks[int(tick_data[0])].at['base_volume'] 
-            
+            current_close = float(tick_data[7]) if len(tick_data) > 2 else self._last_ticks[int(tick_data[0])].at['price']
+            current_volume = float(tick_data[8]) if len(tick_data) > 2 else self._last_ticks[int(tick_data[0])].at['base_volume']
+
             tick = pd.Series (
                 data=[
                     'bitfinex',
