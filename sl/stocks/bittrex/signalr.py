@@ -3,12 +3,16 @@ gevent.monkey.patch_all()
 
 import json
 import websockets
+import hmac
+import hashlib
 import common.utils as utils
 from requests import Session
 from urllib.parse import urlparse, urlunparse, quote_plus
 from common.logger import Logger
 
 class Signalr ():
+    _key = '00c786da0d6643a5824486ca3c9f2361'
+    _pattern = '56ff213321a14f7ea8d93181a5065e9e'
     _main_path = 'https://beta.bittrex.com/signalr'
     _session = None
     _socket = None
@@ -16,6 +20,7 @@ class Signalr ():
     _qs = {}
     _data = json.dumps([{'name': hub_name} for hub_name in ['c2']])
     _protocol_version = '1.5'
+    _message_id = 0
 
     def _get_base_url(self, action, **kwargs):
         args = kwargs.copy()
@@ -71,8 +76,36 @@ class Signalr ():
         headers['Cookie'] = self._get_cookie_str()
         return ['%s: %s' % (name, headers[name]) for name in headers]
 
+    async def _send_auth_request(self):
+        await self._socket.send(json.dumps({
+            'H': 'c2', 'M': 'GetAuthContext', 'A': (self._key,), 'I': self._message_id
+        }))
+        self._message_id += 1
+
+    async def _sign(self, message):
+        sign = hmac.new(self._pattern.encode(), message['R'].encode(), hashlib.sha512).hexdigest()
+        await self._socket.send(json.dumps({
+            'H': 'c2', 'M': 'Authenticate', 'A': (self._key, sign), 'I': self._message_id
+        }))
+        self._message_id += 1
+
+    async def _subscribe_channels(self):
+        await self._socket.send(json.dumps({
+            'H': 'c2', 'M': 'SubscribeToExchangeDeltas', 'A': ('BTC-ETH',), 'I': self._message_id
+        }))
+        self._message_id += 1
+
+    async def _assume_tick(self, message):
+        message
+        #{'C': 'd-32D4F235-B,0|Cj,0|Ck,3|Cl,0|W,6E09', 'M': [{'H': 'C2', 'M': 'uE', 'A': ['fZHNSgQxEITfpc8x9G86naOy4EVBnYvKXn2JZd/dEGfXGTeYQyDUR1V15wRP0OB+ebg7LI+Q4BkaV3JL8AHt8wTLOzRM8NrvjGZFGSPBCzTL4TjOOU0wIh4YZQ9noagXjPYYDqw/JzYqRfXHRrIKG83jFNV8cMq5Suxq0Z4r/+RJaFnzNPfKpQ9rEx9WX8eb+mgN5NUnV8R5HbUh/bXZ6B6kNzFbvUbEVT8meJt9mfcd+kpp7MvwLxascikjIUEot5mFKQrbNvOrZx7P3w==']}]}
     async def _resolve_message (self, message):
         Logger.log_info(message)
+        if 'I' in message and int(message['I']) == 0:
+            await self._sign(message)
+        elif 'I' in message and int(message['I']) == 1 and message['R'] == True:
+            await self._subscribe_channels()
+        elif 'M' in message:
+            await self._assume_tick(message)
 
     async def connect (self):
         try:
@@ -85,6 +118,7 @@ class Signalr ():
 
                 async with websockets.connect(ws_url, extra_headers=headers) as websocket:
                     self._socket = websocket
+                    await self._send_auth_request()
                     async for message in websocket:
                         await self._resolve_message (utils.parse_data (message))
         except Exception as e:

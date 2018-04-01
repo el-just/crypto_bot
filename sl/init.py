@@ -4,6 +4,7 @@ from common.logger import Logger
 from stocks.bittrex import Bittrex
 from stocks.binance import Binance
 from stocks.bitfinex import Bitfinex
+from stocks.bittrex.signalr_socket import SignalrSocket
 from stocks.gdax import GDAX
 from stocks.cex import CEX
 
@@ -13,3 +14,5 @@ try:
     loop.close()
 except Exception as e:
     Logger.log_error (e)
+
+# SignalrSocket().connect()
