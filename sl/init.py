@@ -14,5 +14,3 @@ try:
     loop.close()
 except Exception as e:
     Logger.log_error (e)
-
-# SignalrSocket().connect()

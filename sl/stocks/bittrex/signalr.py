@@ -5,6 +5,8 @@ import json
 import websockets
 import hmac
 import hashlib
+import base64
+import zlib
 import common.utils as utils
 from requests import Session
 from urllib.parse import urlparse, urlunparse, quote_plus
@@ -76,36 +78,80 @@ class Signalr ():
         headers['Cookie'] = self._get_cookie_str()
         return ['%s: %s' % (name, headers[name]) for name in headers]
 
+    def _decompress_data(self, data):
+        return utils.parse_data(zlib.decompress(base64.b64decode(data), wbits=-15).decode('utf8'))
+
+    async def _send_request(self, method_name, *args):
+        try:
+            await self._socket.send(json.dumps({
+                'H': 'c2', 'M': method_name, 'A': args, 'I': self._message_id
+            }))
+            self._message_id += 1
+        except Exception as e:
+            Logger.log_error(e)
+
     async def _send_auth_request(self):
-        await self._socket.send(json.dumps({
-            'H': 'c2', 'M': 'GetAuthContext', 'A': (self._key,), 'I': self._message_id
-        }))
-        self._message_id += 1
+        try:
+            await self._send_request('GetAuthContext', self._key)
+        except Exception as e:
+            Logger.log_error(e)
 
     async def _sign(self, message):
-        sign = hmac.new(self._pattern.encode(), message['R'].encode(), hashlib.sha512).hexdigest()
-        await self._socket.send(json.dumps({
-            'H': 'c2', 'M': 'Authenticate', 'A': (self._key, sign), 'I': self._message_id
-        }))
-        self._message_id += 1
+        try:
+            sign = hmac.new(self._pattern.encode(), message['R'].encode(), hashlib.sha512).hexdigest()
+            await self._send_request('Authenticate', self._key, sign)
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def _get_exchange_state(self):
+        try:
+            await self._send_request('QueryExchangeState', 'BTC-ETH')
+        except Exception as e:
+            Logger.log_error(e)
 
     async def _subscribe_channels(self):
-        await self._socket.send(json.dumps({
-            'H': 'c2', 'M': 'SubscribeToExchangeDeltas', 'A': ('BTC-ETH',), 'I': self._message_id
-        }))
-        self._message_id += 1
+        try:
+            await self._send_request('SubscribeToExchangeDeltas', 'BTC-ETH')
+            await self._send_request('SubscribeToSummaryLiteDeltas')
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def _assume_order_book_update(self, message):
+        try:
+            order_book_data = self._decompress_data(message['A'][0])
+            Logger.log_info(order_book_data)
+        except Exception as e:
+            Logger.log_error(e)
 
     async def _assume_tick(self, message):
-        message
-        #{'C': 'd-32D4F235-B,0|Cj,0|Ck,3|Cl,0|W,6E09', 'M': [{'H': 'C2', 'M': 'uE', 'A': ['fZHNSgQxEITfpc8x9G86naOy4EVBnYvKXn2JZd/dEGfXGTeYQyDUR1V15wRP0OB+ebg7LI+Q4BkaV3JL8AHt8wTLOzRM8NrvjGZFGSPBCzTL4TjOOU0wIh4YZQ9noagXjPYYDqw/JzYqRfXHRrIKG83jFNV8cMq5Suxq0Z4r/+RJaFnzNPfKpQ9rEx9WX8eb+mgN5NUnV8R5HbUh/bXZ6B6kNzFbvUbEVT8meJt9mfcd+kpp7MvwLxascikjIUEot5mFKQrbNvOrZx7P3w==']}]}
+        try:
+            tick_data = self._decompress_data(message['A'][0])
+            Logger.log_info(tick_data)
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def _assume_exchange_state(self, message):
+        try:
+            state_data = self._decompress_data(message['R'])
+            Logger.log_info(state_data)
+        except Exception as e:
+            Logger.log_error(e)
+
     async def _resolve_message (self, message):
-        Logger.log_info(message)
-        if 'I' in message and int(message['I']) == 0:
-            await self._sign(message)
-        elif 'I' in message and int(message['I']) == 1 and message['R'] == True:
-            await self._subscribe_channels()
-        elif 'M' in message:
-            await self._assume_tick(message)
+        try:
+            if 'I' in message and int(message['I']) == 0:
+                await self._sign(message)
+            elif 'I' in message and int(message['I']) == 1 and 'R' in message and message['R'] == True:
+                await self._get_exchange_state()
+                await self._subscribe_channels()
+            elif 'I' in message and int(message['I']) == 2 and 'R' in message:
+                await self._assume_exchange_state(message)
+            elif 'M' in message and len(message['M']) > 0 and message['M'][0]['M'] == 'uE':
+                await self._assume_order_book_update (message['M'][0])
+            elif 'M' in message and len(message['M']) > 0 and message['M'][0]['M'] == 'uL':
+                await self._assume_tick(message['M'][0])
+        except Exception as e:
+            Logger.log_error(e)
 
     async def connect (self):
         try:
@@ -120,6 +166,7 @@ class Signalr ():
                     self._socket = websocket
                     await self._send_auth_request()
                     async for message in websocket:
+                        #Logger.log_info(message)
                         await self._resolve_message (utils.parse_data (message))
         except Exception as e:
             Logger.log_error(e)
