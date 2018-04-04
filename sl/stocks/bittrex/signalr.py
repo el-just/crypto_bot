@@ -7,7 +7,13 @@ import hmac
 import hashlib
 import base64
 import zlib
+import pandas as pd
+import datetime
+import time
+import datetime
+import time
 import common.utils as utils
+import common.formats as formats
 from requests import Session
 from urllib.parse import urlparse, urlunparse, quote_plus
 from common.logger import Logger
@@ -23,6 +29,7 @@ class Signalr ():
     _data = json.dumps([{'name': hub_name} for hub_name in ['c2']])
     _protocol_version = '1.5'
     _message_id = 0
+    _markets = ['btc-eth']
 
     def _get_base_url(self, action, **kwargs):
         args = kwargs.copy()
@@ -119,26 +126,51 @@ class Signalr ():
     async def _assume_order_book_update(self, message):
         try:
             order_book_data = self._decompress_data(message['A'][0])
-            Logger.log_info(order_book_data)
+            #Logger.log_info(order_book_data)
         except Exception as e:
             Logger.log_error(e)
 
-    async def _assume_tick(self, message):
+    async def _assume_tick_package(self, message):
         try:
-            tick_data = self._decompress_data(message['A'][0])
-            Logger.log_info(tick_data)
+            tick_package_data = self._decompress_data(message['A'][0])
+            #Logger.log_info(tick_package_data)
+
+            for tick_data in tick_package_data['D']:
+                if tick_data['M'].lower() in self._markets:
+                    await self._assume_tick(tick_data)
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def _assume_tick(self, tick_data):
+        try:
+            current_date = datetime.datetime.now() 
+            tick = pd.Series (
+                data=[
+                    'bittrex',
+                    int(time.mktime(current_date.timetuple())),
+                    tick_data['M'].lower(),
+                    tick_data['l'],
+                    None,
+                    None
+                ],
+                index=formats.tick
+            )
+            tick.name = current_date
+
+            Logger.log_info(tick)
         except Exception as e:
             Logger.log_error(e)
 
     async def _assume_exchange_state(self, message):
         try:
             state_data = self._decompress_data(message['R'])
-            Logger.log_info(state_data)
+            #Logger.log_info(state_data)
         except Exception as e:
             Logger.log_error(e)
 
     async def _resolve_message (self, message):
         try:
+            #Logger.log_info(message)
             if 'I' in message and int(message['I']) == 0:
                 await self._sign(message)
             elif 'I' in message and int(message['I']) == 1 and 'R' in message and message['R'] == True:
@@ -149,7 +181,7 @@ class Signalr ():
             elif 'M' in message and len(message['M']) > 0 and message['M'][0]['M'] == 'uE':
                 await self._assume_order_book_update (message['M'][0])
             elif 'M' in message and len(message['M']) > 0 and message['M'][0]['M'] == 'uL':
-                await self._assume_tick(message['M'][0])
+                await self._assume_tick_package(message['M'][0])
         except Exception as e:
             Logger.log_error(e)
 
@@ -166,7 +198,6 @@ class Signalr ():
                     self._socket = websocket
                     await self._send_auth_request()
                     async for message in websocket:
-                        #Logger.log_info(message)
                         await self._resolve_message (utils.parse_data (message))
         except Exception as e:
             Logger.log_error(e)
