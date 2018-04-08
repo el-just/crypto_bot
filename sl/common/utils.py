@@ -13,5 +13,8 @@ def parse_data (data):
             parsed_data = ast.literal_eval(data)
     except Exception as e:
         Logger.log_error (e)
-    
+
     return parsed_data
+
+def stringify_data(data):
+    return str(data.values)

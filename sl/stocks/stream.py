@@ -1,31 +1,46 @@
 import asyncio
 import websockets
 
-from common.logger import Logger
-import common.formats as formats
+from common import formats
+from common import utils 
+from common import Logger
+
+from stocks import Binance
+from stocks import Bitfinex
+# from stocks import Bittrex
+# from stocks import GDAX
+# from stocks import CEX
 
 class Stream ():
     def __init__(self):
         self.__ip = '127.0.0.1'
         self.__port = 8765
-        self.__socket = None
+        self.__connections = set()
 
-    async def run (self):
+    def run (self):
+        return asyncio.gather(
+                websockets.serve (self.__listener, self.__ip, self.__port),
+                Binance(stream=self).run(),
+                Bitfinex(stream=self).run(),)
+
+    async def publish(self, message):
+        for connection in self.__connections:
+            await connection.send (utils.stringify_data(message))
+
+    async def __resolve_message (self, message, client):
         try:
-            await websockets.serve (self.__listener, self.__ip, self.__port)
+            await client.send ('pong' if message == 'ping' else message)
         except Exception as e:
             Logger.log_error(e)
 
-    async def __resolve_message (self, message):
-        try:
-            await self.__socket.send ('pong' if message == 'ping' else message)
-        except Exception as e:
-            Logger.log_error(e)
-    
     async def __listener (self, websocket, path):
-        try:
-            self.__socket = websocket
+        self.__connections.add(websocket)
 
+        try:
             async for message in websocket:
+                await self.__resolve_message(message, websocket)
         except Exception as e:
             Logger.log_error(e)
+
+        finally:
+            self.__connections.remove(websocket)

@@ -1,1 +1,1 @@
-tick = ['stock', 'timestamp', 'market', 'price', 'base_volume', 'quot_volume']
+tick = ['stock', 'timestamp', 'market', 'price']
