@@ -1,20 +1,15 @@
-from common.logger import Logger
+from common import Logger
 from stocks.cex.socket import Socket
 
 class CEX ():
-    _socket = None
+    __socket = None
+    __stream = None
 
-    def __init__ (self):
-        self._socket = Socket ()
+    def __init__ (self, stream=None):
+        self.__socket = Socket ()
+        self.__stream = stream
 
-    async def ping (self):
-        try:
-            print (await self._socket.get_order_book('BTC-ETH'))
-        except Exception as e:
-            Logger.log_error (e)
-
-    async def custom_action (self):
-        try:
-            await self._socket.connect ()
-        except Exception as e:
-            Logger.log_error (e)
+    async def run(self):
+        async for tick in self.__socket.run():
+            if self.__stream is not None:
+                await self.__stream.publish(tick)

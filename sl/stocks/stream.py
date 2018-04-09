@@ -8,8 +8,8 @@ from common import Logger
 from stocks import Binance
 from stocks import Bitfinex
 from stocks import Bittrex
+from stocks import CEX
 # from stocks import GDAX
-# from stocks import CEX
 
 class Stream():
     def __init__(self):
@@ -22,7 +22,8 @@ class Stream():
                 websockets.serve(self.__listener, self.__ip, self.__port),
                 Binance(stream=self).run(),
                 Bitfinex(stream=self).run(),
-                Bittrex(stream=self).run(),)
+                Bittrex(stream=self).run(),
+                CEX(stream=self).run(),)
 
     async def publish(self, message):
         for connection in self.__connections:

@@ -7,82 +7,106 @@ import time
 import hmac
 import hashlib
 
-import common.utils as utils
-import common.formats as formats
-from common.logger import Logger
-from common.rest_socket import RESTSocket
+from common import utils
+from common import formats
+from common import Logger
+from common import RESTSocket
 
 class Socket ():
-    _ws_path = 'wss://ws.cex.io/ws'
-    _key = 'LbjBXHmk3pPI2Ur4p2S3bCUSpD4'
-    _pattern = 'OVelFsTeuwd5IeycU72Rp1Itj78'
+    __ws_path = None
+    __key = None
+    __pattern = None
 
-    def __init__ (self):
-        #self._rest = RESTSocket (url='')
-        pass
+    __socket = None
 
-    async def _subscribe_channels (self):
+    def __init__(self):
+        self.__ws_path = 'wss://ws.cex.io/ws'
+        self.__key = 'LbjBXHmk3pPI2Ur4p2S3bCUSpD4'
+        self.__pattern = 'OVelFsTeuwd5IeycU72Rp1Itj78'
+
+    def __get_nonce(self):
+        return str(int(datetime.datetime.now().timestamp()))
+
+    async def __subscribe_channels(self):
         try:
-            await self._socket.send(json.dumps({
-                "rooms": [
-                    "tickers"
-                ],
-                "e": "subscribe",
-                "oid": str(int(datetime.datetime.now().timestamp()))+'_subscribe'
-            }))
+            await self.__socket.send(json.dumps({
+                    "rooms": [
+                        "tickers",],
+                    "e": "subscribe",
+                    "oid": self.__get_nonce() + '_subscribe',}))
         except Exception as e:
             Logger.log_error(e)
 
-    async def _auth (self):
+    async def __auth(self):
         try:
             timestamp = int(datetime.datetime.now().timestamp())  # UNIX timestamp in seconds
-            string = "{}{}".format(timestamp, self._key)
-            signature = hmac.new(self._pattern.encode(), string.encode(), hashlib.sha256).hexdigest()
+            string = "{}{}".format(timestamp, self.__key)
+            signature = hmac.new(
+                    self.__pattern.encode(),
+                    string.encode(),
+                    hashlib.sha256,).hexdigest()
 
-            await self._socket.send(json.dumps({
-                'e': 'auth',
-                'auth': {'key': self._key, 'signature': signature, 'timestamp': timestamp},
-                'oid': 'auth'
-            }))
+            await self.__socket.send(json.dumps({
+                    'e': 'auth',
+                    'auth': {
+                        'key': self.__key,
+                        'signature': signature,
+                        'timestamp': timestamp,},
+                    'oid': 'auth',}))
         except Exception as e:
             Logger.log_error(e)
 
-    async def _assume_tick (self, message):
-        current_date = datetime.datetime.now()
-            
-        tick = pd.Series (
-            data=[
-                'cex',
-                int(time.mktime(current_date.timetuple())),
-                message['data']['symbol1'].lower()+'-'+message['data']['symbol2'].lower(),
-                float(message['data']['price']),
-                None,
-                None
-            ],
-            index=formats.tick
-        )
-        tick.name = current_date
+    def __assume_tick(self, message):
+        tick = None
 
-        Logger.log_info(tick)
+        try:
+            current_date = datetime.datetime.now()
+            tick = pd.Series (
+                    data=[
+                        'cex',
+                        int(time.mktime(current_date.timetuple())),
+                        '-'.join([
+                            message['data']['symbol1'].lower(),
+                            message['data']['symbol2'].lower(),]),
+                        float(message['data']['price']),],
+                    index=formats.tick,)
+            tick.name = current_date
+        except Exception as e:
+            Logger.log_error(e)
 
-    async def _resolve_message (self, message):
-        if message['e'] == 'ping':
-            await self._socket.send(json.dumps({
-                'e': 'pong'
-            }))
-        elif message['e'] == 'tick':
-            await self._assume_tick (message)
+        finally:
+            return tick
 
-    async def connect (self):
+    async def __resolve_message(self, message):
+        reaction = None
+
+        try:
+            if message['e'] == 'ping':
+                await self.__socket.send(json.dumps({
+                    'e': 'pong',}))
+            elif message['e'] == 'tick':
+                reaction = self.__assume_tick(message)
+               
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            return reaction
+
+    async def run(self):
         try:
             while True:
                 try:
-                    async with websockets.connect (self._ws_path) as websocket:
-                        self._socket = websocket
-                        await self._auth()
-                        await self._subscribe_channels()
+                    async with websockets.connect(self.__ws_path) as websocket:
+                        self.__socket = websocket
+                        await self.__auth()
+                        await self.__subscribe_channels()
                         async for message in websocket:
-                            await self._resolve_message (utils.parse_data (message))
+                            reaction = await self.__resolve_message (
+                                    utils.parse_data (message))
+
+                            if reaction is not None:
+                                yield reaction
                 except Exception as e:
                     Logger.log_error (e)
         except Exception as e:
