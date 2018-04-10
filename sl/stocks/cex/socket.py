@@ -12,7 +12,7 @@ from common import formats
 from common import Logger
 from common import RESTSocket
 
-class Socket ():
+class Socket():
     __ws_path = None
     __key = None
     __pattern = None
@@ -39,7 +39,7 @@ class Socket ():
 
     async def __auth(self):
         try:
-            timestamp = int(datetime.datetime.now().timestamp())  # UNIX timestamp in seconds
+            timestamp = int(datetime.datetime.now().timestamp())
             string = "{}{}".format(timestamp, self.__key)
             signature = hmac.new(
                     self.__pattern.encode(),
