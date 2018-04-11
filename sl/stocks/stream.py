@@ -20,7 +20,7 @@ class Stream():
     __connections = None
 
     __stocks = None
-    __command_processor = None
+    __action_collector = None
 
     def __init__(self):
         self.__ip = '127.0.0.1'
@@ -53,17 +53,28 @@ class Stream():
             await connection.send(utils.stringify_data(message))
 
     async def __resolve_message(self, message, client):
+        re_action = None
+
         try:
-            await client.send('pong' if message == 'ping' else message)
+            if isinstance(message, dict):
+                re_action = await self.__action_collector.execute(message)
+            elif isinstance(message, str):
+                await client.send('pong' if message == 'ping' else message)
         except Exception as e:
             Logger.log_error(e)
+
+        finally:
+            return re_action
 
     async def __listener(self, websocket, path):
         self.__connections.add(websocket)
 
         try:
             async for message in websocket:
-                await self.__resolve_message(message, websocket)
+                action = await self.__resolve_message(
+                        utils.parse_data(message), websocket)
+
+                await self.__action_collector.execute (action)
         except Exception as e:
             Logger.log_error(e)
 

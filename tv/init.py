@@ -15,7 +15,11 @@ aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 app['static_root_url'] = '/static'
 app.router.add_static('/static', 'static', name='static')
 for route in routes:
-    app.router.add_route(route['method'], route['path'], route['handler'], name=route['name'])
+    app.router.add_route(
+            route['method'],
+            route['path'],
+            route['handler'],
+            name=route['name'],)
 
 app.on_cleanup.append(on_shutdown)
 app['websockets'] = []

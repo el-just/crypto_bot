@@ -10,23 +10,16 @@ traid_view
 <link href="static/css/seed.css" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<div>
-    Login page
-</div>
-<script>
-    //Дерево построено. Сообщаем об этом
-    var structureReadyEvent = new CustomEvent(
-        'structure.ready',
-        { 
-            detail: {
-	        //Кастомные данные
-	    },
-	    bubbles: false,
-	    cancelable: false
-	}
-    );
+<input type="text">
 
-    document.dispatchEvent(structureReadyEvent);
+</input>
+<script>
+var structureReadyEvent = new CustomEvent('structure.ready', {
+	detail: {},
+	bubbles: false,
+	cancelable: false,});
+
+document.dispatchEvent(structureReadyEvent);
 </script>
 {% endblock %}
 
