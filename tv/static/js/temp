@@ -1,0 +1,25 @@
+/*
+function send (payLoad) {
+   return new Promise ((resolve, reject) => {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', path, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+
+      xhr.onreadystatechange = function() {
+         if (xhr.readyState != 4) return;
+
+         if (xhr.status != 200) {
+            resolve(false);
+         } else {
+            resolve(xhr.responseText);
+         }
+      }
+
+      if (typeof payLoad === 'object') {
+         payLoad = JSON.stringify (payLoad);
+      }
+
+      xhr.send (payLoad);
+   });
+}
+*/

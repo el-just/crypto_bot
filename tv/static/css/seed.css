@@ -1,4 +1,4 @@
-html, body, button, div {
+html, body, button, div, input {
   padding: 0px;
   margin: 0px;
   border: none;
@@ -18,8 +18,4 @@ html, body, button, div {
 
 button:hover {
   color: #F42;
-}
-
-.chart {
-  border: 1px solid #dddddd;
 }

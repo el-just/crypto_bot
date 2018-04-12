@@ -1,56 +1,26 @@
-/*
-function send (payLoad) {
-   return new Promise ((resolve, reject) => {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', path, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
+window._ = {};
+function request_action(event) {
+        var action = document.forms.action_requestor.elements.action.value;
+        window._.websocket.send(action);
 
-      xhr.onreadystatechange = function() {
-         if (xhr.readyState != 4) return;
+        return false;}
 
-         if (xhr.status != 200) {
-            resolve(false);
-         } else {
-            resolve(xhr.responseText);
-         }
-      }
+document.addEventListener('structure.ready',
+        function (event) {
+            window._.websocket = new WebSocket(
+                    'ws://'+window.location.host+'/ws');
 
-      if (typeof payLoad === 'object') {
-         payLoad = JSON.stringify (payLoad);
-      }
+            window._.websocket.onmessage = function(event) {
+            document.dispatchEvent(new CustomEvent('socket.data.recieved', {
+                    detail: {
+                        data: event.data
+                    },
+                    bubbles: false,
+                    cancelable: false,}));};
 
-      xhr.send (payLoad);
-   });
-}
-*/
-
-document.addEventListener(
-   'structure.ready',
-   function (event) {
-      var socket = new WebSocket('ws://'+window.location.host+'/ws');
-      
-      socket.onmessage = function(event) {
-         document.dispatchEvent(new CustomEvent(
-            'socket.data.recieved',
-            { 
-               detail: {
-                  data: event.data
-               },
-               bubbles: false,
-               cancelable: false
-            }
-         ));
-      };
-
-      document.addEventListener(
-         "socket.data.recieved",
-         function (event) {
-            console.log ('socket.data.recieved: ' + event.detail.data);
-         },
-         false
-      );
-
-     window.w_s = socket; 
-   },
-   false
-);
+            document.addEventListener("socket.data.recieved",
+                    function (event) {
+                        console.log (
+                            'socket.data.recieved: ' + event.detail.data);},
+                    false,);},
+        false,);
