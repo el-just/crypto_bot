@@ -1,4 +1,5 @@
 import ast
+import pandas as pd
 from common.logger import Logger
 
 def parse_data (data):
@@ -12,9 +13,13 @@ def parse_data (data):
             data = data.replace ('false', 'False')
             parsed_data = ast.literal_eval(data)
     except Exception as e:
-        Logger.log_error (e)
+        Logger.log_error(e)
 
-    return parsed_data
+    finally:
+        return parsed_data
 
 def stringify_data(data):
-    return str(data.values)
+    if isinstance(data, (pd.Series, pd.DataFrame)):
+        return str(data.values)
+    else:
+        return str(data)

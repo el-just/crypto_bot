@@ -49,8 +49,11 @@ class Stream():
                 *[stock.run() for stock in self.__stocks.values],)
 
     async def publish(self, message):
-        for connection in self.__connections:
-            await connection.send(utils.stringify_data(message))
+        try:
+            for connection in self.__connections:
+                await connection.send(utils.stringify_data(message))
+        except Exception as e:
+            Logger.log_error(e)
 
     async def __resolve_message(self, message, client):
         re_action = None
@@ -74,7 +77,8 @@ class Stream():
                 action = await self.__resolve_message(
                         utils.parse_data(message), websocket)
 
-                await self.__action_collector.execute (action)
+                if action is not None:
+                    await websocket.send(utils.stringify_data(action))
         except Exception as e:
             Logger.log_error(e)
 

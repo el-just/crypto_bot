@@ -14,8 +14,8 @@ class Socket ():
     __rest_socket = None
 
     def __init__ (self):
-        self.__ws_path = 'wss://stream.binance.com:9443/' 
-        self.__rest_path = 'https://api.binance.com/api/v1/' 
+        self.__ws_path = 'wss://stream.binance.com:9443/'
+        self.__rest_path = 'https://api.binance.com/api/v1/'
 
         self.__rest_socket = RESTSocket (url=self.__rest_path)
 
@@ -54,6 +54,14 @@ class Socket ():
     async def ping (self):
         try:
             request_url = 'ping'
+
+            return await self.__rest_socket.request (request_url)
+        except Exception as e:
+            Logger.log_error (e)
+
+    async def exchange_info (self):
+        try:
+            request_url = 'exchangeInfo'
 
             return await self.__rest_socket.request (request_url)
         except Exception as e:

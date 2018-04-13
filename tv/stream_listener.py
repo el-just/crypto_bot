@@ -5,6 +5,7 @@ from common.logger import Logger
 
 class StreamListener():
     __ws_path = None
+    __stock_socket = None
     __client_sockets = None
 
     def __init__(self):
@@ -22,10 +23,15 @@ class StreamListener():
     async def connect(self, socket):
         self.__client_sockets.append(socket)
 
+    async def send(self, message):
+        if self.__stock_socket is not None:
+            await self.__stock_socket.send(message)
+
     async def run(self):
         while True:
             try:
                 async with websockets.connect(self.__ws_path) as websocket:
+                    self.__stock_socket = websocket
                     async for message in websocket:
                         await self.__resolve_message(message)
             except Exception as e:

@@ -18,7 +18,7 @@ class WebSocket(web.View):
                 if msg.data == 'close':
                     await self.__socket.close()
                 else:
-                    await self.__socket.send_str('message accepted: '+str(msg.data))
+                    await self.request.app['stock_stream'].send(msg.data)
             elif msg.type == WSMsgType.ERROR:
                 pass
 

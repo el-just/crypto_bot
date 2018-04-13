@@ -5,9 +5,12 @@ class Binance ():
     __socket = None
     __stream = None
 
-    def __init__ (self, stream=None):
+    def __init__(self, stream=None):
         self.__socket = Socket ()
         self.__stream = stream
+
+    async def get_markets(self):
+        return await self.__socket.exchange_info()
 
     async def run(self):
         async for tick in self.__socket.run():
