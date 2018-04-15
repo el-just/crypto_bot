@@ -5,9 +5,13 @@ import aiohttp_jinja2
 from routing import routes
 
 class WebServer():
+    __ip = None
+    __port = None
     __stream = None
 
     def __init__(self, stream=None):
+        self.__ip = '0.0.0.0'
+        self.__port = 3000
         self.__stream = stream
 
     async def __on_shutdown(self):
@@ -34,5 +38,5 @@ class WebServer():
 
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, '127.0.0.1', 8080)
+        site = web.TCPSite(runner, self.__ip, self.__port)
         await site.start()

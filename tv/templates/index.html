@@ -10,7 +10,7 @@
 {% block content %}
 <form name="action_requestor" action=""
         onsubmit="event.preventDefault(); request_action();">
-    <textarea name="action" rows="10" cols="50"></textarea>
+    <textarea name="action" rows="10" cols="50">{{sample}}</textarea>
     <input type="submit" name="request" value="request">
 </form>
 <script>

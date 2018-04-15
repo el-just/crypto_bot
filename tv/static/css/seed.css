@@ -1,8 +1,8 @@
-html, body, button, div, input {
+html, body, button, div, input, textarea {
   padding: 0px;
   margin: 0px;
   border: none;
-  background-color: unset;
+  background-color: #282c34;
 
   outline: none;
 
@@ -12,10 +12,16 @@ html, body, button, div, input {
 
   font-family: Tahoma;
   font-size: 24px;
+  color: #fff;
 
   display: block;
 }
 
-button:hover {
-  color: #F42;
+textarea {
+    font-size: 18px;
+    color: #e5c07b;
+}
+
+input[type="submit"]:hover {
+  color: #e06c75;
 }

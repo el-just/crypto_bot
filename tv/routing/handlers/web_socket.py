@@ -23,4 +23,4 @@ class WebSocket(web.View):
                 pass
 
         self.request.app['websockets'].remove(self.__socket)
-        return ws
+        return self.__socket
