@@ -1,42 +1,57 @@
 from aiohttp import web
+import asyncio
 import jinja2
 import aiohttp_jinja2
 
 from routing import routes
+from stream_listener import StreamListener
 
 class WebServer():
     __ip = None
     __port = None
+    __app = None
     __stream = None
 
-    def __init__(self, stream=None):
+    def __init__(self):
         self.__ip = '0.0.0.0'
         self.__port = 3000
-        self.__stream = stream
+        self.__app = app = web.Application ()
+        self.__stream = StreamListener()
 
     async def __on_shutdown(self):
-        for ws in app['websockets']:
-            await ws.close(code=1001, message='Server shutdown')
+        try:
+            for ws in self.__app['websockets']:
+                await ws.close(code=1001, message='Server shutdown')
+        except Exception as e:
+            Logger.log_error(e)
 
-    async def run(self):
-        app = web.Application ()
-        aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
+    def __configure_app(self):
+        aiohttp_jinja2.setup(
+                self.__app,
+                loader=jinja2.FileSystemLoader('templates'),)
 
-        app['static_root_url'] = '/static'
-        app.router.add_static('/static', 'static', name='static')
+        self.__app['static_root_url'] = '/static'
+        self.__app.router.add_static('/static', 'static', name='static')
         for route in routes:
-            app.router.add_route(
+            self.__app.router.add_route(
                     route['method'],
                     route['path'],
                     route['handler'],
                     name=route['name'],)
 
-        app.on_cleanup.append(self.__on_shutdown)
-        app['websockets'] = []
+        self.__app.on_cleanup.append(self.__on_shutdown)
+        self.__app['websockets'] = []
         if self.__stream is not None:
-            app['stock_stream'] = self.__stream
+            self.__app['stock_stream'] = self.__stream
 
-        runner = web.AppRunner(app)
+    async def __ws_run(self):
+        runner = web.AppRunner(self.__app)
         await runner.setup()
         site = web.TCPSite(runner, self.__ip, self.__port)
         await site.start()
+
+    def run (self):
+        self.__configure_app()
+        return asyncio.gather(
+               self.__stream.run(),
+               self.__ws_run(),)

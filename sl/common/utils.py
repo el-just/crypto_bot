@@ -20,6 +20,6 @@ def parse_data (data):
 
 def stringify_data(data):
     if isinstance(data, (pd.Series, pd.DataFrame)):
-        return str(data.values)
+        return data.to_csv()
     else:
         return str(data)
