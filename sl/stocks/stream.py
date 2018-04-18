@@ -1,5 +1,6 @@
 import asyncio
 import websockets
+import datetime
 
 import pandas as pd
 
@@ -22,6 +23,9 @@ class Stream():
     __stocks = None
     __action_collector = None
 
+    __tick_buffer = None
+    __last_publish = None
+
     def __init__(self):
         self.__ip = '127.0.0.1'
         self.__port = 8765
@@ -43,6 +47,9 @@ class Stream():
 
         self.__action_collector = ActionCollector(source=self.__stocks)
 
+        self.__tick_buffer = pd.DataFrame(data=[], columns=formats.tick)
+        self.__last_publish = datetime.datetime.now()
+
     def run(self):
         return asyncio.gather(
                 websockets.serve(self.__listener, self.__ip, self.__port),
@@ -50,8 +57,26 @@ class Stream():
 
     async def publish(self, message):
         try:
-            for connection in self.__connections:
-                await connection.send(utils.stringify_data(message))
+           await self.__publish_tick(message)
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def __publish_tick(self, tick):
+        try:
+            current_time = datetime.datetime.now()
+            if (current_time - self.__last_publish
+                    > datetime.timedelta(seconds=1)):
+                data = self.__tick_buffer.loc[
+                        self.__last_publish:current_time, :]
+                self.__last_publish = current_time
+                for connection in self.__connections:
+                    await connection.send(utils.stringify_data(data))
+
+                self.__tick_buffer = self.__tick_buffer.loc[current_time:, :]
+            else:
+                tick.name = current_time
+                self.__tick_buffer = self.__tick_buffer.append(tick)
+
         except Exception as e:
             Logger.log_error(e)
 

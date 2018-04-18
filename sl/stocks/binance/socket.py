@@ -12,6 +12,7 @@ class Socket ():
     __ws_path = None
     __rest_path = None
     __rest_socket = None
+    __markets = None
 
     def __init__ (self):
         self.__ws_path = 'wss://stream.binance.com:9443/'
@@ -19,8 +20,12 @@ class Socket ():
 
         self.__rest_socket = RESTSocket (url=self.__rest_path)
 
-    def __get_markets (self):
-        return ['ethbtc', 'bnbbtc']
+    async def __get_markets (self):
+        self.__markets = await self.get_markets()
+        markets = self.__markets.loc[(self.__markets.loc[:, 'quot'] == 'btc')
+                | (self.__markets.loc[:, 'quot'] == 'usdt')]
+
+        return (markets.loc[:, 'base'] + markets.loc[:, 'quot']).values
 
     def __get_streams (self, markets):
         return [market+'@kline_1m' for market in markets]
@@ -33,9 +38,9 @@ class Socket ():
             tick = pd.Series (
                     data=[
                             'binance',
-                            int(message['data']['E']) // 1000,
+                            message['data']['E'],
                             market_name,
-                            float(message['data']['k']['c']),],
+                            message['data']['k']['c'],],
                     index=formats.tick,)
             tick.name = datetime.datetime.fromtimestamp(
                     int(message['data']['E']) // 1000)
@@ -50,7 +55,7 @@ class Socket ():
         if tick is not None:
             return tick
 
-##################### API #############################
+##################### STOCK API #############################
     async def ping (self):
         try:
             request_url = 'ping'
@@ -84,11 +89,43 @@ class Socket ():
         except Exception as e:
             Logger.log_error (e)
 
-    async def run (self):
+############################ SL API #############################
+    async def get_markets(self):
+        markets = pd.DataFrame(data=[], columns=formats.market)
+
         try:
+            exchange_info = await self.exchange_info()
+            for market_data in exchange_info['symbols']:
+                if market_data['status'].lower() == 'trading':
+                    market = pd.Series(
+                            data=[None, None, None, None, None],
+                            index=formats.market,)
+
+                    market.at['stock'] = 'binance'
+                    market.at['base'] = market_data['baseAsset'].lower()
+                    market.at['quot'] = market_data['quoteAsset'].lower()
+
+                    for limit in market_data['filters']:
+                        if limit['filterType'].lower() == 'lot_size':
+                            market.at['trade_min'] = limit['minQty']
+                            market.at['trade_max'] = limit['maxQty']
+                    market.name = market.at['base'] + '-' + market.at['quot']
+
+                    markets = markets.append(market)
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            return markets
+
+#################################################################
+
+    async def run(self):
+        try:
+            markets = await self.__get_markets()
             full_path = (self.__ws_path
                     + 'stream?streams='
-                    + '/'.join(self.__get_streams (self.__get_markets())))
+                    + '/'.join(self.__get_streams (markets)))
 
             while True:
                 try:
