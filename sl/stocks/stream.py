@@ -8,6 +8,7 @@ from common import formats
 from common import utils
 from common import Logger
 from common import ActionCollector
+from common import Connection
 
 from stocks import Binance
 from stocks import Bitfinex
@@ -22,9 +23,6 @@ class Stream():
 
     __stocks = None
     __action_collector = None
-
-    __tick_buffer = None
-    __last_publish = None
 
     def __init__(self):
         self.__ip = '127.0.0.1'
@@ -47,9 +45,6 @@ class Stream():
 
         self.__action_collector = ActionCollector(source=self.__stocks)
 
-        self.__tick_buffer = pd.DataFrame(data=[], columns=formats.tick)
-        self.__last_publish = datetime.datetime.now()
-
     def run(self):
         return asyncio.gather(
                 websockets.serve(self.__listener, self.__ip, self.__port),
@@ -57,26 +52,8 @@ class Stream():
 
     async def publish(self, message):
         try:
-           await self.__publish_tick(message)
-        except Exception as e:
-            Logger.log_error(e)
-
-    async def __publish_tick(self, tick):
-        try:
-            current_time = datetime.datetime.now()
-            if (current_time - self.__last_publish
-                    > datetime.timedelta(seconds=1)):
-                data = self.__tick_buffer.loc[
-                        self.__last_publish:current_time, :]
-                self.__last_publish = current_time
-                for connection in self.__connections:
-                    await connection.send(utils.stringify_data(data))
-
-                self.__tick_buffer = self.__tick_buffer.loc[current_time:, :]
-            else:
-                tick.name = current_time
-                self.__tick_buffer = self.__tick_buffer.append(tick)
-
+            for connection in self.__connections:
+                await connection.send(message)
         except Exception as e:
             Logger.log_error(e)
 
@@ -85,7 +62,8 @@ class Stream():
 
         try:
             if isinstance(message, dict):
-                re_action = await self.__action_collector.execute(message)
+                if message['type'] == 'action':
+                    re_action = await self.__action_collector.execute(message)
             elif isinstance(message, str):
                 await client.send('pong' if message == 'ping' else message)
         except Exception as e:
@@ -95,7 +73,11 @@ class Stream():
             return re_action
 
     async def __listener(self, websocket, path):
-        self.__connections.add(websocket)
+        self.__connections.add(Connection(
+                stream=self,
+                client=websocket,
+                filter=[],
+                interval=datetime.timedelta(seconds=1),))
 
         try:
             async for message in websocket:

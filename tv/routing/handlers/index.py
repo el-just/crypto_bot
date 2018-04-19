@@ -7,8 +7,6 @@ class Index (web.View):
         return {"sample":(''
                 + '{'
                 + '    "type":"action",'
-                + '    "data":{'
-                + '        "path":"binance.get_markets",'
-                + '        "payload":[]'
-                + '    }'
+                + '    "path":"binance.get_markets",'
+                + '    "payload":[]'
                 + '}')}

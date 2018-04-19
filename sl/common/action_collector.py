@@ -8,8 +8,8 @@ class ActionCollector():
 
     @decorators.pass_if_empty
     async def execute(self, pure_action):
-        path = pure_action['data']['path'].split('.')
-        payload = pure_action['data']['payload']
+        path = pure_action['path'].split('.')
+        payload = pure_action['payload']
 
         args = list()
         kwargs = dict()
