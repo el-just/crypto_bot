@@ -34,13 +34,13 @@ class Stream():
                     Binance(stream=self),
                     Bitfinex(stream=self),
                     Bittrex(stream=self),
-                    CEX(stream=self),
+                    #CEX(stream=self),
                     GDAX(stream=self),],
                 index=[
                     'binance',
                     'bitfinex',
                     'bittrex',
-                    'cex',
+                    #'cex',
                     'gdax',],)
 
         self.__action_collector = ActionCollector(source=self.__stocks)
@@ -57,15 +57,13 @@ class Stream():
         except Exception as e:
             Logger.log_error(e)
 
-    async def __resolve_message(self, message, client):
+    async def __resolve_message(self, message, connection):
         re_action = None
 
         try:
             if isinstance(message, dict):
-                if message['type'] == 'action':
-                    re_action = await self.__action_collector.execute(message)
-            elif isinstance(message, str):
-                await client.send('pong' if message == 'ping' else message)
+                re_action = await self.__action_collector.execute(
+                        message,connection,)
         except Exception as e:
             Logger.log_error(e)
 
@@ -73,16 +71,17 @@ class Stream():
             return re_action
 
     async def __listener(self, websocket, path):
-        self.__connections.add(Connection(
-                stream=self,
-                client=websocket,
-                filter=[],
-                interval=datetime.timedelta(seconds=1),))
-
         try:
+            connection = Connection(
+                    stream=self,
+                    client=websocket,
+                    fltr=None,
+                    interval=datetime.timedelta(seconds=1),)
+            self.__connections.add(connection)
+
             async for message in websocket:
                 action = await self.__resolve_message(
-                        utils.parse_data(message), websocket)
+                        utils.parse_data(message), connection)
 
                 if action is not None:
                     await websocket.send(utils.stringify_data(action))

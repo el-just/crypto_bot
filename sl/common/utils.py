@@ -2,7 +2,7 @@ import ast
 import pandas as pd
 from common.logger import Logger
 
-def parse_data (data):
+def parse_data(data):
     parsed_data = None
 
     try:
@@ -17,6 +17,10 @@ def parse_data (data):
 
     finally:
         return parsed_data
+
+def to_pandas(data):
+    if isinstance(data, dict):
+        return pd.Series()
 
 def stringify_data(data):
     if isinstance(data, (pd.Series, pd.DataFrame)):

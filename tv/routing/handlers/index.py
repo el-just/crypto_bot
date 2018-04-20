@@ -6,7 +6,6 @@ class Index (web.View):
     async def get(self):
         return {"sample":(''
                 + '{'
-                + '    "type":"action",'
-                + '    "path":"binance.get_markets",'
+                + '    "action":"binance.get_markets",'
                 + '    "payload":[]'
                 + '}')}
