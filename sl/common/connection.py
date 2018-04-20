@@ -34,7 +34,6 @@ class Connection():
                     data = data.iloc[0] if data.shape[0] == 1 else data
 
                     self.__last_request = current_time
-                    Logger.log_info('send')
                     self.__client.send(utils.stringify_data(data))
 
                     self.__buffer = self.__buffer.loc[current_time:, :]
