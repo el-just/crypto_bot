@@ -6,45 +6,63 @@ from common import Logger
 from common import decorators
 
 class Connection():
-    __stream = None
-    __client = None
+    __source = None
+    __recipient = None
     __filter = None
 
-    __interval = None
+    __buffer_size = None
     __buffer = None
     __last_request = None
 
-    def __init__(self, stream=None, client=None, fltr=None, interval=None):
-        self.__stream = stream
-        self.__client = client
-        self.__filter = fltr or pd.Series()
+    def __init__(self,
+            source=None, recipient=None, fltr=None, buffer_size=None):
+        self.__source = source
+        self.__recipient = recipient
+        self.__filter = fltr
 
-        self.__interval = interval or datetime.timedelta(seconds=0)
+        self.__buffer_size = buffer_size or datetime.timedelta(seconds=0)
         self.__buffer = pd.DataFrame()
         self.__last_request = datetime.datetime.now()
 
     async def __send(self, message):
         try:
-            if (len(self.__filter.index) == 0
+            if (self.__filter is None
                     or self.__compare_with_filter(message)):
                 current_time = datetime.datetime.now()
-                if current_time - self.__last_request >= self.__interval:
+                message.name = current_time
+                self.__buffer = self.__buffer.append(message)
+
+                if current_time - self.__last_request >= self.__buffer_size:
                     data = self.__buffer.loc[
                             self.__last_request:current_time, :]
                     data = data.iloc[0] if data.shape[0] == 1 else data
 
                     self.__last_request = current_time
-                    self.__client.send(utils.stringify_data(data))
-
+                    await self.__recipient.send(utils.stringify_data(data))
                     self.__buffer = self.__buffer.loc[current_time:, :]
-                else:
-                    message.name = current_time
-                    self.__buffer = self.__buffer.append(message)
 
         except Exception as e:
             Logger.log_error(e)
 
-    @decorators.validate(pd.Series)
+    def __compare_with_filter(self, message):
+        for item in self.__filter.index:
+            if (item not in message.index
+                    or message.at[item] not in self.__filter.at[item]):
+                return False
+
+        return True
+
+################################   API   #####################################
+
+    async def send(self, message):
+        try:
+            await self.__send(message)
+        except Exception as e:
+            Logger.log_error(e)
+
+    def set_filter(self, fltr):
+        self.__filter = fltr
+
     def add_filter(self, fltr):
         for item in fltr.index:
             if item in self.__filter.index:
@@ -59,23 +77,3 @@ class Connection():
                     self.__filter.at[item] = list(fltr.at[item])
                 else:
                     self.__filter.at[item] = [fltr.at[item]]
-
-    def set_filter(self, fltr):
-        self.__filter = fltr
-
-    def __compare_with_filter(self, message):
-        fit = True
-        for item in self.__filter.index:
-            if (item not in message.index
-                    or message.at[item] not in self.__filter.at[item]):
-                fit = False
-                break
-        return fit
-
-################################   API   #####################################
-
-    async def send(self, message):
-        try:
-            await self.__send(message)
-        except Exception as e:
-            Logger.log_error(e)

@@ -32,6 +32,7 @@ class StreamListener():
 
     async def __resolve_message(self, message):
         try:
+            Logger.log_info(message)
             if len(self.__clients) > 0:
                 for client in self.__clients:
                     await client.send(message)
@@ -57,7 +58,7 @@ class StreamListener():
             try:
                 async with websockets.connect(self.__ws_path) as websocket:
                     self.__stock_socket = websocket
-                    async for message in websocket:
+                    async for message in self.__stock_socket:
                         await self.__resolve_message(message)
             except Exception as e:
                 Logger.log_error(e)

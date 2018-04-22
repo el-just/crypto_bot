@@ -34,21 +34,64 @@ class Stream():
                     Binance(stream=self),
                     Bitfinex(stream=self),
                     Bittrex(stream=self),
-                    #CEX(stream=self),
+                    # CEX(stream=self),
                     GDAX(stream=self),],
                 index=[
                     'binance',
                     'bitfinex',
                     'bittrex',
-                    #'cex',
+                    # 'cex',
                     'gdax',],)
 
         self.__action_collector = ActionCollector(source=self.__stocks)
 
+    async def __connector(self, websocket, path):
+        try:
+            connection = await self.connect(websocket)
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            await self.disconnect(connection)
+
+    async def __resolve_message(self, message, connection):
+        try:
+            if isinstance(message, dict):
+                await self.__action_collector.execute(
+                        message,connection,)
+        except Exception as e:
+            Logger.log_error(e)
+
+###########################  API  ############################################
+
     def run(self):
         return asyncio.gather(
-                websockets.serve(self.__listener, self.__ip, self.__port),
+                websockets.serve(self.__connector, self.__ip, self.__port),
                 *[stock.run() for stock in self.__stocks.values],)
+
+    async def connect(self, socket):
+        try:
+            connection = Connection(
+                    source=self,
+                    recipient=socket,
+                    buffer_size=datetime.timedelta(seconds=1),)
+
+            self.__connections.add(connection)
+
+            async for message in socket:
+                await self.__resolve_message(
+                        utils.parse_data(message), connection)
+
+            return connection
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def disconnect(self, connection):
+        try:
+            await connection.close()
+            self.__connections.remove(connection)
+        except Exception as e:
+            Logger.log_error(e)
 
     async def publish(self, message):
         try:
@@ -56,37 +99,3 @@ class Stream():
                 await connection.send(message)
         except Exception as e:
             Logger.log_error(e)
-
-    async def __resolve_message(self, message, connection):
-        re_action = None
-
-        try:
-            if isinstance(message, dict):
-                re_action = await self.__action_collector.execute(
-                        message,connection,)
-        except Exception as e:
-            Logger.log_error(e)
-
-        finally:
-            return re_action
-
-    async def __listener(self, websocket, path):
-        try:
-            connection = Connection(
-                    stream=self,
-                    client=websocket,
-                    fltr=None,
-                    interval=datetime.timedelta(seconds=1),)
-            self.__connections.add(connection)
-
-            async for message in websocket:
-                action = await self.__resolve_message(
-                        utils.parse_data(message), connection)
-
-                if action is not None:
-                    await websocket.send(utils.stringify_data(action))
-        except Exception as e:
-            Logger.log_error(e)
-
-        finally:
-            self.__connections.remove(websocket)
