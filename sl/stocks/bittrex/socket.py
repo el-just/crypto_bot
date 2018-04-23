@@ -23,7 +23,7 @@ class Socket():
     __signalr_path = None
     __key = None
     __pattern = None
-    
+
     __session = None
     __socket = None
     __token = None
@@ -35,7 +35,7 @@ class Socket():
         self.__protocol_version = '1.5'
 
         self.__signalr_path = 'https://beta.bittrex.com/signalr'
-        self.__key = '00c786da0d6643a5824486ca3c9f2361' 
+        self.__key = '00c786da0d6643a5824486ca3c9f2361'
         self.__pattern = '56ff213321a14f7ea8d93181a5065e9e'
 
     def __get_base_url(self, action, **kwargs):
@@ -169,7 +169,7 @@ class Socket():
             if tick_package.shape[0] == 0:
                 tick_package = None
             elif tick_package.shape[0] == 1:
-                tick_package = tick_package.iloc[0] 
+                tick_package = tick_package.iloc[0]
 
             return tick_package
 
@@ -177,7 +177,7 @@ class Socket():
         tick = None
 
         try:
-            current_date = datetime.datetime.now() 
+            current_date = datetime.datetime.now()
             tick = pd.Series (
                     data=[
                             'bittrex',

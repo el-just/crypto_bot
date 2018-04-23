@@ -25,7 +25,7 @@ class ActionCollector():
         if path[0] == 'connection':
             action = getattr(connection, path[1])
             payload = pd.Series(data=[
-                    [value] for value in args[0].values()],
+                    value for value in args[0].values()],
                     index=args[0].keys(),)
             if inspect.iscoroutinefunction(action):
                 return await action(*[payload], **kwargs)
