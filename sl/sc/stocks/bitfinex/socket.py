@@ -8,24 +8,37 @@ import pandas as pd
 from common import utils
 from common import formats
 from common import Logger
+from common import RESTSocket
 
 class Socket ():
-    __ws_path = None 
+    __ws_path = None
     __socket = None
+    __rest_path = None
+    __rest_socket = None
+
     __channels = None
 
     def __init__ (self):
         self.__ws_path = 'wss://api.bitfinex.com/ws'
+        self.__rest_path = 'https://api.bitfinex.com/v1/'
+
+        self.__rest_socket = RESTSocket(url=self.__rest_path)
 
     async def __subscribe_channels(self):
         try:
-            for quot in ['btc']:
-                for base in ['eth', 'xrp']:
-                    market = (base+quot).upper()
-                    await self.__socket.send(json.dumps({
-                            'event':'subscribe',
-                            'channel':'ticker',
-                            'symbol':market,}))
+            markets = await self.__get_markets()
+            for market in markets:
+                await self.__socket.send(json.dumps({
+                        'event':'subscribe',
+                        'channel':'ticker',
+                        'symbol':market,}))
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def __get_markets(self):
+        try:
+            markets = await self.get_markets()
+            return (markets.loc[:, 'base'] + markets.loc[:, 'quot']).values
         except Exception as e:
             Logger.log_error(e)
 
@@ -42,17 +55,17 @@ class Socket ():
             self.__register_channel (event_data)
 
     async def __assume_tick(self, tick_data):
-        tick = None 
+        tick = None
         try:
-            channel_id = int(tick_data[0]) 
+            channel_id = int(tick_data[0])
             if not self.__channels.loc[channel_id].empty and len(tick_data) > 2:
                 current_date = datetime.datetime.now()
                 tick = pd.Series (
                         data=[
                             'bitfinex',
-                            int(time.mktime(current_date.timetuple())),
+                            int(time.mktime(current_date.timetuple()))*1000,
                             self.__channels.loc[int(tick_data[0])].at['name'],
-                            float(tick_data[7]),],
+                            tick_data[7],],
                         index=formats.tick,)
                 tick.name = current_date
         except Exception as e:
@@ -74,6 +87,34 @@ class Socket ():
 
         finally:
             return reaction
+
+###########################    API    ########################################
+    async def get_markets(self):
+        markets = pd.DataFrame(data=[], columns=formats.market)
+
+        try:
+            request_url = 'symbols_details'
+
+            stock_data = await self.__rest_socket.request(request_url)
+            for market_data in stock_data:
+                market = pd.Series(
+                        data=[None, None, None, None, None],
+                        index=formats.market,)
+
+                market.at['stock'] = 'bitfinex'
+                market.at['base'] = market_data['pair'].lower()[:3]
+                market.at['quot'] = market_data['pair'].lower()[3:]
+                market.at['trade_min'] = market_data['minimum_order_size']
+                market.at['trade_max'] = market_data['maximum_order_size']
+                market.name = market.at['base'] + '-' + market.at['quot']
+
+                markets = markets.append(market)
+
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            return markets
 
     async def run(self):
         try:

@@ -1,4 +1,5 @@
 from aiohttp import web, WSMsgType
+from common import Logger
 
 class WebSocket(web.View):
     __socket = None

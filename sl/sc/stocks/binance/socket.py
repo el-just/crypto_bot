@@ -21,11 +21,15 @@ class Socket():
         self.__rest_socket = RESTSocket(url=self.__rest_path)
 
     async def __get_markets(self):
-        self.__markets = await self.get_markets()
-        markets = self.__markets.loc[(self.__markets.loc[:, 'quot'] == 'btc')
-                | (self.__markets.loc[:, 'quot'] == 'usdt')]
+        try:
+            self.__markets = await self.get_markets()
+    #         markets = self.__markets.loc[(self.__markets.loc[:, 'quot'] == 'btc')
+    #                 | (self.__markets.loc[:, 'quot'] == 'usdt')]
 
-        return (markets.loc[:, 'base'] + markets.loc[:, 'quot']).values
+            return (self.__markets.loc[:, 'base']
+                    + self.__markets.loc[:, 'quot']).values
+        except Exception as e:
+            Logger.log_error(e)
 
     def __get_streams(self, markets):
         return [market+'@kline_1m' for market in markets]

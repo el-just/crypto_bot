@@ -86,7 +86,7 @@ class Connection():
     def add_filter(self, fltr):
         for item in fltr.index:
             if item in self.__filter.index:
-                if isnstance(fltr.at[item], (list, set,)):
+                if isinstance(fltr.at[item], (list, set,)):
                     self.__filter.at[item] = (self.__filter.at[item]
                             + list(fltr.at[item]))
                 else:

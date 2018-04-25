@@ -1,7 +1,7 @@
 import asyncio
 import websockets
 
-from common.logger import Logger
+from common import Logger
 
 class Connection():
     name = None

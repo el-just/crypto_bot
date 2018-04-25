@@ -5,6 +5,7 @@ import aiohttp_jinja2
 
 from routing import routes
 from stream_listener import StreamListener
+from common import Logger
 
 class WebServer():
     __ip = None

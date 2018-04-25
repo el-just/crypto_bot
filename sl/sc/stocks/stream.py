@@ -33,15 +33,15 @@ class Stream():
                 data=[
                     Binance(stream=self),
                     Bitfinex(stream=self),
-                    Bittrex(stream=self),
+                    Bittrex(stream=self),],
                     # CEX(stream=self),
-                    GDAX(stream=self),],
+                    # GDAX(stream=self),],
                 index=[
                     'binance',
                     'bitfinex',
-                    'bittrex',
+                    'bittrex',],)
                     # 'cex',
-                    'gdax',],)
+                    # 'gdax',],)
 
         self.__action_collector = ActionCollector(source=self.__stocks)
 
