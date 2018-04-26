@@ -14,15 +14,20 @@ from common import RESTSocket
 
 class Socket():
     __ws_path = None
+    __rest_path = None
     __key = None
     __pattern = None
 
     __socket = None
+    __rest_socket = None
 
     def __init__(self):
         self.__ws_path = 'wss://ws.cex.io/ws'
+        self.__rest_path = 'https://cex.io/api/'
         self.__key = 'LbjBXHmk3pPI2Ur4p2S3bCUSpD4'
         self.__pattern = 'OVelFsTeuwd5IeycU72Rp1Itj78'
+
+        self.__rest_socket = RESTSocket(url=self.__rest_path)
 
     def __get_nonce(self):
         return str(int(datetime.datetime.now().timestamp()))
@@ -64,11 +69,11 @@ class Socket():
             tick = pd.Series (
                     data=[
                         'cex',
-                        int(time.mktime(current_date.timetuple())),
+                        int(time.mktime(current_date.timetuple()))*1000,
                         '-'.join([
                             message['data']['symbol1'].lower(),
                             message['data']['symbol2'].lower(),]),
-                        float(message['data']['price']),],
+                        message['data']['price'],],
                     index=formats.tick,)
             tick.name = current_date
         except Exception as e:
@@ -86,12 +91,40 @@ class Socket():
                     'e': 'pong',}))
             elif message['e'] == 'tick':
                 reaction = self.__assume_tick(message)
-               
+
         except Exception as e:
             Logger.log_error(e)
 
         finally:
             return reaction
+
+#######################    API    ############################################
+    async def get_markets(self):
+        markets = pd.DataFrame(data=[], columns=formats.market)
+
+        try:
+            request_url = 'currency_limits'
+
+            stock_data = await self.__rest_socket.request(request_url)
+            for market_data in stock_data['data']['pairs']:
+                market = pd.Series(
+                        data=[None, None, None, None, None],
+                        index=formats.market,)
+
+                market.at['stock'] = 'cex'
+                market.at['base'] = market_data['symbol1']
+                market.at['quot'] = market_data['symbol2']
+                market.at['trade_min'] = market_data['minLotSize']
+                market.at['trade_max'] = market_data['maxLotSize']
+                market.name = market.at['base'] + '-' + market.at['quot']
+
+                markets = markets.append(market)
+
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            return markets
 
     async def run(self):
         try:

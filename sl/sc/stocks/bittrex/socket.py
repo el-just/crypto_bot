@@ -16,6 +16,7 @@ import pandas as pd
 from common import utils
 from common import formats
 from common import Logger
+from common import RESTSocket
 
 class Socket():
     __protocol_version = None
@@ -24,17 +25,19 @@ class Socket():
     __key = None
     __pattern = None
 
+    __rest_path = None
+
     __session = None
     __socket = None
     __token = None
     __data = json.dumps([{'name': hub_name} for hub_name in ['c2']])
     __message_id = 0
-    __markets = ['btc-eth']
 
     def __init__(self):
         self.__protocol_version = '1.5'
 
         self.__signalr_path = 'https://beta.bittrex.com/signalr'
+        self.__rest_path = 'https://bittrex.com/api/v1.1/public/'
         self.__key = '00c786da0d6643a5824486ca3c9f2361'
         self.__pattern = '56ff213321a14f7ea8d93181a5065e9e'
 
@@ -158,10 +161,9 @@ class Socket():
             tick_package_data = self.__decompress_data(message['A'][0])
 
             for tick_data in tick_package_data['D']:
-                if tick_data['M'].lower() in self.__markets:
-                    tick = self.__assume_tick(tick_data)
-                    if tick is not None:
-                        tick_package = tick_package.append(tick)
+                tick = self.__assume_tick(tick_data)
+                if tick is not None:
+                    tick_package = tick_package.append(tick)
         except Exception as e:
             Logger.log_error(e)
 
@@ -221,6 +223,35 @@ class Socket():
 
         finally:
             return reaction
+
+######################    API    #############################################
+
+    async def get_markets(self):
+        markets = pd.DataFrame(data=[], columns=formats.market)
+
+        try:
+            request_url = 'get_markets'
+
+            stock_data = await self.__rest_socket.request(request_url)
+            for market_data in stock_data['result']:
+                if market_data['IsActive']:
+                    market = pd.Series(
+                            data=[None, None, None, None, None],
+                            index=formats.market,)
+
+                    market.at['stock'] = 'bittrex'
+                    market.at['base'] = market_data['BaseCurrency'].lower()
+                    market.at['quot'] = market_data['MarketCurrency'].lower()
+                    market.at['trade_min'] = market_data['MinTradeSize']
+                    market.name = market_data['MarketName'].lower()
+
+                    markets = markets.append(market)
+
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            return markets
 
     async def run (self):
         try:

@@ -13,15 +13,27 @@ from common import RESTSocket
 class Socket ():
     __ws_path = None
     __socket = None
+    __rest_path = None
 
     def __init__ (self):
         self.__ws_path = 'wss://ws-feed.gdax.com/'
+        self.__rest_path = 'https://api.gdax.com/'
+
+        self.__rest_socket = RESTSocket(url=self.__rest_path)
+
+    async def __get_markets(self):
+        try:
+            markets = await self.get_markets()
+            return [market.upper() for market in markets.index]
+        except Exception as e:
+            Logger.log_error(e)
 
     async def __subscribe_channels(self):
         try:
+            markets = await self.__get_markets()
             await self.__socket.send(json.dumps({
                     'type':'subscribe',
-                    'product_ids':['BTC-USD', 'ETH-USD'],
+                    'product_ids':markets,
                     'channels': ['ticker'],}))
         except Exception as e:
             Logger.log_error(e)
@@ -34,9 +46,9 @@ class Socket ():
             tick = pd.Series (
                     data=[
                         'gdax',
-                        int(time.mktime(current_date.timetuple())),
+                        int(time.mktime(current_date.timetuple()))*1000,
                         message['product_id'].lower(),
-                        float(message['price']),],
+                        message['price'],],
                     index=formats.tick,)
             tick.name = current_date
         except Exception as e:
@@ -56,6 +68,34 @@ class Socket ():
 
         finally:
             return reaction
+
+###################    API    ################################################
+    async def get_markets(self):
+        markets = pd.DataFrame(data=[], columns=formats.market)
+
+        try:
+            request_url = 'products'
+
+            stock_data = await self.__rest_socket.request(request_url)
+            for market_data in stock_data:
+                market = pd.Series(
+                        data=[None, None, None, None, None],
+                        index=formats.market,)
+
+                market.at['stock'] = 'gdax'
+                market.at['base'] = market_data['base_currency'].lower()
+                market.at['quot'] = market_data['quote_currency'].lower()
+                market.at['trade_min'] = market_data['min_market_funds']
+                market.at['trade_max'] = market_data['max_market_funds']
+                market.name = market_data['id'].lower()
+
+                markets = markets.append(market)
+
+        except Exception as e:
+            Logger.log_error(e)
+
+        finally:
+            return markets
 
     async def run(self):
         try:

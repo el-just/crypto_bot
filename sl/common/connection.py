@@ -27,9 +27,10 @@ class Connection():
 
     async def __send(self, message):
         try:
+            if isinstance(message, pd.DataFrame):
+                Logger.log_info(message)
             if (self.__filter is None
                     or self.__compare_with_filter(message)):
-                Logger.log_info(message)
                 current_time = datetime.datetime.now()
                 message.name = current_time
                 self.__buffer = self.__buffer.append(message)
@@ -75,6 +76,7 @@ class Connection():
 
     async def send(self, message):
         try:
+            Logger.log_info(isinstance(message, pd.DataFrame))
             await self.__send(message)
         except Exception as e:
             Logger.log_error(e)
