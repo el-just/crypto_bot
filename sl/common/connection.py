@@ -4,7 +4,6 @@ import pandas as pd
 
 from common import utils
 from common import Logger
-from common import decorators
 
 class Connection():
     __source = None
@@ -27,12 +26,11 @@ class Connection():
 
     async def __send(self, message):
         try:
-            if isinstance(message, pd.DataFrame):
-                Logger.log_info(message)
-            if (self.__filter is None
-                    or self.__compare_with_filter(message)):
+            message = self.__apply_filter(message)
+
+            if message is not None:
                 current_time = datetime.datetime.now()
-                message.name = current_time
+                message.index = [current_time]*message.shape[0]
                 self.__buffer = self.__buffer.append(message)
 
                 if current_time - self.__last_request >= self.__buffer_size:
@@ -60,23 +58,31 @@ class Connection():
         except Exception as e:
             Logger.log_error(e)
 
+    def __apply_filter(self, message):
+        if self.__filter is None:
+            return message
+        elif self.__filter.empty:
+            return None
 
-    def __compare_with_filter(self, message):
-        if self.__filter.empty:
-            return False
+        if isinstance(message, pd.Series):
+            message = pd.DataFrame(
+                    data=[message],
+                    columns=message.index.values,)
 
+        filtered = message
         for item in self.__filter.index:
-            if (item not in message.index
-                    or message.at[item] not in self.__filter.at[item]):
-                return False
+            if item not in message.columns:
+                return pd.DataFrame()
+            else:
+                filtered = filtered.loc[
+                        filtered.loc[:, item].isin(self.__filter.at[item])]
 
-        return True
+        return filtered if not filtered.empty else None
 
 ################################   API   #####################################
 
     async def send(self, message):
         try:
-            Logger.log_info(isinstance(message, pd.DataFrame))
             await self.__send(message)
         except Exception as e:
             Logger.log_error(e)
