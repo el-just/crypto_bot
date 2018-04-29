@@ -5,6 +5,7 @@ common_path = '\\'.join(
 sys.path.append(common_path)
 
 import asyncio
+
 from common import Logger
 from stocks import Stream
 
