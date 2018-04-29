@@ -1,8 +1,9 @@
 import os
 import sys
-common_path = '\\'.join(
-        os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])
+common_path = '/'.join(
+        os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
 sys.path.append(common_path)
+print (os.path.abspath(__file__))
 
 import asyncio
 
