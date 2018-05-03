@@ -1,26 +1,24 @@
+import pandas as pd
+import numpy as np
 import websockets
 import datetime
-import time
-import json
-
-import pandas as pd
 
 from common import utils
 from common import formats
+
 from common import Logger
 from common import RESTSocket
 
-class Socket ():
+class Socket():
     __ws_path = None
-    __socket = None
     __rest_path = None
     __rest_socket = None
-
     __channels = None
+    __counter = 1
 
-    def __init__ (self):
-        self.__ws_path = 'wss://api.bitfinex.com/ws'
-        self.__rest_path = 'https://api.bitfinex.com/v1/'
+    def __init__(self):
+        self.__ws_path = 'wss://api.huobi.pro/ws'
+        self.__rest_path = 'https://api.huobi.pro/v1/'
 
         self.__rest_socket = RESTSocket(url=self.__rest_path)
 
@@ -29,9 +27,9 @@ class Socket ():
             markets = await self.__get_markets()
             for market in markets:
                 await self.__socket.send(json.dumps({
-                        'event':'subscribe',
-                        'channel':'ticker',
-                        'symbol':market,}))
+                        'sub':'market.%s.kline.1min'%(market),
+                        'id':str(self.__counter),}))
+                self.__counter += 1
         except Exception as e:
             Logger.log_error(e)
 
@@ -46,8 +44,8 @@ class Socket ():
         self.__channels = pd.DataFrame (data=[], columns=['name'])
 
     def __register_channel(self, message):
-        channel = pd.Series (data=[message['pair'].lower()], index=['name'])
-        channel.name = int(message['chanId'])
+        channel = pd.Series (data=[message['subbed'].lower()], index=['name'])
+        channel.name = int(message['subbed'])
         self.__channels = self.__channels.append (channel)
 
     async def __assume_event(self, event_data):
@@ -62,7 +60,7 @@ class Socket ():
                 current_date = datetime.datetime.now()
                 tick = pd.Series (
                         data=[
-                            'bitfinex',
+                            'huobi',
                             int(time.mktime(current_date.timetuple()))*1000,
                             self.__channels.loc[int(tick_data[0])].at['name'],
                             tick_data[7],],
@@ -78,9 +76,9 @@ class Socket ():
         reaction = None
 
         try:
-            if type(message) == dict:
+            if 'id' in message:
                 await self.__assume_event (message)
-            elif type(message) == list:
+            elif 'tick' in message:
                 reaction = await self.__assume_tick (message)
         except Exception as e:
             Logger.log_error(e)
@@ -88,24 +86,22 @@ class Socket ():
         finally:
             return reaction
 
-###########################    API    ########################################
+##################### STOCK API #############################
     async def get_markets(self):
         markets = pd.DataFrame(data=[], columns=formats.market)
 
         try:
-            request_url = 'symbols_details'
+            request_url = 'common/symbols'
 
             stock_data = await self.__rest_socket.request(request_url)
-            for market_data in stock_data:
+            for market_data in stock_data['data']:
                 market = pd.Series(
                         data=[None, None, None, None, None],
                         index=formats.market,)
 
-                market.at['stock'] = 'bitfinex'
-                market.at['base'] = market_data['pair'].lower()[:3]
-                market.at['quot'] = market_data['pair'].lower()[3:]
-                market.at['trade_min'] = market_data['minimum_order_size']
-                market.at['trade_max'] = market_data['maximum_order_size']
+                market.at['stock'] = 'huobi'
+                market.at['base'] = market_data['base_currency'].lower()[:3]
+                market.at['quot'] = market_data['quote_currency'].lower()[3:]
                 market.name = market.at['base'] + '-' + market.at['quot']
 
                 markets = markets.append(market)
@@ -115,6 +111,8 @@ class Socket ():
 
         finally:
             return markets
+
+#################################################################
 
     async def run(self):
         try:

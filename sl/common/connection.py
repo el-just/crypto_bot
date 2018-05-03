@@ -88,7 +88,6 @@ class Connection():
             Logger.log_error(e)
 
     def set_filter(self, fltr):
-        Logger.log_info(fltr)
         self.__filter = fltr
 
     def add_filter(self, fltr):

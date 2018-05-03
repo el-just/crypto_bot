@@ -5,6 +5,7 @@ import datetime
 
 from common import utils
 from common import formats
+
 from common import Logger
 from common import RESTSocket
 
@@ -23,8 +24,6 @@ class Socket():
     async def __get_markets(self):
         try:
             self.__markets = await self.get_markets()
-    #         markets = self.__markets.loc[(self.__markets.loc[:, 'quot'] == 'btc')
-    #                 | (self.__markets.loc[:, 'quot'] == 'usdt')]
 
             return (self.__markets.loc[:, 'base']
                     + self.__markets.loc[:, 'quot']).values

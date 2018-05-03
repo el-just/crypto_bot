@@ -1,12 +1,13 @@
 import os
 import sys
-common_path = '/'.join(
-        os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
+import platform
+
+delimeter = '/' if platform.system() == 'Linux' else '\\'
+common_path = delimiter.join(
+        os.path.dirname(os.path.abspath(__file__)).split(delimiter)[:-1])
 sys.path.append(common_path)
-print (os.path.abspath(__file__))
 
 import asyncio
-
 from common import Logger
 from stocks import Stream
 
