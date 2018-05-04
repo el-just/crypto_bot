@@ -15,6 +15,7 @@ from stocks import Bitfinex
 from stocks import Bittrex
 from stocks import CEX
 from stocks import GDAX
+from stocks import Huobi
 
 class Stream():
     __ip = None
@@ -34,12 +35,14 @@ class Stream():
                     Binance(stream=self),
                     Bitfinex(stream=self),
                     Bittrex(stream=self),
+                    Huobi(stream=self),
                     CEX(stream=self),
                     GDAX(stream=self),],
                 index=[
                     'binance',
                     'bitfinex',
                     'bittrex',
+                    'huobi',
                     'cex',
                     'gdax',],)
 

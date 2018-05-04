@@ -1,7 +1,10 @@
+import asyncio
+import gzip
 import pandas as pd
 import numpy as np
 import websockets
 import datetime
+import json
 
 from common import utils
 from common import formats
@@ -14,6 +17,7 @@ class Socket():
     __rest_path = None
     __rest_socket = None
     __channels = None
+    __markets = None
     __counter = 1
 
     def __init__(self):
@@ -35,35 +39,38 @@ class Socket():
 
     async def __get_markets(self):
         try:
-            markets = await self.get_markets()
-            return (markets.loc[:, 'base'] + markets.loc[:, 'quot']).values
+            self.__markets = await self.get_markets()
+            return (self.__markets.loc[:, 'base']
+                    + self.__markets.loc[:, 'quot']).values
         except Exception as e:
             Logger.log_error(e)
 
     def __clear_channels(self):
-        self.__channels = pd.DataFrame (data=[], columns=['name'])
+        self.__channels = pd.DataFrame(data=[], columns=formats.market)
 
     def __register_channel(self, message):
-        channel = pd.Series (data=[message['subbed'].lower()], index=['name'])
-        channel.name = int(message['subbed'])
-        self.__channels = self.__channels.append (channel)
+        channel = self.__markets.loc[message['subbed'].split('.')[1], :]
+        if not channel.empty:
+            self.__channels = self.__channels.append (channel)
 
     async def __assume_event(self, event_data):
-        if event_data['event'] == 'subscribed':
+        if 'subbed' in event_data:
             self.__register_channel (event_data)
 
     async def __assume_tick(self, tick_data):
         tick = None
         try:
-            channel_id = int(tick_data[0])
-            if not self.__channels.loc[channel_id].empty and len(tick_data) > 2:
+            channel_id = tick_data['ch'].split('.')[1]
+            if not self.__channels.loc[channel_id].empty:
                 current_date = datetime.datetime.now()
                 tick = pd.Series (
                         data=[
                             'huobi',
-                            int(time.mktime(current_date.timetuple()))*1000,
-                            self.__channels.loc[int(tick_data[0])].at['name'],
-                            tick_data[7],],
+                            tick_data['ts'],
+                            (self.__channels.loc[channel_id].at['base']
+                                + '-'
+                                + self.__channels.loc[channel_id].at['quot']),
+                            tick_data['tick']['close'],],
                         index=formats.tick,)
                 tick.name = current_date
         except Exception as e:
@@ -74,12 +81,12 @@ class Socket():
 
     async def __resolve_message(self, message):
         reaction = None
-
         try:
-            if 'id' in message:
-                await self.__assume_event (message)
-            elif 'tick' in message:
-                reaction = await self.__assume_tick (message)
+            if message is not None:
+                if 'subbed' in message:
+                    await self.__assume_event (message)
+                elif 'tick' in message:
+                    reaction = await self.__assume_tick (message)
         except Exception as e:
             Logger.log_error(e)
 
@@ -100,9 +107,9 @@ class Socket():
                         index=formats.market,)
 
                 market.at['stock'] = 'huobi'
-                market.at['base'] = market_data['base_currency'].lower()[:3]
-                market.at['quot'] = market_data['quote_currency'].lower()[3:]
-                market.name = market.at['base'] + '-' + market.at['quot']
+                market.at['base'] = market_data['base-currency']
+                market.at['quot'] = market_data['quote-currency']
+                market.name = market.at['base'] + market.at['quot']
 
                 markets = markets.append(market)
 
@@ -123,10 +130,16 @@ class Socket():
                         self.__clear_channels()
                         await self.__subscribe_channels ()
                         async for message in websocket:
-                            reaction = await self.__resolve_message (
-                                    utils.parse_data (message))
-                            if reaction is not None:
-                                yield reaction
+                            if message[:7] == '{"ping"':
+                                ts=message[8:21]
+                                pong='{"pong":'+ts+'}'
+                                await websocket.send(pong)
+                            else:
+                                reaction = await self.__resolve_message (
+                                        utils.parse_data(gzip.decompress(
+                                            message).decode('utf8')))
+                                if reaction is not None:
+                                    yield reaction
                 except Exception as e:
                     Logger.log_error(e)
 
