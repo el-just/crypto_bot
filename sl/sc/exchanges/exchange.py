@@ -40,6 +40,7 @@ class Exchange():
             while True:
                 try:
                     self.__markets = await self.get_markets()
+                    await self._prepare_ws_connection()
                     async with websockets.connect(self._ws_path) as websocket:
                         self.__ws_socket = websocket
                         self.__clear_channels()
@@ -57,6 +58,9 @@ class Exchange():
             Logger.log_error(e)
 
 ######################    Exchange required    ##############################
+    async def _prepare_ws_connection(self):
+        pass
+
     async def _subscribe_channels(self):
         pass
 

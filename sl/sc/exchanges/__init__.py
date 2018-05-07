@@ -1,4 +1,5 @@
 from exchanges.exchange import Exchange
+from exchanges.binance import Binance
 from exchanges.bitfinex import Bitfinex
 from exchanges.okex import Okex
 from exchanges.huobi import Huobi
