@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import websockets
 import datetime
+import asyncio
 
 from common import utils
 from common import formats
@@ -140,5 +141,8 @@ class Socket():
                                 yield tick
                 except Exception as e:
                     Logger.log_error(e)
+
+                finally:
+                    await asyncio.sleep(1)
         except Exception as e:
             Logger.log_error(e)

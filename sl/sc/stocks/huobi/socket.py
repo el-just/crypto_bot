@@ -83,7 +83,10 @@ class Socket():
         reaction = None
         try:
             if message is not None:
-                if 'subbed' in message:
+                if 'ping' in message:
+                    await self.__socket.send(json.dumps({
+                            'pong': message['ping']}))
+                elif 'subbed' in message:
                     await self.__assume_event (message)
                 elif 'tick' in message:
                     reaction = await self.__assume_tick (message)
@@ -130,20 +133,16 @@ class Socket():
                         self.__clear_channels()
                         await self.__subscribe_channels ()
                         async for message in websocket:
-                            if message[:7] == '{"ping"':
-                                ts=message[8:21]
-                                pong='{"pong":'+ts+'}'
-                                await websocket.send(pong)
-                            else:
-                                reaction = await self.__resolve_message (
-                                        utils.parse_data(gzip.decompress(
-                                            message).decode('utf8')))
-                                if reaction is not None:
-                                    yield reaction
+                            reaction = await self.__resolve_message (
+                                    utils.parse_data(gzip.decompress(
+                                        message).decode('utf8')))
+                            if reaction is not None:
+                                yield reaction
                 except Exception as e:
+                    self.__socket = None
                     Logger.log_error(e)
 
                 finally:
-                    asyncio.sleep(1)
+                    await asyncio.sleep(1)
         except Exception as e:
             Logger.log_error(e)

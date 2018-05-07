@@ -133,6 +133,6 @@ class Socket ():
                     Logger.log_error(e)
 
                 finally:
-                    asyncio.sleep(1)
+                    await asyncio.sleep(1)
         except Exception as e:
             Logger.log_error(e)

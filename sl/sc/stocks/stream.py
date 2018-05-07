@@ -16,6 +16,7 @@ from stocks import Bittrex
 from stocks import CEX
 from stocks import GDAX
 from stocks import Huobi
+from stocks import Okex
 
 class Stream():
     __ip = None
@@ -32,17 +33,19 @@ class Stream():
 
         self.__stocks = pd.Series(
                 data=[
-                    Binance(stream=self),
+#                    Binance(stream=self),
                     Bitfinex(stream=self),
                     Bittrex(stream=self),
                     Huobi(stream=self),
+                    Okex(stream=self),
                     CEX(stream=self),
                     GDAX(stream=self),],
                 index=[
-                    'binance',
+#                    'binance',
                     'bitfinex',
                     'bittrex',
                     'huobi',
+                    'okex',
                     'cex',
                     'gdax',],)
 
@@ -68,9 +71,15 @@ class Stream():
 ###########################  API  ############################################
 
     def run(self):
-        return asyncio.gather(
-                websockets.serve(self.__connector, self.__ip, self.__port),
-                *[stock.run() for stock in self.__stocks.values],)
+        tasks = [websockets.serve(self.__connector, self.__ip, self.__port)]
+        for stock in self.__stocks.values:
+            stock_task = stock.run()
+            if isinstance(stock_task, list):
+                tasks += stock_task
+            else:
+                tasks.append(stock_task)
+
+        return asyncio.gather(*tasks)
 
     async def connect(self, socket):
         try:

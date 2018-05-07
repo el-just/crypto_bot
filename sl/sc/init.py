@@ -9,7 +9,7 @@ sys.path.append(common_path)
 
 import asyncio
 from common import Logger
-from stocks import Stream
+from exchanges import Stream
 
 try:
     loop = asyncio.get_event_loop()
