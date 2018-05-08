@@ -18,6 +18,8 @@ class Exchange():
     _ws_path = None
     _rest_path = None
 
+    _ws_headers = None
+
     __ws_socket = None
     __rest_socket = None
 
@@ -41,7 +43,9 @@ class Exchange():
                 try:
                     self.__markets = await self.get_markets()
                     await self._prepare_ws_connection()
-                    async with websockets.connect(self._ws_path) as websocket:
+                    async with websockets.connect(
+                            self._ws_path,
+                            extra_headers=self._ws_headers,) as websocket:
                         self.__ws_socket = websocket
                         self.__clear_channels()
                         await self._ws_auth()
@@ -53,6 +57,7 @@ class Exchange():
                     Logger.log_error(e)
 
                 finally:
+                    self._close_ws_connection()
                     await asyncio.sleep(1)
         except Exception as e:
             Logger.log_error(e)

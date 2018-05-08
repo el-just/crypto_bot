@@ -15,11 +15,11 @@ sys.path.append(common_path)
 import asyncio
 from common import Logger
 
-from exchanges import Binance
+from exchanges import Bittrex
 
 try:
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.gather(*Binance().run()))
+    loop.run_until_complete(asyncio.gather(*Bittrex().run()))
     loop.run_forever()
 except Exception as e:
     Logger.log_error (e)
