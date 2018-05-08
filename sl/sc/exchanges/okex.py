@@ -38,6 +38,7 @@ class Okex(Exchange):
 
     async def _resolve_message(self, message):
         payload = None
+
         try:
             message = utils.parse_data(message)
             if isinstance(message, list):
@@ -55,6 +56,7 @@ class Okex(Exchange):
 ######################    Private    #########################################
     def __assume_tick(self, tick_data):
         tick = None
+
         try:
             market = self._get_channel_market(tick_data['channel'])
             tick = pd.Series(
