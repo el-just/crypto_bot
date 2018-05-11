@@ -57,6 +57,7 @@ class Hitbtc(Exchange):
                         tick_data['params']['last'],],
                     index=formats.tick,
                     name=datetime.datetime.now(),)
+
             Logger.log_info(tick)
         except Exception as e:
             Logger.log_error(e)

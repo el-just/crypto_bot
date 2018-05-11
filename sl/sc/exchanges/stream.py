@@ -10,13 +10,13 @@ from common import Logger
 from common import ActionCollector
 from common import Connection
 
-from stocks import Binance
-from stocks import Bitfinex
-from stocks import Bittrex
-from stocks import CEX
-from stocks import GDAX
-from stocks import Huobi
-from stocks import Okex
+from exchanges import Binance
+from exchanges import Bitfinex
+from exchanges import Bittrex
+from exchanges import CEX
+from exchanges import GDAX
+from exchanges import Huobi
+from exchanges import Okex
 
 class Stream():
     __ip = None

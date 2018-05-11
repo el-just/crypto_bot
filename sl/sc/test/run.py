@@ -15,11 +15,11 @@ sys.path.append(common_path)
 import asyncio
 from common import Logger
 
-from exchanges import Hitbtc
+from exchanges import Bithumb
 
 try:
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.gather(*Hitbtc().run()))
+    loop.run_until_complete(asyncio.gather(*Bithumb().run()))
     loop.run_forever()
 except Exception as e:
     Logger.log_error (e)

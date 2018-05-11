@@ -12,6 +12,9 @@ from common import RESTSocket
 class Exchange():
     name = None
 
+    _run_rest = False
+    _rest_limit = 10
+
     _key = None
     _pattern = None
 
@@ -31,7 +34,9 @@ class Exchange():
 
     def __init__(self):
         self.__custom_tasks = []
-        self.__rest_socket = RESTSocket(url=self._rest_path)
+        self.__rest_socket = RESTSocket(
+                url=self._rest_path,
+                request_limit=self._rest_limit)
         self.__request_counter = 0
 
     def __clear_channels(self):
@@ -59,6 +64,14 @@ class Exchange():
                 finally:
                     self._close_ws_connection()
                     await asyncio.sleep(1)
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def __run_rest(self):
+        try:
+            while True:
+                await self.get_ticks()
+                await asyncio.sleep(1)
         except Exception as e:
             Logger.log_error(e)
 
@@ -127,6 +140,12 @@ class Exchange():
     async def get_markets(self):
         return pd.DataFrame(data=[], columns=formats.market)
 
+    async def get_ticks(self):
+        return pd.DataFrame(data=[], columns=formats.tick)
+
     def run(self):
-        return [self.__run()] + [task() for task in self.__custom_tasks]
+        base_tasks = ([self.__run()] if self._run_rest is False
+                else [self.__run_rest()])
+
+        return base_tasks + [task() for task in self.__custom_tasks]
 
