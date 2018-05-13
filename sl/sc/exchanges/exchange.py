@@ -14,6 +14,7 @@ class Exchange():
 
     _run_rest = False
     _rest_limit = 10
+    _run_rest_delay = 1
 
     _key = None
     _pattern = None
@@ -69,9 +70,15 @@ class Exchange():
 
     async def __run_rest(self):
         try:
+            self.__markets = await self.get_markets()
             while True:
-                await self.get_ticks()
-                await asyncio.sleep(1)
+                try:
+                    await self.get_ticks()
+                except Exception as e:
+                    Logger.log_error(e)
+
+                finally:
+                    await asyncio.sleep(self._run_rest_delay)
         except Exception as e:
             Logger.log_error(e)
 
@@ -126,11 +133,14 @@ class Exchange():
         except Exception as e:
             Logger.log_error(e)
 
-    async def rest_send(self, message):
+    async def rest_send(self, message, params=None, type_='get'):
         response = None
 
         try:
-            response = await self.__rest_socket.request(message)
+            response = await self.__rest_socket.request(
+                    message,
+                    params=params,
+                    type_=type_)
         except Exception as e:
             Logger.log_error(e)
 

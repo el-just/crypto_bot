@@ -82,10 +82,9 @@ class Bithumb(Exchange):
         markets = pd.DataFrame(data=[], columns=formats.market)
 
         try:
-            await self.get_ticks()
+            ticks = await self.get_ticks()
 
-            tickers = await self.rest_send(request_url)
-            for key, tick in tickers.iterrows():
+            for key, tick in ticks.iterrows():
                 markets = markets.append(pd.Series(
                         data=[
                             self.name,
@@ -101,4 +100,3 @@ class Bithumb(Exchange):
 
         finally:
             return markets
-
