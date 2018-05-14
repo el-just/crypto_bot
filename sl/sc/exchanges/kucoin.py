@@ -9,36 +9,29 @@ from common import Logger
 
 from exchanges import Exchange
 
-class Bibox(Exchange):
-    name = 'bibox'
+class Kucoin(Exchange):
+    name = 'kucoin'
 
     _run_rest = True
-    _rest_limit = 1200
-    _rest_path = 'https://api.bibox.com/'
-
-    _key = 'fbf3b49e51f1df161dea69e64c974ca18ce451be'
-    _pattern = '6e05463781eb384edf6e12c4bd55d9c5a3017c49'
+    _rest_limit = 1000
+    _rest_path = 'https://api.kucoin.com/v1/'
 
 ###########################    API    ########################################
     async def get_ticks(self):
         ticks = pd.DataFrame(data=[], columns=formats.tick)
 
         try:
-            request_url = 'v1/mdata'
-            stock_data = await self.rest_send(
-                    request_url,
-                    params={
-                        'cmd':'marketAll',},)
+            request_url = 'open/tick'
+            stock_data = await self.rest_send(request_url)
 
             current_date = datetime.datetime.now()
-            for market_data in stock_data['result']:
-                market = self._get_markets().loc[market_data['id']]
+            for market in stock_data['data']:
                 ticks = ticks.append(pd.Series(
                         data=[
                             self.name,
                             int(time.mktime(current_date.timetuple()))*1000,
-                            '_'.join([market.at['base'], market.at['quot']]),
-                            market_data['last'],],
+                            market['symbol'].replace('-', '_').lower(),
+                            market['lastDealPrice'],],
                         index=formats.tick,
                         name=current_date,))
 
@@ -53,22 +46,18 @@ class Bibox(Exchange):
         markets = pd.DataFrame(data=[], columns=formats.market)
 
         try:
-            request_url = 'v1/mdata'
-            stock_data = await self.rest_send(
-                    request_url,
-                    params={
-                        'cmd':'pairList',},)
+            ticks = await self.get_ticks()
 
-            for market in stock_data['result']:
+            for key, tick in ticks.iterrows():
                 markets = markets.append(pd.Series(
                         data=[
                             self.name,
-                            market['pair'].split('_')[0].lower(),
-                            market['pair'].split('_')[1].lower(),
+                            tick.at['market'].split('_')[0],
+                            tick.at['market'].split('_')[1],
                             None,
                             None,],
                         index=formats.market,
-                        name=market['id']))
+                        name=tick.at['market'].split('_')[0].upper()))
 
         except Exception as e:
             Logger.log_error(e)
