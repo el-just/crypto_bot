@@ -15,11 +15,11 @@ sys.path.append(common_path)
 import asyncio
 from common import Logger
 
-from exchanges import Simex
+from exchanges import Yobit
 
 try:
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.gather(*Simex().run()))
+    loop.run_until_complete(asyncio.gather(*Yobit().run()))
     loop.run_forever()
 except Exception as e:
     Logger.log_error (e)

@@ -14,6 +14,7 @@ from exchanges.huobi import Huobi
 from exchanges.lbank import Lbank
 from exchanges.bibox import Bibox
 from exchanges.simex import Simex
+from exchanges.yobit import Yobit
 from exchanges.bitz import Bitz
 from exchanges.gdax import Gdax
 from exchanges.okex import Okex
@@ -37,6 +38,7 @@ all_exchanges = [
         Lbank,
         Bibox,
         Simex,
+        Yobit,
         Bitz,
         Gdax,
         Okex,
