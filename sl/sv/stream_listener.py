@@ -55,13 +55,13 @@ class StreamListener():
 
     async def run(self):
         while True:
-            try:
-                async with websockets.connect(self.__ws_path) as websocket:
-                    self.__stock_socket = websocket
-                    async for message in self.__stock_socket:
-                        await self.__resolve_message(message)
-            except Exception as e:
-                Logger.log_error(e)
+            #try:
+            #    async with websockets.connect(self.__ws_path) as websocket:
+            #        self.__stock_socket = websocket
+            #        async for message in self.__stock_socket:
+            #            await self.__resolve_message(message)
+            #except Exception as e:
+            #    Logger.log_error(e)
 
-            finally:
-                await asyncio.sleep(1)
+            #finally:
+            await asyncio.sleep(1)
