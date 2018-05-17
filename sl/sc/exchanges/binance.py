@@ -47,8 +47,6 @@ class Binance(Exchange):
                         message['data']['k']['c'],],
                     index=formats.tick,
                     name=datetime.datetime.now(),)
-
-            Logger.log_info(tick)
         except Exception as e:
             Logger.log_error(e)
 

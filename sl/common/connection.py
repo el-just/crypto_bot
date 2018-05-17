@@ -5,9 +5,16 @@ import pandas as pd
 from common import utils
 from common import Logger
 
+class Client():
+    def __init__(self, connection):
+        self.__connection = connection
+
+    def send(self):
+        self.__connection.source._recieve_message(message, self.__connection)
+
 class Connection():
-    __source = None
-    __recipient = None
+    source = None
+    __initiator = None
     __filter = None
 
     __buffer_size = None
@@ -15,14 +22,16 @@ class Connection():
     __last_request = None
 
     def __init__(self,
-            source=None, recipient=None, fltr=None, buffer_size=None):
-        self.__source = source
-        self.__recipient = recipient
-        self.__filter = fltr or pd.Series()
+            source=None, initiator=None, fltr=None, buffer_size=None):
+        self.source = source
+        self.__initiator = initiator
+        self.__filter = fltr
 
         self.__buffer_size = buffer_size or datetime.timedelta(seconds=0)
         self.__buffer = pd.DataFrame()
         self.__last_request = datetime.datetime.now()
+
+        self.client = Client(self)
 
     async def __send(self, message):
         try:
@@ -30,18 +39,21 @@ class Connection():
 
             if message is not None:
                 current_time = datetime.datetime.now()
-                message.index = [current_time]*message.shape[0]
-                self.__buffer = self.__buffer.append(message)
 
+                if isinstance(message, pd.DataFrame):
+                    message.index = [current_time]*message.shape[0]
+
+                self.__buffer = self.__buffer.append(message)
                 if current_time - self.__last_request >= self.__buffer_size:
                     await self.__release_buffer()
-
-                await asyncio.sleep(1
-                        - (current_time - self.__last_request).total_seconds())
-                current_time = datetime.datetime.now()
-                if (current_time - self.__last_request >= self.__buffer_size
-                        and self.__buffer.shape[0] > 0):
-                    await self.__release_buffer()
+                else:
+                    await asyncio.sleep(1
+                            - (current_time
+                                - self.__last_request).total_seconds())
+                    current_time = datetime.datetime.now()
+                    if (current_time - self.__last_request >= self.__buffer_size
+                            and self.__buffer.shape[0] > 0):
+                        await self.__release_buffer()
 
         except Exception as e:
             Logger.log_error(e)
@@ -53,7 +65,9 @@ class Connection():
                     self.__last_request:current_time, :]
 
             self.__last_request = current_time
-            await self.__recipient.send(utils.stringify_data(data))
+            await self.__initiator._recieve_message(
+                    data,
+                    self.client)
             self.__buffer = self.__buffer.loc[current_time:, :]
         except Exception as e:
             Logger.log_error(e)

@@ -67,8 +67,6 @@ class Bitfinex(Exchange):
                             tick_data[7],],
                         index=formats.tick,
                         name=current_date,)
-
-                Logger.log_info(tick)
         except Exception as e:
             Logger.log_error(e)
 
