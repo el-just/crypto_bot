@@ -21,6 +21,8 @@ class Connection():
     __buffer = None
     __last_request = None
 
+    __data_snapshot = None
+
     def __init__(self,
             source=None, initiator=None, fltr=None, buffer_size=None):
         self.source = source
@@ -31,17 +33,38 @@ class Connection():
         self.__buffer = pd.DataFrame()
         self.__last_request = datetime.datetime.now()
 
+        self.__data_snapshot = pd.DataFrame()
+
         self.client = Client(self)
+
+    def __get_diffs(self, message):
+        key_fields = ['exchange', 'market',]
+        diff = pd.DataFrame()
+
+        concat = pd.concat(
+                self.__data_snapshot,
+                data,).drop_duplicates().reset_index(drop=True)
+
+        if self.__data_snapshot.shape[0] != concat.shape[0]:
+            diff = concat.iloc[self.__data_snapshot.shape[0]:, :].reset_index(
+                    drop=True)
+
+            resulted_idxs = [max(group) for group in concat.groupby(
+                    key_fields).groups.values()]
+
+            resulted_frame = concat.reindex(resulted_idxs)
+            self.__data_snapshot = resulted_frame
+
+        return diff
 
     async def __send(self, message):
         try:
-            message = self.__apply_filter(message)
+            message = self.__apply_filter(self.__get_diffs(message))
 
             if message is not None:
                 current_time = datetime.datetime.now()
 
-                if isinstance(message, pd.DataFrame):
-                    message.index = [current_time]*message.shape[0]
+                message.index = [current_time]*message.shape[0]
 
                 self.__buffer = self.__buffer.append(message)
                 if current_time - self.__last_request >= self.__buffer_size:
@@ -78,11 +101,6 @@ class Connection():
         elif self.__filter.empty:
             return None
 
-        if isinstance(message, pd.Series):
-            message = pd.DataFrame(
-                    data=[message],
-                    columns=message.index.values,)
-
         filtered = message
         for item in self.__filter.index:
             if item not in message.columns:
@@ -94,9 +112,10 @@ class Connection():
         return filtered if not filtered.empty else None
 
 ################################   API   #####################################
-
     async def send(self, message):
         try:
+            message = (message if isinstance(message, pd.DataFrame) else
+                    pd.DataFrame().append(message))
             await self.__send(message)
         except Exception as e:
             Logger.log_error(e)

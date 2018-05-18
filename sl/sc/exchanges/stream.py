@@ -38,7 +38,7 @@ class Stream():
         except Exception as e:
             Logger.log_error(e)
 
-    async def __connector(self, websocket, path):
+    async def __client_connector(self, websocket, path):
         try:
             async for message in websocket:
                 pass
@@ -49,7 +49,8 @@ class Stream():
 
 ###########################  API  ############################################
     def run(self):
-        tasks = [websockets.serve(self.__connector, self.__ip, self.__port)]
+        tasks = [websockets.serve(
+                self.__client_connector, self.__ip, self.__port)]
         for exchange in self.__exchanges:
             task = exchange.run()
             if isinstance(task, list):
