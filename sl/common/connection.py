@@ -5,14 +5,78 @@ import pandas as pd
 from common import utils
 from common import Logger
 
-class Client():
-    def __init__(self, connection):
+class Socket():
+    def __init__(self, side, connection):
+        self.__side = side
         self.__connection = connection
 
-    def send(self):
-        self.__connection.source._recieve_message(message, self.__connection)
+    async def send(self, message, channel=None):
+        await self.__side._recieve_message(
+                message,
+                self.__side.connections.loc[id(self.__connection), :],
+                channel=channel)
+
+    async def close(self):
+        await self.__connection.close()
 
 class Connection():
+    reciever = None
+    requestor = None
+
+    __reciever = None
+    __requestor = None
+    __groups = None
+    def __init__(self, requestor=None, reciever=None, groups=set()):
+        self.__requestor = requestor
+        self.__reciever = reciever
+        self.__groups = groups
+
+        self.requestor = Socket(self.__reciever, self)
+        self.reciever = Socket(self.__requestor, self)
+
+        self.__register_connections():
+
+    def __register_connections(self):
+        if self.__requestor.connections is None:
+            self.__requestor.connections = pd.DataFrame(data=[], columns=[
+                    'groups', 'socket'])
+        if self.__reciever.connections is None:
+            self.__reciever.connections = pd.DataFrame(data=[], columns=[
+                    'groups', 'socket'])
+
+        self.__requestor.connections = self.__requestor.connections.append(
+                pd.Series(
+                    data=[
+                        set(['outgoing'] + self.__groups),
+                        connection.requestor,],
+                    index=['groups', 'socket'],
+                    name=id(self),))
+
+        self.__reciever.connections = self.__reciever.connections.append(
+                pd.Series(
+                    data=[
+                        set(['incoming'] + self.__groups),
+                        connection.reciever,],
+                    index=['groups', 'socket'],
+                    name=id(self),))
+
+        self.__reciever._accepted_connection(
+                self.__reciever.connections.loc[id(self)])
+
+    async def close(self):
+        self.__requestor.connections.drop(
+                [id(self)],
+                axis=0,
+                inplace=True,)
+        self.__reciever.connections.drop(
+                [id(self)],
+                axis=0,
+                inplace=True,)
+
+        await self.__requestor._close_connection(self.requestor)
+        await self.__reciever._close_connection(self.reciever)
+
+class Connection_old():
     source = None
     __initiator = None
     __filter = None
@@ -88,9 +152,7 @@ class Connection():
                     self.__last_request:current_time, :]
 
             self.__last_request = current_time
-            await self.__initiator._recieve_message(
-                    data,
-                    self.client)
+            await self.__initiator.send(data)
             self.__buffer = self.__buffer.loc[current_time:, :]
         except Exception as e:
             Logger.log_error(e)

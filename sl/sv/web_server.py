@@ -5,9 +5,11 @@ import aiohttp_jinja2
 
 from routing import routes
 from stream_listener import StreamListener
-from common import Logger
 
-class WebServer():
+from common import Logger
+from common.abilities import Connectable
+
+class WebServer(Connectable):
     __ip = None
     __port = None
     __app = None
@@ -21,7 +23,7 @@ class WebServer():
 
     async def __on_shutdown(self):
         try:
-            for ws in self.__app['websockets']:
+            for ws in self.__app['clients']:
                 await ws.close(code=1001, message='Server shutdown')
         except Exception as e:
             Logger.log_error(e)
@@ -41,15 +43,16 @@ class WebServer():
                     name=route['name'],)
 
         self.__app.on_cleanup.append(self.__on_shutdown)
-        self.__app['websockets'] = []
-        if self.__stream is not None:
-            self.__app['stock_stream'] = self.__stream
+        self.__app['controller'] = self
 
     async def __ws_run(self):
         runner = web.AppRunner(self.__app)
         await runner.setup()
         site = web.TCPSite(runner, self.__ip, self.__port)
         await site.start()
+
+    async def _recieve_message(self, message, connection):
+        pass
 
     def run (self):
         self.__configure_app()

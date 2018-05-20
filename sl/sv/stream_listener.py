@@ -2,28 +2,11 @@ import asyncio
 import websockets
 
 from common import Logger
-
-class Connection():
-    name = None
-    status = None
-    __stream = None
-    __action = None
-
-    def __init__(self, stream=None, action=None, name=None):
-        self.name = name
-        self.__stream = stream
-        self.__action = action
-
-    async def close(self):
-        await self.__stream.disconnect(self)
-        self.status = 'closed'
-
-    async def send(self, message):
-        await self.__action(message)
+from common import Connection
 
 class StreamListener():
     __ws_path = None
-    __stock_socket = None
+    __socket = None
     __clients = None
 
     def __init__(self):
@@ -32,36 +15,50 @@ class StreamListener():
 
     async def __resolve_message(self, message):
         try:
-            Logger.log_info(message)
             if len(self.__clients) > 0:
                 for client in self.__clients:
                     await client.send(message)
         except Exception as e:
             Logger.log_error(e)
 
-    async def connect(self, socket):
-        connection = Connection(self, socket, len(self.__clients))
-        self.__clients.append(connection)
-
-        return connection
-
-    async def disconnect(self, client):
-        if client.status != 'closed':
-            self.__clients.remove(client)
-
-    async def send(self, message):
-        if self.__stock_socket is not None:
-            await self.__stock_socket.send(message)
+    async def send(self):
+        pass
 
     async def run(self):
         while True:
-            #try:
-            #    async with websockets.connect(self.__ws_path) as websocket:
-            #        self.__stock_socket = websocket
-            #        async for message in self.__stock_socket:
-            #            await self.__resolve_message(message)
-            #except Exception as e:
-            #    Logger.log_error(e)
+            try:
+                async with websockets.connect(self.__ws_path) as websocket:
+                    self.__socket = websocket
+                    async for message in self.__socket:
+                        await self.__resolve_message(message)
+            except Exception as e:
+                Logger.log_error(e)
 
-            #finally:
-            await asyncio.sleep(1)
+            finally:
+                await asyncio.sleep(1)
+
+######################    Connection    ######################################
+    def connect(self, initiator, **kwargs):
+        try:
+            connection = Connection(
+                    source=self,
+                    initiator=initiator,
+                    **kwargs,)
+
+            self.__clients.add(connection)
+
+            return connection.client
+        except Exception as e:
+            Logger.log_error(e)
+
+    async def close(self, connection):
+        try:
+            self.__clients.remove(connection)
+        except Exception as e:
+            Logger.log_error(e)
+    async def disconnect(self, connection):
+        try:
+            await connection.close()
+            self.client.remove(connection)
+        except Exception as e:
+            Logger.log_error(e)

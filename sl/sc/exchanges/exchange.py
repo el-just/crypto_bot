@@ -8,9 +8,10 @@ import pandas as pd
 from common import formats
 from common import Logger
 from common import RESTSocket
-from common import Connection
 
-class Exchange():
+from common.abilities import Connectable
+
+class Exchange(Connectable):
     name = None
     status = 'disconnected'
 
@@ -33,8 +34,6 @@ class Exchange():
     __channels = None
     __request_counter = None
 
-    __connections = None
-
     __custom_tasks = None
 
     def __init__(self):
@@ -43,7 +42,6 @@ class Exchange():
                 url=self._rest_path,
                 request_limit=self._rest_limit)
         self.__request_counter = 0
-        self.__connections = set()
 
     def __clear_channels(self):
         self.__channels = pd.DataFrame(data=[], columns=['market_name'])
@@ -66,8 +64,10 @@ class Exchange():
                             payload = await self._resolve_message (message)
                             if payload is not None:
                                 self.status = 'connected'
-                                for connection in self.__connections:
-                                    await connection.send(payload)
+                                await self.publish(
+                                        payload,
+                                        groups=set(['incoming']),
+                                        channel='ticker',)
                 except Exception as e:
                     self.__ws_socket = None
                     Logger.log_error(e)
@@ -88,8 +88,10 @@ class Exchange():
                     payload = await self.get_ticks()
                     if payload is not None:
                         self.status = 'connected'
-                        for connection in self.__connections:
-                            await connection.send(payload)
+                        await self.publish(
+                                payload,
+                                groups=set(['incoming']),
+                                channel='ticker',)
                 except Exception as e:
                     self.status = 'disconnected'
                     Logger.log_error(e)
@@ -177,22 +179,8 @@ class Exchange():
         return base_tasks + [task() for task in self.__custom_tasks]
 
 ######################    Connection    ######################################
-    def connect(self, initiator, **kwargs):
-        try:
-            connection = Connection(
-                    source=self,
-                    initiator=initiator,
-                    **kwargs,)
+    def _recieve_message(self, message, connection):
+        pass
 
-            self.__connections.add(connection)
-
-            return connection.client
-        except Exception as e:
-            Logger.log_error(e)
-
-    async def disconnect(self, connection):
-        try:
-            await connection.close()
-            self.__connections.remove(connection)
-        except Exception as e:
-            Logger.log_error(e)
+    def _close_connection(self, connection):
+        pass
