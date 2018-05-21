@@ -9,6 +9,7 @@ class Socket():
     def __init__(self, side, connection):
         self.__side = side
         self.__connection = connection
+        self.meta = connection.meta
 
     async def send(self, message, channel=None):
         await self.__side._recieve_message(
@@ -19,49 +20,56 @@ class Socket():
     async def close(self):
         await self.__connection.close()
 
+    def open_channel(self, name=None):
+        pass
+
 class Connection():
     reciever = None
     requestor = None
+    meta = None
 
     __reciever = None
     __requestor = None
     __groups = None
-    def __init__(self, requestor=None, reciever=None, groups=set()):
+    def __init__(self, requestor=None, reciever=None, groups=set(), meta=None):
         self.__requestor = requestor
         self.__reciever = reciever
-        self.__groups = groups
+        self.__groups = set(groups)
 
         self.requestor = Socket(self.__reciever, self)
         self.reciever = Socket(self.__requestor, self)
+        self.meta = meta
 
-        self.__register_connections():
+        self.__register_connections()
+
+    def __empty_connections():
+        pd.DataFrame(data=[], columns=[
+                'groups', 'socket'])
 
     def __register_connections(self):
         if self.__requestor.connections is None:
-            self.__requestor.connections = pd.DataFrame(data=[], columns=[
-                    'groups', 'socket'])
-        if self.__reciever.connections is None:
-            self.__reciever.connections = pd.DataFrame(data=[], columns=[
-                    'groups', 'socket'])
-
+            self.__requestor.connections = self.__empty_connections()
         self.__requestor.connections = self.__requestor.connections.append(
                 pd.Series(
                     data=[
-                        set(['outgoing'] + self.__groups),
-                        connection.requestor,],
+                        {'outgoing'} | self.__groups,
+                        self.requestor,],
                     index=['groups', 'socket'],
                     name=id(self),))
 
+        if self.__reciever.connections is None:
+            self.__reciever.connections = self.__empty_connections()
         self.__reciever.connections = self.__reciever.connections.append(
                 pd.Series(
                     data=[
-                        set(['incoming'] + self.__groups),
-                        connection.reciever,],
+                        {'incoming'},
+                        self.reciever,],
                     index=['groups', 'socket'],
                     name=id(self),))
 
         self.__reciever._accepted_connection(
-                self.__reciever.connections.loc[id(self)])
+                self.__reciever.connections.loc[id(self)],
+                self.meta,)
 
     async def close(self):
         self.__requestor.connections.drop(

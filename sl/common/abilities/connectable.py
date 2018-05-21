@@ -15,20 +15,18 @@ class Connectable():
 
     async def publish(self, message, groups=set(), channel=None):
         try:
-            for key, connection in self.__filter_connections(groups).iterrows():
-                await connection.at['socket'].send(message)
+            connections = self.connections
+            if groups is not None and len(groups) > 0:
+                connections = self.connections[self.connections.apply(
+                    lambda row: groups.issubset(row.at['groups']),
+                    axis=1)]
+
+            for key, connection in connections.iterrows():
+                await connection.at['socket'].send(message, channel=channel)
         except Exception as e:
             Logger.log_error(e)
 
-    def __filter_connections(self, groups):
-        if groups is None or len(groups) == 0:
-            return self.connections
-
-        return self.connections[self.connections.apply(
-            lambda row: groups.issubset(row.at['groups']),
-            axis=1)]
-
-    def _accepted_connection(self, connection):
+    def _accepted_connection(self, connection, meta):
         pass
 
     async def _recieve_message(self, message, connection, channel=None):

@@ -5,3 +5,4 @@ from common.logger import Logger
 from common.rest_socket import RESTSocket
 from common.action_collector import ActionCollector
 from common.connection import Connection
+from common.websocket import Websocket
