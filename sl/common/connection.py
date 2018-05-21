@@ -30,11 +30,11 @@ class Connection():
 
     __reciever = None
     __requestor = None
-    __groups = None
-    def __init__(self, requestor=None, reciever=None, groups=set(), meta=None):
+    __tags = None
+    def __init__(self, requestor=None, reciever=None, tags=set(), meta=None):
         self.__requestor = requestor
         self.__reciever = reciever
-        self.__groups = set(groups)
+        self.__tags = set(tags)
 
         self.requestor = Socket(self.__reciever, self)
         self.reciever = Socket(self.__requestor, self)
@@ -42,9 +42,9 @@ class Connection():
 
         self.__register_connections()
 
-    def __empty_connections():
-        pd.DataFrame(data=[], columns=[
-                'groups', 'socket'])
+    def __empty_connections(self):
+        return pd.DataFrame(data=[], columns=[
+                'tags', 'socket'])
 
     def __register_connections(self):
         if self.__requestor.connections is None:
@@ -52,9 +52,9 @@ class Connection():
         self.__requestor.connections = self.__requestor.connections.append(
                 pd.Series(
                     data=[
-                        {'outgoing'} | self.__groups,
+                        {'outgoing'} | self.__tags,
                         self.requestor,],
-                    index=['groups', 'socket'],
+                    index=['tags', 'socket'],
                     name=id(self),))
 
         if self.__reciever.connections is None:
@@ -64,7 +64,7 @@ class Connection():
                     data=[
                         {'incoming'},
                         self.reciever,],
-                    index=['groups', 'socket'],
+                    index=['tags', 'socket'],
                     name=id(self),))
 
         self.__reciever._accepted_connection(

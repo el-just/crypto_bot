@@ -32,7 +32,7 @@ class Stream(Connectable):
     async def __client_connector(self, pure_websocket, path):
         try:
             websocket = Websocket(pure_websocket)
-            self.connect(websocket, groups={'clients'})
+            self.connect(websocket, tags={'clients'})
 
             await websocket.listen()
         except Exception as e:
@@ -49,14 +49,14 @@ class Stream(Connectable):
             else:
                 tasks.append(task)
 
-            self.connect(exchange, groups={'exchanges', exchange.name})
+            self.connect(exchange, tags={'exchanges', exchange.name})
 
         return asyncio.gather(*tasks)
 
     async def _recieve_message(self, message, connection, channel=None):
         try:
-            if 'exchanges' in connection.at['groups']:
+            if 'exchanges' in connection.at['tags']:
                 Logger.log_info(message)
-                await self.publish(message, groups={'clients'})
+                await self.publish(message, tags={'clients'})
         except Exception as e:
             Logger.log_error(e)

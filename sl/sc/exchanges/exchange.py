@@ -46,19 +46,22 @@ class Exchange(Connectable):
     def __clear_channels(self):
         self.__channels = pd.DataFrame(data=[], columns=['market_name'])
 
-    def __set_status(self, status):
-        self.status = status
-        await self.publish(
-                status,
-                groups={'incoming'},
-                channel='exchange_status',)
-
+    async def __set_status(self, status):
+        try:
+            if self.status != status:
+                self.status = status
+                await self.publish(
+                        status,
+                        tags={'incoming'},
+                        channel='status',)
+        except Exception as e:
+            Logger.log_error(e)
 
     async def __run(self):
         try:
             while True:
                 try:
-                    self.__set_status('connection')
+                    await self.__set_status('connection')
                     self.__markets = await self.get_markets()
                     await self._prepare_ws_connection()
                     async with websockets.connect(
@@ -71,17 +74,17 @@ class Exchange(Connectable):
                         async for message in websocket:
                             payload = await self._resolve_message (message)
                             if payload is not None:
-                                self.__set_status('connected')
+                                await self.__set_status('connected')
                                 await self.publish(
                                         payload,
-                                        groups={'incoming'},
+                                        tags={'incoming'},
                                         channel='ticker',)
                 except Exception as e:
                     self.__ws_socket = None
                     Logger.log_error(e)
 
                 finally:
-                    self.__set_status('disconnected')
+                    await self.__set_status('disconnected')
                     await asyncio.sleep(1)
         except Exception as e:
             Logger.log_error(e)
@@ -89,18 +92,18 @@ class Exchange(Connectable):
     async def __run_rest(self):
         try:
             self.__markets = await self.get_markets()
-            self.__set_status('connection')
+            await self.__set_status('connection')
             while True:
                 try:
                     payload = await self.get_ticks()
                     if payload is not None:
-                        self.__set_status('connected')
+                        await self.__set_status('connected')
                         await self.publish(
                                 payload,
-                                groups={'incoming'},
+                                tags={'incoming'},
                                 channel='ticker',)
                 except Exception as e:
-                    self.__set_status('disconnected')
+                    await self.__set_status('disconnected')
                     Logger.log_error(e)
 
                 finally:
@@ -194,4 +197,5 @@ class Exchange(Connectable):
 
     def _accepted_connection(self, connection, meta):
         #connection.open_channel(name='ticker')
+        #connection.open_channel(name='status')
         pass

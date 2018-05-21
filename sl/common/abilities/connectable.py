@@ -4,21 +4,21 @@ from common import Logger
 class Connectable():
     connections = None
 
-    def connect(self, reciever, groups=[], **kwargs):
+    def connect(self, reciever, tags=set(), **kwargs):
         connection = Connection(
                 requestor=self,
                 reciever=reciever,
-                groups=groups,
+                tags=tags,
                 **kwargs)
 
         return connection.requestor
 
-    async def publish(self, message, groups=set(), channel=None):
+    async def publish(self, message, tags=set(), channel=None):
         try:
             connections = self.connections
-            if groups is not None and len(groups) > 0:
+            if tags is not None and len(tags) > 0:
                 connections = self.connections[self.connections.apply(
-                    lambda row: groups.issubset(row.at['groups']),
+                    lambda row: tags.issubset(row.at['tags']),
                     axis=1)]
 
             for key, connection in connections.iterrows():
@@ -26,7 +26,7 @@ class Connectable():
         except Exception as e:
             Logger.log_error(e)
 
-    def _accepted_connection(self, connection, meta):
+    def _accepted_connection(self, connection, meta=None):
         pass
 
     async def _recieve_message(self, message, connection, channel=None):
