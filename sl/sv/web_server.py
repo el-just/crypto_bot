@@ -20,11 +20,15 @@ class WebServer(Connectable):
         self.__port = 3000
         self.__app = app = web.Application ()
         self.__stream = StreamListener()
+        self.connect(self.__stream, tags={'exchanges'})
 
     async def __on_shutdown(self):
         try:
-            for ws in self.__app['clients']:
-                await ws.close(code=1001, message='Server shutdown')
+            connections = self.connections[self.connections.apply(
+                lambda row: {'clients'}.issubset(row.at['tags']),
+                axis=1)]
+            for connection in connections.loc[:, 'socket'].values:
+                connection.close()
         except Exception as e:
             Logger.log_error(e)
 
@@ -51,8 +55,9 @@ class WebServer(Connectable):
         site = web.TCPSite(runner, self.__ip, self.__port)
         await site.start()
 
-    async def _recieve_message(self, message, connection):
-        pass
+    async def _recieve_message(self, message, connection, channel=None):
+        if 'exchanges' in connection.at['tags']:
+            await self.publish(message, tags=['clients'], channel=channel)
 
     def run (self):
         self.__configure_app()

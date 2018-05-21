@@ -67,9 +67,8 @@ class Connection():
                     index=['tags', 'socket'],
                     name=id(self),))
 
-        self.__reciever._accepted_connection(
-                self.__reciever.connections.loc[id(self)],
-                self.meta,)
+        self.__reciever._accept_connection(
+                self.__reciever.connections.loc[id(self)])
 
     async def close(self):
         self.__requestor.connections.drop(
@@ -81,8 +80,10 @@ class Connection():
                 axis=0,
                 inplace=True,)
 
-        await self.__requestor._close_connection(self.requestor)
-        await self.__reciever._close_connection(self.reciever)
+        await self.__requestor._close_connection(
+                self.__requestor.connections.loc[id(self)])
+        await self.__reciever._close_connection(
+                self.__reciever.connections.loc[id(self)])
 
 class Connection_old():
     source = None

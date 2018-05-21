@@ -2,27 +2,20 @@ import asyncio
 import websockets
 
 from common import Logger
-from common import Connection
+from common.abilities import Connectable
 
-class StreamListener():
+class StreamListener(Connectable):
     __ws_path = None
     __socket = None
-    __clients = None
 
     def __init__(self):
         self.__ws_path = 'ws://127.0.0.1:8765'
-        self.__clients = []
 
     async def __resolve_message(self, message):
         try:
-            if len(self.__clients) > 0:
-                for client in self.__clients:
-                    await client.send(message)
+            await self.publish(message, tags={'incoming'}, channel='ticker')
         except Exception as e:
             Logger.log_error(e)
-
-    async def send(self):
-        pass
 
     async def run(self):
         while True:
@@ -38,27 +31,11 @@ class StreamListener():
                 await asyncio.sleep(1)
 
 ######################    Connection    ######################################
-    def connect(self, initiator, **kwargs):
-        try:
-            connection = Connection(
-                    source=self,
-                    initiator=initiator,
-                    **kwargs,)
+    async def _recieve_message(self, message, connection, channel=None):
+        pass
 
-            self.__clients.add(connection)
+    async def _close_connection(self, connection):
+        pass
 
-            return connection.client
-        except Exception as e:
-            Logger.log_error(e)
-
-    async def close(self, connection):
-        try:
-            self.__clients.remove(connection)
-        except Exception as e:
-            Logger.log_error(e)
-    async def disconnect(self, connection):
-        try:
-            await connection.close()
-            self.client.remove(connection)
-        except Exception as e:
-            Logger.log_error(e)
+    def _accept_connection(self, connection)
+        pass

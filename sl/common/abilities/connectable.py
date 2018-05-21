@@ -26,7 +26,7 @@ class Connectable():
         except Exception as e:
             Logger.log_error(e)
 
-    def _accepted_connection(self, connection, meta=None):
+    def _accept_connection(self, connection):
         pass
 
     async def _recieve_message(self, message, connection, channel=None):

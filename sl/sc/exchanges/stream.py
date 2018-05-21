@@ -32,9 +32,10 @@ class Stream(Connectable):
     async def __client_connector(self, pure_websocket, path):
         try:
             websocket = Websocket(pure_websocket)
-            self.connect(websocket, tags={'clients'})
+            connection = self.connect(websocket, tags={'clients'})
 
             await websocket.listen()
+            connection.close()
         except Exception as e:
             Logger.log_error(e)
 

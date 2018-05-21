@@ -195,7 +195,7 @@ class Exchange(Connectable):
     async def _close_connection(self, connection):
         pass
 
-    def _accepted_connection(self, connection, meta):
+    def _accept_connection(self, connection):
         #connection.open_channel(name='ticker')
         #connection.open_channel(name='status')
         pass
