@@ -26,11 +26,11 @@ from exchanges.zb import Zb
 all_exchanges = [
         Bitfinex,
         #Coinbene,
-        Binance,]
+        #Binance,
         #Bittrex,
         #Bithumb,
         #Coinone,
-        #Hitbtc,
+        Hitbtc,]
         #Kraken,
         #Gateio,
         #Kucoin,

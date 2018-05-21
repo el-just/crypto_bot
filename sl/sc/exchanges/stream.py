@@ -35,7 +35,7 @@ class Stream(Connectable):
             connection = self.connect(websocket, tags={'clients'})
 
             await websocket.listen()
-            connection.close()
+            await connection.close()
         except Exception as e:
             Logger.log_error(e)
 

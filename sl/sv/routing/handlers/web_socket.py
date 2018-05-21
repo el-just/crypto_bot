@@ -11,7 +11,9 @@ class WebSocket(web.View, Connectable):
         self.__socket = web.WebSocketResponse()
         await self.__socket.prepare(self.request)
 
-        connection = self.request.app['controller'].connect(self, tags={'clients'})
+        connection = self.request.app['controller'].connect(
+                self,
+                tags={'clients'},)
 
         async for msg in self.__socket:
             if msg.type == WSMsgType.TEXT:
@@ -23,9 +25,11 @@ class WebSocket(web.View, Connectable):
             elif msg.type == WSMsgType.ERROR:
                 pass
 
-        connection.close()
+        await connection.close()
 
-    async def _recieve_message(self, message, connection):
+        return self.__socket
+
+    async def _recieve_message(self, message, connection, channel=None):
         try:
             await self.__socket.send_str(json.dumps(message))
         except Exception as e:

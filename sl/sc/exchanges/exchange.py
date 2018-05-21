@@ -189,7 +189,7 @@ class Exchange(Connectable):
         return base_tasks + [task() for task in self.__custom_tasks]
 
 ######################    Connection    ######################################
-    async def _recieve_message(self, message, connection):
+    async def _recieve_message(self, message, connection, channel=None):
         pass
 
     async def _close_connection(self, connection):

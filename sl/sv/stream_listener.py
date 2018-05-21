@@ -37,5 +37,5 @@ class StreamListener(Connectable):
     async def _close_connection(self, connection):
         pass
 
-    def _accept_connection(self, connection)
+    def _accept_connection(self, connection):
         pass

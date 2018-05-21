@@ -57,7 +57,7 @@ class WebServer(Connectable):
 
     async def _recieve_message(self, message, connection, channel=None):
         if 'exchanges' in connection.at['tags']:
-            await self.publish(message, tags=['clients'], channel=channel)
+            await self.publish(message, tags={'clients'}, channel=channel)
 
     def run (self):
         self.__configure_app()
