@@ -20,6 +20,7 @@ class Stream(Connectable):
 
     __exchanges = None
     __exchanges_connections = None
+    price_snapshot = None
 
     def __init__(self):
         self.__ip = '127.0.0.1'
@@ -28,11 +29,13 @@ class Stream(Connectable):
         self.__exchanges = [Exchange() for Exchange in all_exchanges]
         self.__exchanges_names = [exchange.name
                 for exchange in self.__exchanges]
+        self.price_snapshot = pd.DataFrame()
 
     async def __client_connector(self, pure_websocket, path):
         try:
             websocket = Websocket(pure_websocket)
             connection = self.connect(websocket, tags={'clients'})
+            connection.open_channel(name='price_frame')
 
             await websocket.listen()
             await connection.close()
@@ -56,8 +59,13 @@ class Stream(Connectable):
 
     async def _recieve_message(self, message, connection, channel=None):
         try:
-            if 'exchanges' in connection.at['tags']:
-                Logger.log_info(message)
-                await self.publish(message, tags={'clients'})
+            if 'exchanges' in connection.at['tags'] and channel == 'ticker':
+                self.price_snapshot = message.combine_first(
+                        self.price_snapshot)
+                Logger.log_info(self.price_snapshot)
+                await self.publish(
+                        message,
+                        tags={'clients'},
+                        channel='price_frame')
         except Exception as e:
             Logger.log_error(e)

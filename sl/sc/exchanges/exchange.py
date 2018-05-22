@@ -75,6 +75,10 @@ class Exchange(Connectable):
                             payload = await self._resolve_message (message)
                             if payload is not None:
                                 await self.__set_status('connected')
+                                payload = pd.Series(
+                                        data=[payload.at['price']],
+                                        index=[payload.at['exchange']],
+                                        name=payload.at['market'])
                                 await self.publish(
                                         payload,
                                         tags={'incoming'},
@@ -98,6 +102,10 @@ class Exchange(Connectable):
                     payload = await self.get_ticks()
                     if payload is not None:
                         await self.__set_status('connected')
+                        payload = pd.Series(
+                                data=[payload.at['price']],
+                                index=[payload.at['exchange']],
+                                name=payload.at['market'])
                         await self.publish(
                                 payload,
                                 tags={'incoming'},
@@ -196,6 +204,5 @@ class Exchange(Connectable):
         pass
 
     def _accept_connection(self, connection):
-        #connection.open_channel(name='ticker')
-        #connection.open_channel(name='status')
-        pass
+        connection.at['socket'].open_channel(name='ticker', type_='frame')
+        connection.at['socket'].open_channel(name='status')
