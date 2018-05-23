@@ -57,12 +57,14 @@ class Stream(Connectable):
 
         return asyncio.gather(*tasks)
 
+    def get_price_snapshot(self):
+        return self.price_snapshot
+
     async def _recieve_message(self, message, connection, channel=None):
         try:
             if 'exchanges' in connection.at['tags'] and channel == 'ticker':
                 self.price_snapshot = message.combine_first(
                         self.price_snapshot)
-                Logger.log_info(self.price_snapshot)
                 await self.publish(
                         message,
                         tags={'clients'},

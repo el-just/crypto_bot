@@ -1,5 +1,6 @@
 import datetime
 import asyncio
+import inspect
 import pandas as pd
 
 from common import utils
@@ -26,7 +27,10 @@ class Socket():
             Logger.log_error(e)
 
     def open_channel(self, **kwargs):
-       self.__connection.open_channel(**kwargs)
+        self.__connection.open_channel(**kwargs)
+
+    async def execute(self, action, *args, **kwargs)
+        await self.__side._execute(action, *args, **kwargs)
 
 class Channel():
     __data_snapshot = None
