@@ -8,37 +8,31 @@ from common import formats
 from common import utils
 from common import Logger
 from common import Websocket
-
-from common.abilities import Connectable
+from common import Buffer
+from common import Socket
 
 from exchanges import all_exchanges
 
-class Stream(Connectable):
+class Stream():
     __ip = None
     __port = None
-    __connections = None
 
     __exchanges = None
-    __exchanges_connections = None
-    price_snapshot = None
+    __exchanges_buffer = None
 
     def __init__(self):
         self.__ip = '127.0.0.1'
         self.__port = 8765
 
         self.__exchanges = [Exchange() for Exchange in all_exchanges]
-        self.__exchanges_names = [exchange.name
-                for exchange in self.__exchanges]
-        self.price_snapshot = pd.DataFrame()
+        self.__exchanges_buffer = Buffer('exchanges')
 
     async def __client_connector(self, pure_websocket, path):
         try:
-            websocket = Websocket(pure_websocket)
-            connection = self.connect(websocket, tags={'clients'})
-            connection.open_channel(name='price_frame')
+            websocket = Websocket(websocket=pure_websocket)
+            self.__exchange_buffer.connect(websocket)
 
             await websocket.listen()
-            await connection.close()
         except Exception as e:
             Logger.log_error(e)
 
@@ -53,21 +47,4 @@ class Stream(Connectable):
             else:
                 tasks.append(task)
 
-            self.connect(exchange, tags={'exchanges', exchange.name})
-
         return asyncio.gather(*tasks)
-
-    def get_price_snapshot(self):
-        return self.price_snapshot
-
-    async def _recieve_message(self, message, connection, channel=None):
-        try:
-            if 'exchanges' in connection.at['tags'] and channel == 'ticker':
-                self.price_snapshot = message.combine_first(
-                        self.price_snapshot)
-                await self.publish(
-                        message,
-                        tags={'clients'},
-                        channel='price_frame')
-        except Exception as e:
-            Logger.log_error(e)

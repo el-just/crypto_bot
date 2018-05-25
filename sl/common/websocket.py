@@ -1,60 +1,30 @@
-import json
-import asyncio
-import pandas as pd
+from aiohttp import web
 
-from common import Logger
-from common import utils
-from common.abilities import Connectable
-
-class Websocket(Connectable):
-    self.__pending = None
-    self.__pending_results = None
-
-    def __init__(self, websocket):
-        self.__socket = websocket
-        self.__pending = dict()
-        self.__pending_results = dict()
-
-    async def _recieve_message(self, message, connection, channel=None):
-        if isinstance(message, (pd.Series, pd.DataFrame)):
-            message = message.to_json()
-        elif not isinstance(message, str):
-            message = json.dumps(message)
-
-        await self.__socket.send(message)
+class Webscoket(Socket):
+    def __init__(self, source=None, websocket=None):
+        super(Websocket, self).__init__(source=source)
+        self.__websocket = websocket
 
     async def listen(self):
-        async for message in self.__socket:
-            parsed = utils.parse_data(message)
-            if parsed.get('action_result', None) is not None:
-                self.__pending_results[action] = parsed['action_result']
-                self.__pending[action].set()
-            elif parsed.get('action', None) is not None:
+        try:
+            async for message in self.__websocket:
+                if isinstance(self.__websocket, web.WebSocketResponse):
+                    if message.type == WSMsgType.TEXT:
+                        if message.data == 'close':
+                            pass
+                        else:
+                            await self.push(utils.parse_data(message))
+                    elif msg.type == WSMsgType.ERROR:
+                        pass
+                else:
+                    await self.push(utils.parse_data(message))
 
-            else:
-                await self.publish(message, tags={'incoming'})
+        except Exception as e:
+            Logger.log_error(e)
 
-    async def _execute(self, action, *args, **kwargs):
-        await self.__socket.send(json.dumps({
-                'action': action,
-                'args': args,
-                'kwargs': kwargs,}))
-
-        self.__pending[action] = asyncio.Event()
-        await self.__pending[action].wait()
-
-        result = self.__pending_results[action]
-        if 'columns' in result and 'index' in result and 'data' in result:
-            result = pd.DataFrame(
-                    data=result['data'],
-                    index=result['index'],
-                    columns=result['columns'],)
-        elif 'index' in result and 'data' in result and 'name' in result:
-            result = pd.DataFrame(
-                    data=result['data'],
-                    index=result['index'],
-                    name=result['name'],)
-
-        del self.__pending[action]
-        del self.__pending_results[action]
-        return result
+    async def on_data(self, data):
+        data = utils.dump_data(data) 
+        if isinstance(self.__websocket, web.WebSocketResponse):
+            await self.__websocket.send_str(data)
+        else:
+            await self.__websocket.send(data)

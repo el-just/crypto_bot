@@ -8,10 +8,9 @@ import pandas as pd
 from common import formats
 from common import Logger
 from common import RESTSocket
+from common import Buffer
 
-from common.abilities import Connectable
-
-class Exchange(Connectable):
+class Exchange():
     name = None
     status = 'disconnected'
 
@@ -36,12 +35,16 @@ class Exchange(Connectable):
 
     __custom_tasks = None
 
+    __exchanges_buffer = None
+    __buffer_socket = None
+
     def __init__(self):
         self.__custom_tasks = []
         self.__rest_socket = RESTSocket(
                 url=self._rest_path,
                 request_limit=self._rest_limit)
         self.__request_counter = 0
+        self.__exchanges_buffer = Buffer('exchanges').connect()
 
     def __clear_channels(self):
         self.__channels = pd.DataFrame(data=[], columns=['market_name'])
@@ -50,10 +53,9 @@ class Exchange(Connectable):
         try:
             if self.status != status:
                 self.status = status
-                await self.publish(
-                        status,
-                        tags={'incoming'},
-                        channel='status',)
+                self.__exchanges_buffer.push({
+                    'exchange': self.name,
+                    'status': status,})
         except Exception as e:
             Logger.log_error(e)
 
@@ -75,14 +77,7 @@ class Exchange(Connectable):
                             payload = await self._resolve_message (message)
                             if payload is not None:
                                 await self.__set_status('connected')
-                                payload = pd.Series(
-                                        data=[payload.at['price']],
-                                        index=[payload.at['exchange']],
-                                        name=payload.at['market'])
-                                await self.publish(
-                                        payload,
-                                        tags={'incoming'},
-                                        channel='ticker',)
+                                await self.__exchanges_buffer.push(payload)
                 except Exception as e:
                     self.__ws_socket = None
                     Logger.log_error(e)
@@ -102,14 +97,7 @@ class Exchange(Connectable):
                     payload = await self.get_ticks()
                     if payload is not None:
                         await self.__set_status('connected')
-                        payload = pd.Series(
-                                data=[payload.at['price']],
-                                index=[payload.at['exchange']],
-                                name=payload.at['market'])
-                        await self.publish(
-                                payload,
-                                tags={'incoming'},
-                                channel='ticker',)
+                        await self.__exchanges_buffer.push(payload)
                 except Exception as e:
                     await self.__set_status('disconnected')
                     Logger.log_error(e)
@@ -195,14 +183,3 @@ class Exchange(Connectable):
                 else [self.__run_rest()])
 
         return base_tasks + [task() for task in self.__custom_tasks]
-
-######################    Connection    ######################################
-    async def _recieve_message(self, message, connection, channel=None):
-        pass
-
-    async def _close_connection(self, connection):
-        pass
-
-    def _accept_connection(self, connection):
-        connection.at['socket'].open_channel(name='ticker', type_='frame')
-        connection.at['socket'].open_channel(name='status')
