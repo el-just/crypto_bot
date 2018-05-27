@@ -7,7 +7,7 @@ from routing import routes
 from stream_listener import StreamListener
 
 from common import Logger
-from common import Buffer
+from common import RemoteBuffer
 
 class WebServer():
     __ip = None
@@ -18,12 +18,12 @@ class WebServer():
     def __init__(self):
         self.__ip = '0.0.0.0'
         self.__port = 3000
-        self.__app = app = web.Application ()
+        self.__app = web.Application ()
         self.__stream = StreamListener()
 
     async def __on_shutdown(self):
         try:
-            await Buffer('stream').close()
+            await Buffer('exchanges').close()
         except Exception as e:
             Logger.log_error(e)
 

@@ -53,8 +53,6 @@ class Gateio(Exchange):
                         tick_data['params'][1]['close'],],
                     index=formats.tick,
                     name=current_date,)
-
-            Logger.log_info(tick)
         except Exception as e:
             Logger.log_error(e)
 

@@ -11,7 +11,7 @@ class WebSocket(web.View):
         await pure_socket.prepare(self.request)
         websocket = Websocket(websocket=pure_socket)
 
-        Buffer('stream').connect(websocket)
+        Buffer('exchanges').connect(websocket)
         await websocket.listen()
 
         return pure_socket

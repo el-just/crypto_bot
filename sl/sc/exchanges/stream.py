@@ -12,6 +12,7 @@ from common import Buffer
 from common import Socket
 
 from exchanges import all_exchanges
+from exchanges.views import PriceFrame
 
 class Stream():
     __ip = None
@@ -26,11 +27,12 @@ class Stream():
 
         self.__exchanges = [Exchange() for Exchange in all_exchanges]
         self.__exchanges_buffer = Buffer('exchanges')
+        self.__ecchanges_buffer.add_view(PriceFrame())
 
     async def __client_connector(self, pure_websocket, path):
         try:
             websocket = Websocket(websocket=pure_websocket)
-            self.__exchange_buffer.connect(websocket)
+            self.__exchanges_buffer.connect(socket=websocket)
 
             await websocket.listen()
         except Exception as e:

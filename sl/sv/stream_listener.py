@@ -7,22 +7,18 @@ from common import Websocket
 
 class StreamListener():
     __ws_path = None
-    __socket = None
-
-    __stream_buffer = None
-    __buffer_socket = None
+    __exchanges_buffer = None
 
     def __init__(self):
         self.__ws_path = 'ws://127.0.0.1:8765'
-        self.__stream_buffer = Buffer('stream').connect()
+        self.__exchanges_buffer = Buffer('exchanges', is_mirror=True)
 
     async def run(self):
         while True:
             try:
                 async with websockets.connect(self.__ws_path) as websocket:
-                    self.__socket = Websocket(websocket)
-                    self.__stream_buffer.connect(self.__socket)
-                    await self.__socket.listen()
+                    socket = Websocket(websocket=websocket)
+                    await socket.listen()
             except Exception as e:
                 Logger.log_error(e)
 

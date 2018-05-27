@@ -5,7 +5,8 @@ class Socket():
 
     def __init__(self, source=None):
         self.source = source
-        source.connect(self)
+        if source is not None:
+            source.connect(self)
 
     async def push(self, data):
         try:

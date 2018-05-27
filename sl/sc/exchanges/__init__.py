@@ -24,15 +24,15 @@ from exchanges.exx import Exx
 from exchanges.zb import Zb
 
 all_exchanges = [
-        Bitfinex,
+        #Bitfinex,
         #Coinbene,
         #Binance,
         #Bittrex,
         #Bithumb,
         #Coinone,
-        Hitbtc,]
+        Hitbtc,
         #Kraken,
-        #Gateio,
+        Gateio,]
         #Kucoin,
         #Huobi,
         #Lbank,

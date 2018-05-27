@@ -53,7 +53,7 @@ class Exchange():
         try:
             if self.status != status:
                 self.status = status
-                self.__exchanges_buffer.push({
+                await self.__exchanges_buffer.push({
                     'exchange': self.name,
                     'status': status,})
         except Exception as e:
