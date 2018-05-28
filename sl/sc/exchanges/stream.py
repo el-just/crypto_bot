@@ -27,7 +27,7 @@ class Stream():
 
         self.__exchanges = [Exchange() for Exchange in all_exchanges]
         self.__exchanges_buffer = Buffer('exchanges')
-        self.__ecchanges_buffer.add_view(PriceFrame())
+        self.__exchanges_buffer.add_view(PriceFrame())
 
     async def __client_connector(self, pure_websocket, path):
         try:

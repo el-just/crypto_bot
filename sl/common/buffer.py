@@ -24,6 +24,7 @@ class _Buffer():
     __sockets = None
     def __init__(self, name, is_mirror=False):
         self.name = name
+        self.views = dict()
         self.__is_mirror = is_mirror
         self.__sockets = set()
 
