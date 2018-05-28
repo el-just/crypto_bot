@@ -65,7 +65,7 @@ class _Buffer():
                         self.views[view_name].update(data)
                 for socket in self.__sockets:
                     if socket != source:
-                        await socket.on_data(data)
+                        await socket._data_recieved(data)
         except Exception as e:
             Logger.log_error(e)
 

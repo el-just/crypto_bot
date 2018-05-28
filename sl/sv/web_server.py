@@ -7,7 +7,7 @@ from routing import routes
 from stream_listener import StreamListener
 
 from common import Logger
-from common import RemoteBuffer
+from common import Buffer
 
 class WebServer():
     __ip = None
