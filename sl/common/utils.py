@@ -56,7 +56,10 @@ def dict_to_pandas(data):
 
 def stringify_data(data):
     if isinstance(data, (pd.Series, pd.DataFrame)):
-        return json.dumps(pandas_to_dict(data))
+        shape = data.shape
+        data = json.loads(data.to_json(orient='split'))
+        data['shape'] = shape
+        return json.dumps(data)
     else:
         return str(data)
 

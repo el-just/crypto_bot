@@ -1,4 +1,5 @@
 import pandas as pd
+from common import Logger
 
 class View():
     name = None
@@ -10,9 +11,11 @@ class View():
 
     def __get_diff(self, old, new):
         diff = pd.DataFrame()
-        concat = old.append(new).drop_duplicates()
+        concat = old.append(new)
+        if not concat.empty and concat.shape[0] > 1:
+            concat = concat.drop_duplicates()
 
-        if self.__data_snapshot.shape[0] != concat.shape[0]:
+        if old.shape[0] != concat.shape[0]:
             pre_diff = concat.iloc[old.shape[0]:, :]
 
             for idx, row in pre_diff.iterrows():

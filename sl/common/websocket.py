@@ -15,12 +15,14 @@ class Websocket(Socket):
                     if message.type == WSMsgType.TEXT:
                         if message.data == 'close':
                             message = None
+                        else:
+                            message = message.data
                     elif msg.type == WSMsgType.ERROR:
                         message = None
 
                 if message is not None:
                     message = utils.parse_data(message)
-                    await self.push(data)
+                    await self.push(message)
         except Exception as e:
             Logger.log_error(e)
 

@@ -1,11 +1,11 @@
 import pandas as pd
 from common import View
-from common import Logger
 
 class PriceFrame(View):
+    name = 'price_frame'
+
     def _transform_state(self, state, data):
         new_state = state
-        Logger.log_info(data)
 
         if isinstance(data, pd.Series):
             price_row = pd.Series(

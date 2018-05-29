@@ -18,6 +18,7 @@ class StreamListener():
             try:
                 async with websockets.connect(self.__ws_path) as websocket:
                     socket = Websocket(websocket=websocket)
+                    self.__exchanges_buffer.connect(socket=socket)
                     await socket.listen()
             except Exception as e:
                 Logger.log_error(e)

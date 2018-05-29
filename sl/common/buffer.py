@@ -29,6 +29,7 @@ class _Buffer():
         self.__sockets = set()
 
     def connect(self, socket=None):
+        Logger.log_info('connect')
         if socket is None:
             socket = Socket(self)
         else:
@@ -58,8 +59,13 @@ class _Buffer():
     async def push(self, source=None, data=None):
         try:
             if isinstance(data, dict) and data.get('type', None) == 'service':
-                if not self.__is_mirror:
+                if (not self.__is_mirror
+                        and data.get('action', None) is not None):
                     await self._process_service_message(data)
+                else:
+                    for socket in self.__sockets:
+                        if socket != source:
+                            await socket._data_recieved(data)
             else:
                 if self.views is not None:
                     for view_name in self.views:

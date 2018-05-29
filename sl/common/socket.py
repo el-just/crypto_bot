@@ -1,3 +1,5 @@
+import asyncio
+
 from common import Logger
 from common import utils
 
@@ -27,16 +29,15 @@ class Socket():
 
     async def _data_recieved(self, data):
         try:
-            message = utils.parse_data(message)
             if (isinstance(data, dict)
-                    and data.get('type', None) == 'service'):
-                if data['id'] in self.__await_events.keys():
-                    pd_item = utils.dict_to_pandas(
-                            data['action_result'])
-                    data = (pd_item if pd_item is not None
-                            else data['action_result'])
-                    self.__events_results[message['id']] = data
-                    self.__await_events[message['id']].set()
+                    and data.get('type', None) == 'service'
+                    and data['id'] in self.__await_events.keys()):
+                pd_item = utils.dict_to_pandas(
+                        data['action_result'])
+                data = (pd_item if pd_item is not None
+                        else data['action_result'])
+                self.__events_results[message['id']] = data
+                self.__await_events[message['id']].set()
             else:
                 await self.on_data(data)
         except Exception as e:
@@ -52,7 +53,7 @@ class Socket():
                 'args':args,
                 'kwargs':kwargs,})
 
-            self.__await_events[nonce] = asyncio.event()
+            self.__await_events[nonce] = asyncio.Event()
             await self.__await_events[str(nonce)].wait()
 
             result = self.__events_results[nonce]
