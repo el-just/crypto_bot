@@ -31,17 +31,12 @@ def parse_data(data):
         return parsed_data
 
 def pandas_to_dict(data):
-    if isinstance(data, pd.Series):
-        return {
-                'data':data.values,
-                'index':data.index,
-                'name':data.name,}
-    else:
-        return {
-                'data':data.values,
-                'index':data.index,
-                'columns':data.columns,
-                'shape':data.shape,}
+    shape = data.shape
+    data = json.loads(data.to_json(orient='split'))
+    data['shape'] = shape
+
+    return data
+
 def dict_to_pandas(data):
     pd_item = None
 
@@ -56,9 +51,7 @@ def dict_to_pandas(data):
 
 def stringify_data(data):
     if isinstance(data, (pd.Series, pd.DataFrame)):
-        shape = data.shape
-        data = json.loads(data.to_json(orient='split'))
-        data['shape'] = shape
+        data = pandas_to_dict(data)
         return json.dumps(data)
     else:
         return str(data)

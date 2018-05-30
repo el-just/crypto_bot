@@ -49,7 +49,9 @@ class Gateio(Exchange):
                     data=[
                         self.name,
                         int(time.mktime(current_date.timetuple()))*1000,
-                        '_'.join([market.at['base'], market.at['quot']]),
+                        '_'.join([
+                            market.at['base'].lower(),
+                            market.at['quot'].lower(),]),
                         tick_data['params'][1]['close'],],
                     index=formats.tick,
                     name=current_date,)

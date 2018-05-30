@@ -34,16 +34,18 @@ class Socket():
                     and data['id'] in self.__await_events.keys()):
                 pd_item = utils.dict_to_pandas(
                         data['action_result'])
-                data = (pd_item if pd_item is not None
+                result = (pd_item if pd_item is not None
                         else data['action_result'])
-                self.__events_results[message['id']] = data
-                self.__await_events[message['id']].set()
+                self.__events_results[data['id']] = result
+                self.__await_events[data['id']].set()
             else:
                 await self.on_data(data)
         except Exception as e:
             Logger.log_error(e)
 
     async def execute(self, action, *args, **kwargs):
+        result = None
+
         try:
             nonce = utils.get_nonce()
             await self.push({
@@ -62,4 +64,5 @@ class Socket():
         except Exception as e:
             Logger.log_error(e)
 
+        finally:
             return result

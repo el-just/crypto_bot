@@ -53,11 +53,12 @@ class Hitbtc(Exchange):
                         int(datetime.datetime.strptime(
                             tick_data['params']['timestamp'].split('.')[0],
                             '%Y-%m-%dT%H:%M:%S',).timestamp()*1000),
-                        '_'.join([market.at['base'], market.at['quot']]),
+                        '_'.join([market.at['base'].lower(), market.at['quot']]),
                         tick_data['params']['last'],],
                     index=formats.tick,
                     name=datetime.datetime.now(),)
         except Exception as e:
+            Logger.log_info(tick_data['params']['timestamp'].split('.')[0])
             Logger.log_error(e)
 
         finally:
