@@ -12,7 +12,7 @@ class Index (web.View):
     @aiohttp_jinja2.template('index.html')
     async def get(self):
         ctx = decimal.Context()
-        ctx.prec = 20
+        ctx.prec = 10
 
         exchanges_socket = Buffer('exchanges').connect()
         price_frame_view = await exchanges_socket.execute(

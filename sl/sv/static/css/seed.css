@@ -1,8 +1,41 @@
+:root {
+    --dark_theme-black: #282c34;
+    --dark_theme-white: #abb2bf;
+    --dark_theme-light_red: #e06c75;
+    --dark_theme-dark_red: #be5046;
+    --dark_theme-green: #98c379;
+    --dark_theme-light_yellow: #e5c07b;
+    --dark_theme-dark_yellow: #d19a66;
+    --dark_theme-blue: #61afef;
+    --dark_theme-magenta: #c678dd;
+    --dark_theme-cyan: #56b6c2;
+    --dark_theme-gutter_grey: #4b5263;
+    --dark_theme-comment_grey: #5c6370;
+
+    --dark_theme-ocean_one: #1b2b34;
+    --dark_theme-ocean_two: #343d46;
+    --dark_theme-ocean_three: #4f5b66;
+    --dark_theme-ocean_four: #65737e;
+    --dark_theme-ocean_five: #a7adba;
+    --dark_theme-ocean_six: #c0c5ce;
+    --dark_theme-ocean_seven: #cdd3de;
+    --dark_theme-ocean_eight: #d8dee9;
+    --dark_theme-ocean_nine: #ec5f67;
+    --dark_theme-ocean_ten: #f99157;
+    --dark_theme-ocean_eleven: #fac863;
+    --dark_theme-ocean_twelve: #99c794;
+    --dark_theme-ocean_onethree: #62b3b2;
+    --dark_theme-ocean_onefour: #6699cc;
+    --dark_theme-ocean_onefive: #c594c5;
+    --dark_theme-ocean_onesix: #ab7967;
+    --dark_theme-ocean_oneseven: #ffffff;
+}
+
 html, body, button, div, input, textarea {
   padding: 0px;
   margin: 0px;
   border: none;
-  background-color: #282c34;
+  background-color: var(--dark_theme-black);
 
   outline: none;
 
@@ -12,21 +45,55 @@ html, body, button, div, input, textarea {
 
   font-family: Tahoma;
   font-size: 24px;
-  color: #fff;
+  color: var(--dark_theme-white);
 
   display: block;
 }
 
 textarea {
-    font-size: 18px;
-    color: #e5c07b;
+    color: var(--dark_theme-light_yellow);
+    width: 100%;
 }
-
+input[type="submit"]{
+    color: var(--dark_theme-blue);
+    margin-left: 32px;
+}
 input[type="submit"]:hover {
-    color: #e06c75;
+    color: var(--dark_theme-magenta);
 }
 
 .grid_container {
     display: grid;
     grid-template-rows: repeat(auto-fill, 120px);
+}
+
+.settings_button {
+    user-select: none;
+    position:fixed;
+    right: 7px;
+    bottom: -15px;
+    color: var(--dark_theme-blue);
+    font-size: 52px;
+    z-index: 1;
+}
+
+.settings_container {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: -1;
+}
+
+.settings_visible {
+    opacity: 0.9;
+    z-index: 1;
+}
+
+.settings_button:hover {
+    cursor: default;
+    color: var(--dark_theme-magenta);
+    z-index: 1;
 }

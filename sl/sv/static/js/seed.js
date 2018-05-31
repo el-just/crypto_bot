@@ -22,5 +22,10 @@ document.addEventListener('structure.ready',
                     function (event) {
                         console.log (
                             'socket.data.recieved: ' + event.detail.data);},
-                    false,);},
+                    false,);
+            document.querySelector('div.settings_button').addEventListener(
+                'click', function (event) {
+                    document.querySelector(
+                        'div.settings_container').classList.toggle(
+                            'settings_visible')});},
         false,);

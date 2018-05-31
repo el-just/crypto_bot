@@ -11,6 +11,8 @@
 
 {% block content %}
     {% include 'grid.html' %}
+    {% include 'settings.html' %}
+    <div class="settings_button">*</div>
     <script>
         var structureReadyEvent = new CustomEvent('structure.ready', {
                 detail: {},
