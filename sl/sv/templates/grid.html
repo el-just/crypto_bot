@@ -1,13 +1,15 @@
-<div class="grid_container"
-        style="grid-template-columns: repeat({{grid.shape[1]+1}}, 1fr);">
-    <div class="grid_column_name"></div>
-    {% for column_name in grid.columns %}
-        <div class="grid_column_name">{{column_name}}</div>
-    {% endfor %}
-    {% for idx in range(0,grid.shape[0]) %}
-        <div class="grid_row_name">{{grid.index[idx]}}</div>
-        {% for item in grid.data[idx] %}
-            <div class="grid_value">{{item}}</div>
+{% if grid and grid.shape and grid.shape %}
+    <div class="grid_container"
+            style="grid-template-columns: repeat({{grid.shape[1]+1}}, 1fr);">
+        <div class="grid_column_name"></div>
+        {% for column_name in grid.columns %}
+            <div class="grid_column_name">{{column_name}}</div>
         {% endfor %}
-    {% endfor %}
-</div>
+        {% for idx in grid.index %}
+            <div class="grid_row_name">{{idx}}</div>
+            {% for item in grid.data[loop.index0] %}
+                <div class="grid_value">{{item}}</div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

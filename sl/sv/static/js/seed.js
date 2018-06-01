@@ -6,7 +6,7 @@ function request_action(event) {
         return false;}
 
 document.addEventListener('structure.ready',
-        function (event) {
+        function(event) {
             window._.websocket = new WebSocket(
                     'ws://'+window.location.host+'/ws');
 
@@ -19,12 +19,12 @@ document.addEventListener('structure.ready',
                     cancelable: false,}));};
 
             document.addEventListener("socket.data.recieved",
-                    function (event) {
+                    function(event) {
                         console.log (
                             'socket.data.recieved: ' + event.detail.data);},
                     false,);
             document.querySelector('div.settings_button').addEventListener(
-                'click', function (event) {
+                'click', function(event) {
                     document.querySelector(
                         'div.settings_container').classList.toggle(
                             'settings_visible')});},
