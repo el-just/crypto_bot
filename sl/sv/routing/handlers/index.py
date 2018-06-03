@@ -16,8 +16,8 @@ class Index (web.View):
 
         exchanges_socket = Buffer('exchanges').connect()
         price_frame_view = await exchanges_socket.execute(
-                'get_view',
-                'price_frame',)
+                'exchanges.get_price_frame')
+        Logger.log_info(price_frame_view)
         await exchanges_socket.close()
 
         price_frame_view = price_frame_view.dropna()

@@ -22,7 +22,15 @@ class Websocket(Socket):
 
                 if message is not None:
                     message = utils.parse_data(message)
-                    await self.push(message)
+                    if (message.get('type', None) == 'service'
+                            and message.get('action', None) is not None):
+                        result = await self.execute(
+                                message.get('action', None),
+                                *message.get('args', []),
+                                **message.get('kwargs', {}),)
+                        await self.on_data(result)
+                    else:
+                        await self.push(message)
         except Exception as e:
             Logger.log_error(e)
 

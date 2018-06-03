@@ -1,15 +1,18 @@
 import asyncio
+import inspect
 
 from common import Logger
 from common import utils
 
 class Socket():
     source = None
+    owner = None
 
     __await_events = None
     __events_results = None
-    def __init__(self, source=None):
+    def __init__(self, source=None, owner=None):
         self.source = source
+        self.owner = owner
         if source is not None:
             source.connect(self)
 
@@ -25,11 +28,17 @@ class Socket():
     async def close(self):
         self.source.disconnect(self)
 
+    def set_owner(self, owner):
+        self.owner = owner
+
     async def on_data(self, data): pass
 
     async def _data_recieved(self, data):
         try:
-            if (isinstance(data, dict)
+            action_result = await self.__assume_action(data)
+            if action_result is not None:
+                await self.push(data=action_result)
+            elif (isinstance(data, dict)
                     and data.get('type', None) == 'service'
                     and data['id'] in self.__await_events.keys()):
                 pd_item = utils.dict_to_pandas(
@@ -42,6 +51,45 @@ class Socket():
                 await self.on_data(data)
         except Exception as e:
             Logger.log_error(e)
+
+    async def __assume_action(self, data):
+        response = None
+
+        try:
+            if (self.owner is not None
+                    and data.get('type', None) == 'service'
+                    and data.get('action', None) is not None
+                    and data['action'].split('.')[0] == self.owner.name):
+
+                if not hasattr(self.owner, data['action'].split('.')[1]):
+                    raise Warning('%s have not action %s'%(
+                            data['action'].split('.')[0],
+                            data['action'].split('.')[1],))
+
+                action = getattr(self.owner, data['action'].split('.')[1])
+                if inspect.iscoroutinefunction(action):
+                    action_result = await action(
+                            *data.get('args', []),
+                            **data.get('kwargs', {}),)
+                elif inspect.ismethod(action):
+                    action_result = action(
+                            *data.get('args', []),
+                            **data.get('kwargs', {}),)
+                else:
+                    action_result = action
+
+                response = {
+                        'type':'service',
+                        'id':data['id'],
+                        'action_result':action_result,}
+        except Exception as e:
+            response = {
+                    'type':'service',
+                    'id':data['id'],
+                    'action_result':{'error':str(e)},}
+        finally:
+
+            return response
 
     async def execute(self, action, *args, **kwargs):
         result = None
@@ -56,7 +104,7 @@ class Socket():
                 'kwargs':kwargs,})
 
             self.__await_events[nonce] = asyncio.Event()
-            await self.__await_events[str(nonce)].wait()
+            await self.__await_events[nonce].wait()
 
             result = self.__events_results[nonce]
             del self.__events_results[nonce]

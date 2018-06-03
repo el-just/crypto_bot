@@ -11,12 +11,13 @@ document.addEventListener('structure.ready',
                     'ws://'+window.location.host+'/ws');
 
             window._.websocket.onmessage = function(event) {
-            document.dispatchEvent(new CustomEvent('socket.data.recieved', {
-                    detail: {
-                        data: event.data
-                    },
-                    bubbles: false,
-                    cancelable: false,}));};
+                document.dispatchEvent(new CustomEvent(
+                        'socket.data.recieved', {
+                            detail: {
+                                data: event.data
+                            },
+                            bubbles: false,
+                            cancelable: false,}));};
 
             document.addEventListener("socket.data.recieved",
                     function(event) {

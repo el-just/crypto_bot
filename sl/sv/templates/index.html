@@ -5,13 +5,15 @@
 {% block head %}
     <link href="favicon.ico?v=1.0" rel="icon" type="image/x-icon">
     <link href="static/css/seed.css" rel="stylesheet">
-    <script src="static/js/ext/jinja.js"></script>
-    <script src="static/js/seed.js"></script>
 {% endblock %}
 
 {% block content %}
     {% include 'grid.html' %}
     {% include 'settings.html' %}
+
+    <script src="static/js/ext/jinja.js"></script>
+    <script src="static/js/buffer.js"></script>
+    <script src="static/js/seed.js"></script>
     <script>
         var structureReadyEvent = new CustomEvent('structure.ready', {
                 detail: {},

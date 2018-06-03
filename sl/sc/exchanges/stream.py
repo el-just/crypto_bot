@@ -11,23 +11,31 @@ from common import Websocket
 from common import Buffer
 from common import Socket
 
+from common.abilities import Executable
+
 from exchanges import all_exchanges
 from exchanges.views import PriceFrame
 
 class Stream():
+    name = 'exchanges'
+
     __ip = None
     __port = None
 
     __exchanges = None
     __exchanges_buffer = None
+    __exchanges_buffer_socket = None
 
     def __init__(self):
         self.__ip = '127.0.0.1'
         self.__port = 8765
 
         self.__exchanges = [Exchange() for Exchange in all_exchanges]
+
         self.__exchanges_buffer = Buffer('exchanges')
         self.__exchanges_buffer.add_view(PriceFrame())
+        self.__exchanges_buffer_socket = self.__exchanges_buffer.connect()
+        self.__exchanges_buffer_socket.set_owner(self)
 
     async def __client_connector(self, pure_websocket, path):
         try:
@@ -50,3 +58,10 @@ class Stream():
                 tasks.append(task)
 
         return asyncio.gather(*tasks)
+
+    def get_price_frame(self):
+        return utils.pandas_to_dict(
+                        self.__exchanges_buffer.views['price_frame'].state)
+
+    def get_exchanges(self):
+        return [exchange.name for exchange in self.__exchanges]
