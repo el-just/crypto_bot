@@ -1,6 +1,6 @@
-import Socket from 'socket'
+import Socket from './socket.js'
 
-export default class {
+export default class Buffer {
     constructor(name){
         this.name = name;
         if(!this.instances[name]){

@@ -57,4 +57,4 @@ def stringify_data(data):
         return str(data)
 
 def get_nonce():
-    return str(int(datetime.datetime.now().timestamp()))
+    return str(int(datetime.datetime.now().timestamp()*1000))

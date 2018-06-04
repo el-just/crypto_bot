@@ -22,13 +22,23 @@ class Websocket(Socket):
 
                 if message is not None:
                     message = utils.parse_data(message)
+                    if message.get('type', None) is not None:
+                        Logger.log_info('message')
+                        Logger.log_info(message)
+
                     if (message.get('type', None) == 'service'
                             and message.get('action', None) is not None):
+                        Logger.log_info('action accepted, trying to pass')
                         result = await self.execute(
                                 message.get('action', None),
                                 *message.get('args', []),
                                 **message.get('kwargs', {}),)
-                        await self.on_data(result)
+                        response = {
+                                'type':'service',
+                                'id':message['id'],
+                                'action_result':utils.pandas_to_dict(result),}
+                        Logger.log_info('action resolved, trying to response')
+                        await self.on_data(response)
                     else:
                         await self.push(message)
         except Exception as e:
@@ -38,6 +48,9 @@ class Websocket(Socket):
             await self.close()
 
     async def on_data(self, data):
+        if data.get('type', None) is not None:
+            Logger.log_info('message out')
+            Logger.log_info(data)
         data = utils.stringify_data(data)
         if isinstance(self.__websocket, web.WebSocketResponse):
             await self.__websocket.send_str(data)

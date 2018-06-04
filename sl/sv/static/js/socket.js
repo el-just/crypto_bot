@@ -7,7 +7,7 @@ export default class {
             source.connect(this);}}
 
     async push(data){
-        await this.source.push({source=this, data=data});}
+        await this.source.push({source:this, data:data});}
 
     close(){
         this.source.disconnect(this);}

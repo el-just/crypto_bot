@@ -36,6 +36,9 @@ class Socket():
     async def _data_recieved(self, data):
         try:
             action_result = await self.__assume_action(data)
+            if data.get('type', None) == 'service':
+                Logger.log_info('data_recieved')
+                Logger.log_info(self.__await_events.keys())
             if action_result is not None:
                 await self.push(data=action_result)
             elif (isinstance(data, dict)
@@ -66,6 +69,8 @@ class Socket():
                             data['action'].split('.')[0],
                             data['action'].split('.')[1],))
 
+                Logger.log_info('accepted_action')
+
                 action = getattr(self.owner, data['action'].split('.')[1])
                 if inspect.iscoroutinefunction(action):
                     action_result = await action(
@@ -78,10 +83,12 @@ class Socket():
                 else:
                     action_result = action
 
+                Logger.log_info('action produced')
                 response = {
                         'type':'service',
                         'id':data['id'],
                         'action_result':action_result,}
+                Logger.log_info(response)
         except Exception as e:
             response = {
                     'type':'service',
@@ -96,17 +103,20 @@ class Socket():
 
         try:
             nonce = utils.get_nonce()
+            Logger.log_info('execute')
+            Logger.log_info(nonce)
+            self.__await_events[nonce] = asyncio.Event()
             await self.push({
                 'type':'service',
-                'id': utils.get_nonce(),
+                'id': nonce,
                 'action':action,
                 'args':args,
                 'kwargs':kwargs,})
 
-            self.__await_events[nonce] = asyncio.Event()
             await self.__await_events[nonce].wait()
-
+            Logger.log_info('executed')
             result = self.__events_results[nonce]
+            Logger.log_info(result)
             del self.__events_results[nonce]
             del self.__await_events[nonce]
         except Exception as e:
