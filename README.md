@@ -1,4 +1,4 @@
-# crypto_bot
+# crypto_bot (version 1.0)
 Crypto exchanges listener + trade bot  
 
 /sl - Stock listener  
